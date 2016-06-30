@@ -1,0 +1,22 @@
+{
+  "name": "uport",
+  "version": "1.0.0",
+  "description": "Library for integrating uport into your dapp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ConsenSys/uport-lib.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ConsenSys/uport-lib/issues"
+  },
+  "homepage": "https://github.com/ConsenSys/uport-lib#readme",
+  "dependencies": {
+    "web3-provider-engine": "^7.8.1"
+  }
+}
