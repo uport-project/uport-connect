@@ -15,12 +15,15 @@ Uport.prototype.setWeb3 = function(web3) {
 
     var opts = {
         chasquiUrl: 'http://chasqui.uport.me/',
-        uportConnectHandler: function(url, cb) {
-            console.log('url: ' + url);
-            return '0x0'
+        uportConnectHandler: function(apiPath, cb) {
+            console.log('apiPath: ' + apiPath);
         },
-        ethUriHandler: function(uri, cb) { return '0x0' },
-        getSessionId: function() { return randomString(16) }
+        ethUriHandler: function(ethUri, apiPath, cb) {
+            console.log('ethUri: ' + ethUri);
+            console.log('apiPath: ' + apiPath);
+        },
+        getSessionId: function() { return randomString(16) },
+        closeQR: function() { console.log("Closing QR-code") }
     };
     var uportsubprovider = new UportSubprovider(opts);
     engine.addProvider(uportsubprovider);
