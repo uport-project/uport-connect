@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ConsenSys/uport-lib#readme",
   "dependencies": {
+    "qr-js": "^1.1.4",
     "web3-provider-engine": "^7.8.1"
   }
 }
