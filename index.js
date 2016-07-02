@@ -2,11 +2,13 @@ const UportSubprovider = require('./lib/uportsubprovider.js');
 const ProviderEngine = require('web3-provider-engine');
 const RpcSubprovider = require('web3-provider-engine/subproviders/rpc.js');
 const randomString = require('./util/randomString.js');
+const QRDisplay = require('./util/qrdisplay.js');
 
 module.exports = Uport;
 
 function Uport(dappName) {
   this.dappName = dappName;
+  this.qrdisplay = new QRDisplay();
 }
 
 Uport.prototype.setWeb3 = function(web3) {
@@ -29,20 +31,24 @@ Uport.prototype.setWeb3 = function(web3) {
   // start polling
   engine.start();
   web3.setProvider(engine);
+  this.web3 = web3;
 }
 
-Uport.prototype.getUportSubprovider() {
+Uport.prototype.getUportSubprovider = function() {
+  const self = this
+
   var opts = {
     chasquiUrl: 'http://chasqui.uport.me/',
-    uportConnectHandler: function(apiPath, cb) {
-      console.log('apiPath: ' + apiPath);
+    uportConnectHandler: function(uri) {
+      self.qrdisplay.openQr(uri);
     },
-    ethUriHandler: function(ethUri, apiPath, cb) {
-      console.log('ethUri: ' + ethUri);
-      console.log('apiPath: ' + apiPath);
+    ethUriHandler: function(uri) {
+      self.qrdisplay.openQr(uri);
     },
     getSessionId: function() { return randomString(16) },
-    closeQR: function() { console.log("Closing QR-code") }
+    closeQR: function() {
+      self.qrdisplay.closeQr();
+    }
   };
-  var uportsubprovider = new UportSubprovider(opts);
+  return new UportSubprovider(opts);
 }

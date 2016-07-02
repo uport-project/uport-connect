@@ -13,7 +13,7 @@ uport.setWeb3(web3)
 
 
 web3.eth.getCoinbase(function(err, address) {
-    console.log(address)
+    console.log("address: " + address)
     web3.eth.defaultAccount = address
 
     web3.eth.sendTransaction({value: 10, to: '0xd611e4d19949ceb79ee04c88aff5fc6c879e0e1e', data: "0x875765ab3e"}, function(err, txHash) {

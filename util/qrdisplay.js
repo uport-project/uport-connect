@@ -7,8 +7,10 @@ module.exports = QRDisplay;
 function QRDisplay() {
 }
 
-QRDisplay.prototype.openQr(data) {
+QRDisplay.prototype.openQr = function(data) {
+  console.log("QR with data: " + data);
 }
 
-QRDisplay.prototype.closeQr(data) {
+QRDisplay.prototype.closeQr = function() {
+  console.log("Closing QR-code");
 }
