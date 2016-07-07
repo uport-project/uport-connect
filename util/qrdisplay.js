@@ -1,4 +1,4 @@
-var qr = require('qr-js');
+//var qr = require('qr-js');
 
 //var test = qr.canvas('asdf');
 
