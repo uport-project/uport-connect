@@ -6,9 +6,9 @@ const QRDisplay = require('./util/qrdisplay.js');
 
 module.exports = Uport;
 
-function Uport(dappName) {
+function Uport(dappName, qrDisplay) {
   this.dappName = dappName;
-  this.qrdisplay = new QRDisplay();
+  this.qrdisplay = qrDisplay ? qrDisplay : new QRDisplay();
 }
 
 Uport.prototype.setWeb3 = function(web3) {
@@ -40,9 +40,11 @@ Uport.prototype.getUportSubprovider = function() {
   var opts = {
     chasquiUrl: 'http://chasqui.uport.me/',
     uportConnectHandler: function(uri) {
+      uri += "&label=" + encodeURI(self.dappName);
       self.qrdisplay.openQr(uri);
     },
     ethUriHandler: function(uri) {
+      uri += "&label=" + encodeURI(self.dappName);
       self.qrdisplay.openQr(uri);
     },
     getSessionId: function() { return randomString(16) },
