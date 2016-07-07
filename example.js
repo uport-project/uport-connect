@@ -13,7 +13,7 @@ var Uport = require('./index.js')
 
 var uport = new Uport("Simple example")
 
-uport.setWeb3(web3)
+uport.injectSubprovider(web3)
 
 web3.eth.getCoinbase(function(err, address) {
   console.log("address: " + address)
