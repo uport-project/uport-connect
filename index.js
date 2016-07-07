@@ -11,7 +11,7 @@ function Uport(dappName, qrDisplay) {
   this.qrdisplay = qrDisplay ? qrDisplay : new QRDisplay();
 }
 
-Uport.prototype.setWeb3 = function(web3) {
+Uport.prototype.injectSubprovider = function(web3) {
   var engine = new ProviderEngine();
 
   var uportsubprovider = this.getUportSubprovider();
