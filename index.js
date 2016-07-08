@@ -11,27 +11,24 @@ function Uport(dappName, qrDisplay) {
   this.qrdisplay = qrDisplay ? qrDisplay : new QRDisplay();
 }
 
-Uport.prototype.injectSubprovider = function(web3) {
+Uport.prototype.getUportProvider = function(rpcUrl) {
   var engine = new ProviderEngine();
 
   var uportsubprovider = this.getUportSubprovider();
   engine.addProvider(uportsubprovider);
 
-  var rpcProviderUrl = 'https://consensysnet.infura.io:8545';
-  if (web3.currentProvider) {
-    rpcProviderUrl = web3.currentProvider.host;
+  if (!rpcUrl) {
+    rpcUrl = 'https://consensysnet.infura.io:8545';
   }
-
   // data source
   var rpcSubprovider = new RpcSubprovider({
-    rpcUrl: rpcProviderUrl
+    rpcUrl: rpcUrl
   });
   engine.addProvider(rpcSubprovider);
 
   // start polling
   engine.start();
-  web3.setProvider(engine);
-  this.web3 = web3;
+  return engine;
 }
 
 Uport.prototype.getUportSubprovider = function() {
