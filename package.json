@@ -4,7 +4,8 @@
   "description": "Library for integrating uport into your dapp",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify index.js --s uportLib --o dist/uportlib.js"
   },
   "repository": {
     "type": "git",
@@ -18,5 +19,8 @@
   "homepage": "https://github.com/ConsenSys/uport-lib#readme",
   "dependencies": {
     "web3-provider-engine": "^7.8.1"
+  },
+  "devDependencies": {
+    "web3" : "*"
   }
 }

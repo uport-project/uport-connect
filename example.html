@@ -1,0 +1,53 @@
+<html>
+  <body>
+    <script type="text/javascript" src="./dist/uportlib.js"></script>
+    <script type="text/javascript" src="./node_modules/web3/dist/web3.js"></script>
+    <script>
+
+var web3 = new Web3();
+
+var qrDisplay = {};
+qrDisplay.openQr = function(uri) {
+  console.log(uri);
+  document.getElementById('qr').src = "http://chart.apis.google.com/chart?cht=qr&chs=300x300&chl=" + uri;
+}
+qrDisplay.closeQr = function(uri) {
+  document.getElementById('qr').src = '';
+}
+
+var uport = new uportLib("Simple HTML example", qrDisplay);
+var uportProvider = uport.getUportProvider();
+web3.setProvider(uportProvider);
+
+var getCoinbase = function() {
+web3.eth.getCoinbase(function(err, address) {
+  console.log("address: " + address)
+  web3.eth.defaultAccount = address
+  document.getElementById("addr").innerHTML = "Address: " + address
+})
+}
+
+var updateStatus = function() {
+  var statusContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"type":"function"}]);
+  var status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93");
+  var statusMsg = document.getElementById("sts").value;
+  console.log(statusMsg)
+  status.updateStatus(statusMsg, function(e, r) {
+    document.getElementById("txHash").innerHTML = "Tx hash: " + r;
+  })
+}
+
+    </script>
+
+    <h1>Uport provider test</h1>
+    <h2>QR Code</h2>
+    <div><img id="qr"></img></div>
+    <h2>Connect uPort</h2>
+    <div><button onclick="getCoinbase()">Connect uPort</button></div>
+    <div id="addr"></div>
+    <div id="status"></div>
+    <h2>Set Status</h2>
+    <div>Show <input type="text" id="sts" size="20" value="Feeling good"></input><button onclick="updateStatus()">Update Status</button></div>
+    <div id="txHash"></div>
+  </body>
+</html>
