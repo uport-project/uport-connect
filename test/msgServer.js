@@ -2,7 +2,7 @@ const assert = require('chai').assert;
 const xhr = process.browser ? require('xhr') : require('request')
 const MsgServer = require('../lib/msgServer.js');
 
-const chasquiUrl = 'http://chasqui.uport.me/';
+const chasquiUrl = 'https://chasqui.uport.me/';
 var msgServer;
 var topic1;
 var topic2;

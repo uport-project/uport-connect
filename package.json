@@ -4,8 +4,8 @@
   "description": "Library for integrating uport into your dapp",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify index.js --s uportLib --o dist/uportlib.js"
+    "build": "browserify index.js --s uportLib --o dist/uportlib.js",
+    "test": "mocha --reporter spec test/*.js"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,8 @@
     "web3-provider-engine": "^7.8.1"
   },
   "devDependencies": {
-    "web3" : "*"
+    "web3" : "*",
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
   }
 }

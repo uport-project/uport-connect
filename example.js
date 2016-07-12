@@ -33,6 +33,7 @@ web3.eth.getCoinbase(function(err, address) {
 });
 
 var waitForMined = function(txHash, res) {
+  console.log(res)
   if (res.blockNumber) {
     status.getStatus.call(web3.eth.defaultAccount, function(e, r) {
       console.log("My status is: " + r);
