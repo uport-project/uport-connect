@@ -9,7 +9,9 @@ var web3 = new Web3();
 var qrDisplay = {};
 qrDisplay.openQr = function(uri) {
   console.log(uri);
-  document.getElementById('qr').src = "http://chart.apis.google.com/chart?cht=qr&chs=300x300&chl=" + uri;
+  var encodedUri = encodeURIComponent(uri);
+  console.log(encodedUri);
+  document.getElementById('qr').src = "http://chart.apis.google.com/chart?cht=qr&chs=300x300&chl=" + encodedUri;
 }
 qrDisplay.closeQr = function(uri) {
   document.getElementById('qr').src = '';
