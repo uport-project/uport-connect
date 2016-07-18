@@ -17,8 +17,10 @@ var mochMsgServer = {
       cb(null, MSG_DATA);
     }
     return MSG_DATA;
-  }
+  },
+  setOnMobile: () => {}
 };
+mochMsgServer.waitForResult = (topic, cb) => {mochMsgServer.pollForResult(topic, cb)};
 
 const MSG_DATA = "0x0123456789abcdef"
 

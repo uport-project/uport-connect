@@ -18,6 +18,7 @@ describe("uport-lib integration tests", function() {
 
   before((done) => {
     self = this;
+    global.navigator = {};
     // Create Autosigner
     Autosigner.load(rpcUrl, (err, autosinger) => {
       web3.eth.getAccounts((err, accounts) => {
@@ -81,32 +82,3 @@ describe("uport-lib integration tests", function() {
     });
   });
 });
-
-//web3.eth.getCoinbase(function(err, address) {
-  //console.log("address: " + address)
-  //web3.eth.defaultAccount = address
-
-  ////web3.eth.sendTransaction({value: 10, to: }, function(err, txHash) {
-  ////console.log("txHash: " + txHash);
-  ////});
-
-  //status.updateStatus("lalalalla", function(e, r) {
-    //console.log("Waiting for tx to be mined.");
-
-    //waitForMined(r, {blockNumber: null});
-  //})
-//});
-
-//var waitForMined = function(txHash, res) {
-  //console.log(res)
-  //if (res.blockNumber) {
-    //status.getStatus.call(web3.eth.defaultAccount, function(e, r) {
-      //console.log("My status is: " + r);
-    //});
-  //}
-  //else {
-    //web3.eth.getTransaction(txHash, function(e, r) {
-      //waitForMined(txHash, r);
-    //});
-  //}
-//}
