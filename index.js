@@ -3,7 +3,7 @@ const MsgServer = require('./lib/msgServer.js');
 const ProviderEngine = require('web3-provider-engine');
 const RpcSubprovider = require('web3-provider-engine/subproviders/rpc.js');
 const QRDisplay = require('./util/qrdisplay.js');
-const device = require('device');
+const isMobile = require('is-mobile');
 
 module.exports = Uport;
 
@@ -35,8 +35,7 @@ Uport.prototype.getUportProvider = function(rpcUrl, chasquiUrl) {
 Uport.prototype.getUportSubprovider = function(chasquiUrl) {
   const self = this
 
-  var thisDevice = device(navigator.userAgent);
-  self.isOnMobile = thisDevice.is('phone');
+  self.isOnMobile = isMobile(navigator.userAgent);
 
   var opts = {
     msgServer: new MsgServer(chasquiUrl, self.isOnMobile),
