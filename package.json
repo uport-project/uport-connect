@@ -1,5 +1,5 @@
 {
-  "name": "uport",
+  "name": "uport-lib",
   "version": "1.0.0",
   "description": "Library for integrating uport into your dapp",
   "main": "index.js",
