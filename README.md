@@ -21,6 +21,17 @@ From now you can use the web3 object as normal. The following calls will show a 
 
 Check out `example.html` for a simple example of how to integrate uport in your dapp.
 
+### Custom display of QR codes
+uport-lib features a default QR display function, but you might want to display the qr code in another way. This is simply acheived by doing the following:
+```
+var qrDisplay = {
+  openQr(data) {...},
+  closeQr() {...}
+};
+var uport = new Uport("My dapp name", qrDisplay);
+```
+The `openQr` function is called each time some information needs to get to the phone. The `closeQr` is called once the phone has taken an action on the data in the QR code.
+
 ## Testing
 Make sure you have an instance of testrpc running, then do
 ```
