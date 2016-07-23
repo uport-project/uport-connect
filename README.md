@@ -14,8 +14,8 @@ var uportProvider = uport.getUportProvider(rpcUrl);
 web3.setProvider(uportProvider);
 ```
 From now you can use the web3 object as normal. The following calls will show a QR code for the user to scan:
-* `web3.eth.getCoinbase()`
-* `web3.eth.getAccounts()`
+* `web3.eth.getCoinbase()` - returns your uport address
+* `web3.eth.getAccounts()`- returns your uport address in a list
 * `web3.eth.sendTransaction(txObj)`
 * `myContract.myMethod()`
 
