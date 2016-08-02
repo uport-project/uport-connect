@@ -17,10 +17,10 @@ describe("uport-lib integration tests", function() {
   this.timeout(10000);
 
   before((done) => {
-    self = this;
     global.navigator = {};
     // Create Autosigner
-    Autosigner.load(rpcUrl, (err, autosinger) => {
+    Autosigner.load(rpcUrl, (err, as) => {
+      autosinger = as;
       web3.eth.getAccounts((err, accounts) => {
         // Create status contract
         var statusContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"type":"function"}]);
@@ -35,7 +35,6 @@ describe("uport-lib integration tests", function() {
           var uport = new Uport("Integration Tests", autosinger);
           var uportProvider = uport.getUportProvider(rpcUrl);
           web3.setProvider(uportProvider);
-          self.autosinger = autosinger;
           done();
         });
       });
@@ -43,9 +42,8 @@ describe("uport-lib integration tests", function() {
   });
 
   it("getCoinbase", (done) => {
-    self = this;
     web3.eth.getCoinbase((err, address) => {
-      assert.equal(address, self.autosinger.address);
+      assert.equal(address, autosinger.address);
       // set the default account
       web3.eth.defaultAccount = address;
       done();
@@ -53,10 +51,9 @@ describe("uport-lib integration tests", function() {
   });
 
   it("getAccounts", (done) => {
-    self = this;
     web3.eth.getAccounts((err, addressList) => {
       assert.equal(addressList.length, 1, "there should be just one address");
-      assert.equal(addressList[0], self.autosinger.address);
+      assert.equal(addressList[0], autosinger.address);
       done();
     });
   });

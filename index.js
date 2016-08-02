@@ -46,25 +46,19 @@ Uport.prototype.createUportSubprovider = function(chasquiUrl) {
 
   var opts = {
     msgServer: new MsgServer(chasquiUrl, self.isOnMobile),
-    uportConnectHandler: function(uri) {
-      uri += "&label=" + encodeURI(self.dappName);
-      if (self.isOnMobile) {
-        location.assign(uri);
-      } else {
-        self.qrdisplay.openQr(uri);
-      }
-    },
-    ethUriHandler: function(uri) {
-      uri += "&label=" + encodeURI(self.dappName);
-      if (self.isOnMobile) {
-        location.assign(uri);
-      } else {
-        self.qrdisplay.openQr(uri);
-      }
-    },
-    closeQR: function() {
-      self.qrdisplay.closeQr();
-    }
+    uportConnectHandler: self.handleURI.bind(self),
+    ethUriHandler: self.handleURI.bind(self),
+    closeQR: self.qrdisplay.closeQr.bind(self.qrdisplay)
   };
   return new UportSubprovider(opts);
+}
+
+Uport.prototype.handleURI = function(uri) {
+  self = this;
+  uri += "&label=" + encodeURI(self.dappName);
+  if (self.isOnMobile) {
+    location.assign(uri);
+  } else {
+    self.qrdisplay.openQr(uri);
+  }
 }
