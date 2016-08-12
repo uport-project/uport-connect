@@ -28,6 +28,20 @@ var updateStatus = function() {
   })
 }
 
+var sendEther = function() {
+  var toAddr = document.getElementById('sendTo').value
+  var valueEth = document.getElementById('amount').value
+  var value = parseFloat(valueEth)*1.0e18
+  var gasPrice = 100000000000
+  var gas = 500000
+  web3.eth.sendTransaction({to: toAddr, value: value, gasPrice: gasPrice, gas: gas}, function (err, txhash) {
+    console.log('error: ' + err)
+    console.log('txhash: ' + txhash)
+  })
+
+
+}
+
     </script>
 
     <h1>Uport provider test</h1>
@@ -38,5 +52,9 @@ var updateStatus = function() {
     <h2>Set Status</h2>
     <div>Show <input type="text" id="sts" size="20" value="Feeling good"></input><button onclick="updateStatus()">Update Status</button></div>
     <div id="txHash"></div>
+    <h2>Send Ether</h2>
+    <div>Send To: <input type="text" id="sendTo" size="40"></input></div>
+    <div>Amount: <input type="text" id="amount" size="40"></input></div>
+    <div><button onclick="sendEther()">Send Ether</button></div>
   </body>
 </html>
