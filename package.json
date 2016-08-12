@@ -1,6 +1,6 @@
 {
   "name": "uport-lib",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Library for integrating uport into your dapp",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,24 @@
     "type": "git",
     "url": "git+https://github.com/ConsenSys/uport-lib.git"
   },
-  "author": "",
+  "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (http://consensys.net/)",
+  "contributors": [
+    {
+      "name" : "Joel Torstensson",
+      "email" : "joel.torstensson@consensys.net",
+      "url" : "http://consensys.net/"
+    },
+    {
+      "name" : "Christian Lundkvist",
+      "email" : "christian.lundkvist@consensys.net",
+      "url" : "http://consensys.net/"
+    },
+    {
+      "name" : "Jeff Scott Ward",
+      "email" : "jeffscottward@consensys.net",
+      "url" : "http://consensys.net/"
+    }
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ConsenSys/uport-lib/issues"
