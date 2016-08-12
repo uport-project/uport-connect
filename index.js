@@ -32,6 +32,7 @@ Uport.prototype.getUportProvider = function(rpcUrl) {
 
   // start polling
   engine.start();
+  engine.stop();
   return engine;
 }
 
