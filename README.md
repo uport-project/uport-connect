@@ -1,5 +1,3 @@
-# uport-lib
-
 ![uport](https://ipfs.pics/ipfs/QmVHY83dQyym1gDWeMBom7vLJfQ6iGycSWDYZgt2n9Lzah)
 
 **Uport** is a client-side library in which the end-user's keys are kept securely on their phone. Thus, we need to send all transactions to the phone for the user to sign them.
