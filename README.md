@@ -1,5 +1,24 @@
 ![uport](https://ipfs.pics/ipfs/QmVHY83dQyym1gDWeMBom7vLJfQ6iGycSWDYZgt2n9Lzah)
 
+<!--[![NPM version][npm-image]][npm-url] [![Gitter chat][gitter-image]][gitter-url] [![Downloads][downloads-image]][downloads-url]-->
+
+<!--[![NPM][nodei-image]][nodei-url]-->
+
+<!--build-->
+<!--[![Build Status][travis-image]][travis-url] [![Appveyor Status][appveyor-image]][appveyor-url]  [![Coverage Status][coveralls-image]][coveralls-url]-->
+
+<!--dependencies-->
+<!--[![Dependency Status][david-image]][david-url] [![devDependency Status][david-dev-image]][david-dev-url] [![peerDependency Status][david-peer-image]][david-peer-url]-->
+
+<!--donation-->
+<!--[![gratipay donate button][gratipay-image]][gratipay-url] [![Donate to sokra][donate-image]][donate-url]-->
+
+<!--[![BADGINATOR][badginator-image]][badginator-url]-->
+
+<!--[documentation](https://webpack.github.io/docs/?utm_source=github&utm_medium=readme&utm_campaign=top)-->
+
+# Introduction
+
 **Uport** is a client-side library in which the end-user's keys are kept securely on their phone. Thus, we need to send all transactions to the phone for the user to sign them.
 
 This is accomplished by showing the user a QR-code for each transaction, the user can then verify the transaction on the phone and send it to the Ethereum network.
