@@ -9,7 +9,7 @@ var statusContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"sta
 var status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93");
 
 
-var Uport = require('./index.js')
+var Uport = require('../index.js')
 
 var uport = new Uport("Simple example")
 
