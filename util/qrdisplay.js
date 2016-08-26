@@ -10,7 +10,7 @@ QRDisplay.prototype.openQr = function(data) {
   uportQR.style.display = "block";
 
   var pngBuffer = qr.imageSync(data, {type: 'png', margin: 2});
-  var dataUri = 'data:image/png;base64,' + pngBuffer.toString('base64');
+  var dataUri = 'data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64');
   var qrImg = uportQR.children[0].children[0];
   qrImg.setAttribute("src", dataUri);
 }
