@@ -1,6 +1,6 @@
 {
   "name": "uport-lib",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Library for integrating uport into your dapp",
   "main": "index.js",
   "scripts": {
