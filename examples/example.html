@@ -1,60 +1,91 @@
+<!DOCTYPE html>
 <html>
-  <body>
+  <!-- TODO: This example needs updating -->
+  <head>
     <script type="text/javascript" src="../dist/uportlib.js"></script>
     <script type="text/javascript" src="../node_modules/web3/dist/web3.js"></script>
-    <script>
-
-var web3 = new Web3();
-
-var uport = new uportLib("Simple HTML example");
-var uportProvider = uport.getUportProvider();
-web3.setProvider(uportProvider);
-
-var getCoinbase = function() {
-web3.eth.getCoinbase(function(err, address) {
-  console.log("address: " + address)
-  web3.eth.defaultAccount = address
-  document.getElementById("addr").innerHTML = "Address: " + address
-})
-}
-
-var updateStatus = function() {
-  var statusContract = web3.eth.contract([{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"type":"function"}]);
-  var status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93");
-  var statusMsg = document.getElementById("sts").value;
-  console.log(statusMsg)
-  status.updateStatus(statusMsg, function(e, r) {
-    document.getElementById("txHash").innerHTML = "Tx hash: " + r;
-  })
-}
-
-var sendEther = function() {
-  var toAddr = document.getElementById('sendTo').value
-  var valueEth = document.getElementById('amount').value
-  var value = parseFloat(valueEth)*1.0e18
-  var gasPrice = 100000000000
-  var gas = 500000
-  web3.eth.sendTransaction({to: toAddr, value: value, gasPrice: gasPrice, gas: gas}, function (err, txhash) {
-    console.log('error: ' + err)
-    console.log('txhash: ' + txhash)
-  })
-
-
-}
-
-    </script>
-
-    <h1>Uport provider test</h1>
+  </head>
+<body>
+    <h1>Uport Provider Test</h1>
     <h2>Connect uPort</h2>
     <div><button onclick="getCoinbase()">Connect uPort</button></div>
     <div id="addr"></div>
     <div id="status"></div>
     <h2>Set Status</h2>
-    <div>Show <input type="text" id="sts" size="20" value="Feeling good"></input><button onclick="updateStatus()">Update Status</button></div>
+    <div>
+      <span>Show</span>
+      <input type="text" id="sts" size="20" value="Feeling good"/>
+      <button onclick="updateStatus()">Update Status</button>
+    </div>
     <div id="txHash"></div>
     <h2>Send Ether</h2>
-    <div>Send To: <input type="text" id="sendTo" size="40"></input></div>
-    <div>Amount: <input type="text" id="amount" size="40"></input></div>
+    <div>Send To: <input type="text" id="sendTo" size="40"/></div>
+    <div>Amount: <input type="text" id="amount" size="40"/></div>
     <div><button onclick="sendEther()">Send Ether</button></div>
-  </body>
+
+    <script>
+        let web3 = new Web3();
+
+        let uport = new uportLib("Simple HTML example");
+        let uportProvider = uport.getUportProvider();
+        web3.setProvider(uportProvider);
+
+        const getCoinbase = function() {
+            web3.eth.getCoinbase(function(err, address) {
+                console.log("address: " + address)
+                web3.eth.defaultAccount = address
+                document.getElementById("addr").innerHTML = "Address: " + address
+            })
+        }
+
+        const updateStatus = function() {
+            let statusContract = web3.eth.contract([{
+                "constant": false,
+                "inputs": [{
+                    "name": "status",
+                    "type": "string"
+                }],
+                "name": "updateStatus",
+                "outputs": [],
+                "type": "function"
+            }, {
+                "constant": false,
+                "inputs": [{
+                    "name": "addr",
+                    "type": "address"
+                }],
+                "name": "getStatus",
+                "outputs": [{
+                    "name": "",
+                    "type": "string"
+                }],
+                "type": "function"
+            }]);
+            let status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93");
+            let statusMsg = document.getElementById("sts").value;
+            console.log(statusMsg)
+            status.updateStatus(statusMsg, function(e, r) {
+                document.getElementById("txHash").innerHTML = "Tx hash: " + r;
+            })
+        }
+
+        const sendEther = function() {
+            let toAddr = document.getElementById('sendTo').value
+            let valueEth = document.getElementById('amount').value
+            let value = parseFloat(valueEth) * 1.0e18
+            let gasPrice = 100000000000
+            let gas = 500000
+            web3.eth.sendTransaction({
+                to: toAddr,
+                value: value,
+                gasPrice: gasPrice,
+                gas: gas
+            }, function(err, txhash) {
+                console.log('error: ' + err)
+                console.log('txhash: ' + txhash)
+            })
+        }
+    </script>
+</body>
+
 </html>
