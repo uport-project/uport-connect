@@ -1,91 +1,202 @@
 <!DOCTYPE html>
 <html>
-  <!-- TODO: This example needs updating -->
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>uPort Example</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://uport.me/library/img/icons/favicon-16x16.png">
     <script type="text/javascript" src="../dist/uportlib.js"></script>
     <script type="text/javascript" src="../node_modules/web3/dist/web3.js"></script>
+    <style>
+      main { padding: 10px 30px; }
+      header { background: #EEE; }
+      .btn-sm{ padding: 3px 10px;
+               border-radius: 0; }
+    </style>
   </head>
-<body>
-    <h1>Uport Provider Test</h1>
-    <h2>Connect uPort</h2>
-    <div><button onclick="getCoinbase()">Connect uPort</button></div>
-    <div id="addr"></div>
-    <div id="status"></div>
-    <h2>Set Status</h2>
-    <div>
-      <span>Show</span>
-      <input type="text" id="sts" size="20" value="Feeling good"/>
-      <button onclick="updateStatus()">Update Status</button>
-    </div>
-    <div id="txHash"></div>
-    <h2>Send Ether</h2>
-    <div>Send To: <input type="text" id="sendTo" size="40"/></div>
-    <div>Amount: <input type="text" id="amount" size="40"/></div>
-    <div><button onclick="sendEther()">Send Ether</button></div>
-
+  <body>
+    <main>
+      <header><h1 id="appName">Uport Test</h1></header>
+      <hr/>
+      <section>
+        <h2>Connect uPort</h2>
+        <table>
+          <tobdy>
+            <tr><td><span>Address: </span><span id="addr"></span></td></tr>
+            <tr><td><span>Name: </span><span id="name"></span></td></tr>
+          </tobdy>
+        <table>
+        <button class="btn btn-sm btn-primary" id="connectUportBtn" onclick="loginBtnClick()">Connect uPort</button>
+      </section>
+      <hr/>
+      <section>
+        <h2>Set Status</h2>
+        <table>
+          <thead>
+            <tr>
+              <td>Show:</td>
+              <td></td>
+            </tr>
+          </thead>
+          <tobdy>
+            <tr>
+              <td><input type="text" id="sts" size="20" placeholder="Feeling good"/></td>
+              <td><button class="btn btn-sm btn-warning" onclick="updateStatus()">Update Status</button></td>
+            </tr>
+            <tr>
+              <td><span>Transaction Hash(ID): </span><span id="txHashStatus"></span></td>
+            </tr>
+            <tr>
+              <td><span>Status: </span><span id="status"></span></td>
+            </tr>
+          </tobdy>
+        <table>
+      </section>
+      <hr/>
+      <section>
+        <h2>Send Ether</h2>
+        <table>
+          <thead>
+            <tr>
+              <td>Send To:</td>
+              <td>Amount:</td>
+              <td></td>
+            </tr>
+          </thead>
+          <tobdy>
+            <tr>
+              <td><input type="text" id="sendTo" size="40" placeholder="0x1234567891234567"/></td>
+              <td><input type="text" id="amount" size="10" placeholder="5"/></td>
+              <td><button class="btn btn-sm btn-success" onclick="sendEther()">Send Ether</button></td>
+            </tr>
+            <tr>
+              <td><span>Transaction Hash(ID): </span><span id="txHashSentEth"></span></td>
+            </tr>
+          </tobdy>
+        </table>
+      </section>
+    </main>
     <script>
-        let web3 = new Web3();
+      // DOM Selector Shortcut for this example
+      let $ = (selector) => document.querySelector(selector)
 
-        let uport = new uportLib("Simple HTML example");
-        let uportProvider = uport.getUportProvider();
-        web3.setProvider(uportProvider);
+      // App Name reading for this example
+      let appName = $('title').textContent;
+      $('#appName').textContent = appName;
 
-        const getCoinbase = function() {
-            web3.eth.getCoinbase(function(err, address) {
-                console.log("address: " + address)
-                web3.eth.defaultAccount = address
-                document.getElementById("addr").innerHTML = "Address: " + address
-            })
+      ////////////////////////////////////////////////
+
+      // App Steup
+      let rpcUrl = "https://consensysnet.infura.io:8545";
+      let Uport = window.uportlib.Uport;
+      let web3 = new Web3();
+
+      // App options
+      let options = {
+        ipfsProvider: {
+          host: 'ipfs.infura.io',
+          port: '5001',
+          protocol: 'https',
+          root: ''
         }
+      }
 
-        const updateStatus = function() {
-            let statusContract = web3.eth.contract([{
-                "constant": false,
-                "inputs": [{
-                    "name": "status",
-                    "type": "string"
-                }],
-                "name": "updateStatus",
-                "outputs": [],
-                "type": "function"
-            }, {
-                "constant": false,
-                "inputs": [{
-                    "name": "addr",
-                    "type": "address"
-                }],
-                "name": "getStatus",
-                "outputs": [{
-                    "name": "",
-                    "type": "string"
-                }],
-                "type": "function"
-            }]);
-            let status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93");
-            let statusMsg = document.getElementById("sts").value;
-            console.log(statusMsg)
-            status.updateStatus(statusMsg, function(e, r) {
-                document.getElementById("txHash").innerHTML = "Tx hash: " + r;
-            })
-        }
+      let uport = new Uport(appName, options)
+      let uportProvider = uport.getUportProvider(rpcUrl)
+      web3.setProvider(uportProvider)
 
-        const sendEther = function() {
-            let toAddr = document.getElementById('sendTo').value
-            let valueEth = document.getElementById('amount').value
-            let value = parseFloat(valueEth) * 1.0e18
-            let gasPrice = 100000000000
-            let gas = 500000
-            web3.eth.sendTransaction({
-                to: toAddr,
-                value: value,
-                gasPrice: gasPrice,
-                gas: gas
-            }, function(err, txhash) {
-                console.log('error: ' + err)
-                console.log('txhash: ' + txhash)
-            })
-        }
+      ////////////////////////////////////////////////
+
+      const loginBtnClick = function () {
+        web3.eth.getCoinbase((error, address) => {
+          if (error) { throw error }
+          web3.eth.defaultAccount = address
+          $('#addr').innerHTML = address
+
+          uport.getUserPersona().then((userPersona) => {
+            let profile = userPersona.getProfile()
+            $('#name').innerHTML = profile.name
+            console.log(profile)
+          })
+          $('#connectUportBtn').style.display = 'none'
+        })
+      }
+
+      ////////////////////////////////////////////////
+
+      // This contract ABI has already been generated for you
+      // Generating contract ABI's is out of scope of this document
+      // See Truffle for help with contract compiling
+      // https://truffle.readthedocs.io/en/latest/
+      const updateStatus = () => {
+        let statusContract = web3.eth.contract(
+          [
+            {
+              "constant": false,
+              "inputs": [
+                {
+                  "name": "status",
+                  "type": "string"
+                }
+              ],
+              "name": "updateStatus",
+              "outputs": [],
+              "type": "function"
+            },
+            {
+              "constant": false,
+              "inputs": [
+                {
+                  "name": "addr",
+                  "type": "address"
+                }
+              ],
+              "name": "getStatus",
+              "outputs": [
+                {
+                  "name": "",
+                  "type": "string"
+                }
+              ],
+              "type": "function"
+            }
+          ]
+        )
+        let status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93")
+        let statusMsg = $("#sts").value
+
+        status.updateStatus(statusMsg, (error, response) => {
+          if (error) { throw error }
+          $("#txHashStatus").innerHTML = "Tx hash: " + r
+          $("#status").innerHTML = statusMsg
+        })
+      }
+
+      ////////////////////////////////////////////////
+
+      // Send ether to a friend with Web3
+      const sendEther = () => {
+        let toAddr = $('#sendTo').value
+        let value = parseFloat($('#amount').value) * 1.0e18
+        let gasPrice = 100000000000
+        let gas = 500000
+
+        web3.eth.sendTransaction(
+          {
+            to: toAddr,
+            value: value,
+            gasPrice: gasPrice,
+            gas: gas
+          },
+          (error, txhash) => {
+            if (error) { throw error }
+            $('#txHashSentEth').innerHTML = txhash
+          }
+        )
+      }
     </script>
-</body>
-
+  </body>
 </html>

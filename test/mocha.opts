@@ -1,0 +1,1 @@
+--require reify test --recursive --compilers js:babel-register

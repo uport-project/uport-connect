@@ -1,49 +1,100 @@
 {
   "name": "uport-lib",
-  "version": "1.0.2",
-  "description": "Library for integrating uport into your dapp",
-  "main": "index.js",
+  "version": "1.3.0",
+  "description": "Library for integrating uPort into your DApp",
+  "main": "dist/uportlib.js",
   "scripts": {
-    "build": "browserify index.js --s uportLib --o dist/uportlib.js",
-    "test": "mocha --reporter spec test/*.js"
+    "prebuild": "standard --verbose | snazzy",
+    "build": "webpack --config webpack.config.js",
+    "watch": "webpack --config webpack.config.js -w",
+    "pretest": "npm run build",
+    "test": "mocha",
+    "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ConsenSys/uport-lib.git"
   },
+  "keywords": [
+    "uport",
+    "identity",
+    "self-sovereign",
+    "ethereum",
+    "bitcoin",
+    "consensys",
+    "web3",
+    "ipfs",
+    "persona"
+  ],
   "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (http://consensys.net/)",
+  "license": "ISC",
   "contributors": [
     {
-      "name" : "Joel Torstensson",
-      "email" : "joel.torstensson@consensys.net",
-      "url" : "http://consensys.net/"
+      "name": "Christian Lundkvist",
+      "email": "christian.lundkvist@consensys.net",
+      "url": "http://consensys.net/"
     },
     {
-      "name" : "Christian Lundkvist",
-      "email" : "christian.lundkvist@consensys.net",
-      "url" : "http://consensys.net/"
+      "name": "Jeff Scott Ward",
+      "email": "jeffscottward@consensys.net",
+      "url": "http://consensys.net/"
     },
     {
-      "name" : "Jeff Scott Ward",
-      "email" : "jeffscottward@consensys.net",
-      "url" : "http://consensys.net/"
+      "name": "Joel Torstensson",
+      "email": "joel.torstensson@consensys.net",
+      "url": "http://consensys.net/"
     }
   ],
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/ConsenSys/uport-lib/issues"
   },
+  "files": [
+    "lib",
+    "dist"
+  ],
   "homepage": "https://github.com/ConsenSys/uport-lib#readme",
+  "standard": {
+    "ignore": [
+      "dist/**"
+    ],
+    "globals": [
+      "describe",
+      "it",
+      "before",
+      "after",
+      "should"
+    ]
+  },
   "dependencies": {
+    "async": "^2.0.1",
     "is-mobile": "^0.2.2",
+    "json-loader": "^0.5.4",
+    "nets": "^3.2.0",
     "qr-image": "^3.1.0",
+    "qs": "^6.2.1",
+    "request": "^2.74.0",
+    "uport-persona": "^v1.2.4",
     "web3-provider-engine": "^7.8.1"
   },
   "devDependencies": {
+    "babel-core": "^6.14.0",
+    "babel-eslint": "^6.1.2",
+    "babel-loader": "^6.2.5",
+    "babel-plugin-external-helpers": "^6.8.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-register": "^6.11.6",
     "chai": "^3.5.0",
+    "eslint": "^3.2.2",
     "eth-lightwallet": "^2.4.3",
+    "ethereumjs-testrpc": "^2.2.4",
     "ethereumjs-tx": "^1.1.1",
-    "mocha": "^2.5.3",
-    "web3": "*"
+    "istanbul": "^0.4.4",
+    "jsdoc-to-markdown": "^1.3.7",
+    "json-loader": "^0.5.4",
+    "mocha": "^3.0.2",
+    "reify": "^0.3.8",
+    "snazzy": "^4.0.1",
+    "standard": "^8.0.0-beta.5",
+    "webpack": "^1.13.2"
   }
 }
