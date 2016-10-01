@@ -1,3 +1,5 @@
+'use strict';
+
 // Webpack
 const webpack = require('webpack')
 
