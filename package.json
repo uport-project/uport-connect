@@ -4,14 +4,15 @@
   "description": "Library for integrating uPort into your DApp",
   "main": "dist/uportlib.js",
   "scripts": {
-    "prebuild": "standard --verbose | snazzy",
+    "lint": "standard --verbose | snazzy",
     "build": "webpack --config webpack.config.js",
     "watch": "webpack --config webpack.config.js -w",
     "test": "mocha && npm run karma",
     "karma-watch": "./node_modules/.bin/karma start --browsers PhantomJS",
     "karma": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
     "karma-CI": "./node_modules/.bin/karma start --single-run",
-    "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md"
+    "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md",
+    "report-coverage": "codecov"
   },
   "repository": {
     "type": "git",
@@ -86,6 +87,7 @@
     "babel-preset-es2015": "^6.14.0",
     "babel-register": "^6.16.3",
     "chai": "^3.5.0",
+    "codecov": "^1.0.1",
     "eslint": "^3.2.2",
     "eth-lightwallet": "^2.4.3",
     "ethereumjs-testrpc": "^2.2.4",
