@@ -3,7 +3,7 @@ var webpack = require('webpack');
 module.exports = function (config) {
   config.set({
     basePath: '',
-    browsers: ['PhantomJS', 'Chrome', 'Firefox', 'Safari'],
+    browsers: ['PhantomJS', 'Chrome', 'Firefox'],
     frameworks: [ 'mocha', 'chai' ],
     files: [
       'test/uportsubprovider.js'
@@ -26,7 +26,6 @@ module.exports = function (config) {
       'karma-chai',
       'karma-mocha-reporter',
       'karma-chrome-launcher',
-      'karma-safari-launcher',
       'karma-firefox-launcher',
       'karma-phantomjs-launcher',
       'karma-sourcemap-loader'
