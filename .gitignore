@@ -24,4 +24,7 @@ node_modules
 # Test Coverage
 coverage
 
+# Build
+lib
+
 .DS_Store
