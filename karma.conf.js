@@ -15,27 +15,24 @@ module.exports = function (config) {
       'test/istanbul.reporter.js'
     ],
     preprocessors: {
-        'test/uportsubprovider.js': [ 'webpack', 'sourcemap' ]
+        'test/uportsubprovider.js': [ 'webpack', 'sourcemap']
         // 'test/*.js': [ 'webpack', 'sourcemap' ]
     },
     reporters: [ 'mocha', 'coverage' ],
-    plugins: [
-      'karma-webpack',
-      'karma-mocha',
-      'karma-coverage',
-      'karma-chai',
-      'karma-mocha-reporter',
-      'karma-chrome-launcher',
-      'karma-firefox-launcher',
-      'karma-phantomjs-launcher',
-      'karma-sourcemap-loader'
-    ],
+
     webpack: {
       devtool: 'inline-source-map',
       module: {
         loaders: [
           { test: /\.js$/, exclude: /node_modules/, loaders: ['babel']},,
           { test: /\.json$/, loader: 'json'}
+        ],
+        postLoaders: [
+          {
+            test: /\.js$/,
+            exclude: /(__tests__|node_modules|bower_components|test)/,
+            loader: 'istanbul-instrumenter'
+          }
         ]
      },
      node: {
@@ -47,17 +44,19 @@ module.exports = function (config) {
      resolve: {
        extensions: ['', '.js', '.json']
      }
+  },
 
-    },
-    webpackServer: {
-      noInfo: true
-    },
-    coverageReporter: {
-     reporters: [
-         {type:'html', subdir: '.'},
-         {type:'lcovonly', subdir: '.'}
-     ]
-   },
+
+
+  webpackServer: {
+    noInfo: true
+  },
+  coverageReporter: {
+    reporters: [
+      {type:'lcovonly', subdir: '.'}
+      // {type:'html', subdir: '.'}
+    ]
+  },
   port: 9876,
   logLevel: config.LOG_INFO,
   autoWatch: true,
