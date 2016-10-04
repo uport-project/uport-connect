@@ -14,8 +14,7 @@
     "karma-watch": "./node_modules/.bin/karma start --browsers PhantomJS",
     "karma": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
     "karma-CI": "./node_modules/.bin/karma start --single-run",
-    "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md",
-    "report-coverage": "codecov"
+    "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md"
   },
   "repository": {
     "type": "git",
@@ -83,6 +82,7 @@
     "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {
+    "babel-cli": "^6.16.0",
     "babel-core": "^6.14.0",
     "babel-eslint": "^7.0.0",
     "babel-loader": "^6.2.5",

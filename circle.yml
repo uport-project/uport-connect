@@ -2,7 +2,7 @@ machine:
   node:
     version: 6.0.0
 test:
-  override: 
+  override:
     - npm run karma-CI
   post:
-    - npm run report-coverage
+    -  bash <(curl -s https://codecov.io/bash)
