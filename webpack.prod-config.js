@@ -3,14 +3,8 @@
 // Webpack
 const webpack = require('webpack')
 
-// Plugin Setup
-const globalsPlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true')),
-  'process.env': { 'NODE_ENV': JSON.stringify('development') }
-})
-
 let libraryName = 'uportlib'
-let outputFile = libraryName + '.js'
+let outputFile = libraryName + '.min.js'
 
 // Final Config
 module.exports = {
@@ -44,6 +38,13 @@ module.exports = {
   resolve: {
     extensions: ['', '.js', '.json']
   },
-  devTool: 'inline-source-map',
-  plugins: [globalsPlugin]
+  plugins: [
+    new webpack.optimize.UglifyJsPlugin(),
+    new webpack.optimize.DedupePlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+       }
+    })
+  ]
 }
