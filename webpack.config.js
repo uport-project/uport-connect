@@ -36,14 +36,15 @@ module.exports = {
     ]
   },
   node: {
-    console: 'empty',
+    console: false,
     fs: 'empty',
     net: 'empty',
     tls: 'empty'
   },
+  // devTool: 'inline-source-map',
   resolve: {
-    extensions: ['', '.js', '.json']
+    modules: [ './src', 'node_modules' ],
+    extensions: ['.js', '.json']
   },
-  devTool: 'inline-source-map',
   plugins: [globalsPlugin]
 }

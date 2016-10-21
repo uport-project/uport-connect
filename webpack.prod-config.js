@@ -30,21 +30,24 @@ module.exports = {
     ]
   },
   node: {
-    console: 'empty',
+    console: false,
     fs: 'empty',
     net: 'empty',
     tls: 'empty'
   },
   resolve: {
-    extensions: ['', '.js', '.json']
+    modules: [ './src', 'node_modules' ],
+    extensions: ['.js', '.json']
   },
   plugins: [
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false
+    }),
     new webpack.optimize.UglifyJsPlugin(),
     new webpack.optimize.DedupePlugin(),
     new webpack.DefinePlugin({
-      'process.env': {
-        'NODE_ENV': JSON.stringify('production')
-       }
+      'process.env': { NODE_ENV: JSON.stringify('production') }
     })
-  ]
+  ],
 }
