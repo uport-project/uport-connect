@@ -9,6 +9,7 @@ let outputFile = libraryName + '.min.js'
 // Final Config
 module.exports = {
   entry: './src/index.js',
+  devtool: 'cheap-source-map',
   output: {
     path: 'dist',
     filename: outputFile,
@@ -40,14 +41,24 @@ module.exports = {
     extensions: ['.js', '.json']
   },
   plugins: [
+    new webpack.SourceMapDevToolPlugin({
+      filename: outputFile + '.map',
+      append: false,
+      module: true,
+      columns: true,
+      lineToLine: true
+    }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false
     }),
-    new webpack.optimize.UglifyJsPlugin(),
+    new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true
+    }),
     new webpack.optimize.DedupePlugin(),
     new webpack.DefinePlugin({
       'process.env': { NODE_ENV: JSON.stringify('production') }
     })
+
   ],
 }

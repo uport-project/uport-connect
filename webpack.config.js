@@ -20,8 +20,10 @@ module.exports = {
     filename: outputFile,
     library: libraryName,
     libraryTarget: 'umd',
-    umdNamedDefine: true
+    umdNamedDefine: true,
+    sourceMapFilename: outputFile
   },
+  devtool: 'cheap-module-source-map',
   module: {
     loaders: [
       {
@@ -41,10 +43,19 @@ module.exports = {
     net: 'empty',
     tls: 'empty'
   },
-  // devTool: 'inline-source-map',
   resolve: {
     modules: [ './src', 'node_modules' ],
     extensions: ['.js', '.json']
   },
-  plugins: [globalsPlugin]
+  plugins: [
+    globalsPlugin,
+    new webpack.SourceMapDevToolPlugin({
+      filename: outputFile + '.map',
+      append: false,
+      module: true,
+      columns: true,
+      lineToLine: true
+    })
+
+  ]
 }
