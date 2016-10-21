@@ -11,9 +11,6 @@ module.exports = function (config) {
       // in broswer enviroments.
       // 'test/*.js'
     ],
-    exclude: [
-      'test/istanbul.reporter.js'
-    ],
     preprocessors: {
         'test/uportsubprovider.js': [ 'webpack', 'sourcemap']
         // 'test/*.js': [ 'webpack', 'sourcemap' ]
@@ -21,11 +18,21 @@ module.exports = function (config) {
     reporters: [ 'mocha', 'coverage' ],
 
     webpack: {
-      devtool: 'inline-source-map',
+      devtool: 'source-map',
       module: {
         loaders: [
-          { test: /\.js$/, exclude: /node_modules/, loaders: ['babel']},,
-          { test: /\.json$/, loader: 'json'}
+          {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            loader: 'babel',
+            query: {
+              presets: ['es2015']
+            }
+          },
+          {
+            test: /\.json$/,
+            loader: 'json'
+          }
         ],
         postLoaders: [
           {
@@ -36,25 +43,22 @@ module.exports = function (config) {
         ]
      },
      node: {
-       console: 'empty',
+       console: false,
        fs: 'empty',
        net: 'empty',
        tls: 'empty'
      },
      resolve: {
-       extensions: ['', '.js', '.json']
+       extensions: ['.js', '.json']
      }
   },
-
-
-
   webpackServer: {
     noInfo: true
   },
   coverageReporter: {
     reporters: [
-      {type:'lcovonly', subdir: '.'}
-      // {type:'html', subdir: '.'}
+      {type:'lcovonly', subdir: '.'},
+      {type:'html', subdir: 'html'}
     ]
   },
   port: 9876,
