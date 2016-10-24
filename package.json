@@ -96,6 +96,7 @@
     "babel-register": "^6.16.3",
     "chai": "^3.5.0",
     "codecov": "^1.0.1",
+    "cz-conventional-changelog": "^1.2.0",
     "eslint": "^3.2.2",
     "eth-lightwallet": "^2.4.3",
     "ethereumjs-testrpc": "^2.2.4",
@@ -117,9 +118,14 @@
     "karma-webpack": "^1.8.0",
     "mocha": "^3.0.2",
     "reify": "^0.3.8",
+    "semantic-release": "^4.3.5",
     "snazzy": "^5.0.0",
     "standard": "^8.0.0-beta.5",
-    "webpack": "2.1.0-beta.15",
-    "semantic-release": "^4.3.5"
+    "webpack": "2.1.0-beta.15"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
