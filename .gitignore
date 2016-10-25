@@ -26,5 +26,6 @@ coverage
 
 # Build
 lib
+dist
 
 .DS_Store
