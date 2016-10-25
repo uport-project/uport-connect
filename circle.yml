@@ -6,4 +6,4 @@ test:
     - npm run karma-CI
   post:
     -  bash <(curl -s https://codecov.io/bash)
-    -  npm run semantic-release
+    -  npm run semantic-release || true

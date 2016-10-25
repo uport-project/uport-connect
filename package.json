@@ -19,9 +19,6 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "commitmsg": "./node_modules/validate-commit-msg/index.js"
   },
-  "release": {
-    "debug": true
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ConsenSys/uport-lib.git"
@@ -97,6 +94,7 @@
     "babel-register": "^6.16.3",
     "chai": "^3.5.0",
     "codecov": "^1.0.1",
+    "condition-circle": "^1.5.0",
     "cz-conventional-changelog": "^1.2.0",
     "eslint": "^3.2.2",
     "eth-lightwallet": "^2.4.3",
@@ -130,7 +128,22 @@
       "path": "./node_modules/cz-conventional-changelog"
     },
     "validate-commit-msg": {
-      "types": ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "revert"]
-   }
- }
+      "types": [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "perf",
+        "test",
+        "chore",
+        "revert",
+        "ci"
+      ]
+    }
+  },
+  "release": {
+    "debug": true,
+    "verifyConditions": "condition-circle"
+  }
 }
