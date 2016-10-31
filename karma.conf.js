@@ -3,17 +3,13 @@ var webpack = require('webpack');
 module.exports = function (config) {
   config.set({
     basePath: '',
-    browsers: ['PhantomJS', 'Chrome', 'Firefox'],
+    browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
     files: [
-      'test/uportsubprovider.js'
-      // Current tooling and testing approach does not allow all tests to be run
-      // in broswer enviroments.
-      // 'test/*.js'
+      'test/*.js'
     ],
     preprocessors: {
-        'test/uportsubprovider.js': [ 'webpack', 'sourcemap']
-        // 'test/*.js': [ 'webpack', 'sourcemap' ]
+        'test/*.js': [ 'webpack', 'sourcemap' ]
     },
     reporters: [ 'mocha', 'coverage' ],
 
@@ -23,7 +19,7 @@ module.exports = function (config) {
         loaders: [
           {
             test: /\.js$/,
-            exclude: /node_modules/,
+            exclude: /node_modules\/(?![querystring])/,
             loader: 'babel',
             query: {
               presets: ['es2015']
