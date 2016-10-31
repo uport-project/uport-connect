@@ -8,7 +8,7 @@ import Transaction from 'ethereumjs-tx'
 import Web3 from 'web3'
 import url from 'url'
 import querystring from 'querystring'
-import request from 'request'
+import nets from 'nets'
 
 const PASSWORD = 'password'
 const SEED = 'unhappy nerve cancel reject october fix vital pulse cash behind curious bicycle'
@@ -93,12 +93,13 @@ class Autosigner {
 
   static postData (url, body, cb) {
     if (!cb) cb = function () {}
-    request({
+    nets({
       url: url,
       method: 'POST',
       json: body
     }, cb)
   }
 }
+
 
 export default Autosigner
