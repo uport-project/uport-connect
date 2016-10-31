@@ -1,0 +1,8 @@
+src
+logs
+*.log
+npm-debug.log*
+coverage
+dist
+examples
+test

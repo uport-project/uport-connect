@@ -3,27 +3,20 @@
 // Webpack
 const webpack = require('webpack')
 
-// Plugin Setup
-const globalsPlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true')),
-  'process.env': { 'NODE_ENV': JSON.stringify('development') }
-})
-
 let libraryName = 'uportlib'
-let outputFile = libraryName + '.js'
+let outputFile = libraryName + '.min.js'
 
 // Final Config
 module.exports = {
   entry: './src/index.js',
+  devtool: 'cheap-source-map',
   output: {
     path: 'dist',
     filename: outputFile,
     library: libraryName,
     libraryTarget: 'umd',
-    umdNamedDefine: true,
-    sourceMapFilename: outputFile
+    umdNamedDefine: true
   },
-  devtool: 'cheap-module-source-map',
   module: {
     loaders: [
       {
@@ -48,14 +41,24 @@ module.exports = {
     extensions: ['.js', '.json']
   },
   plugins: [
-    globalsPlugin,
     new webpack.SourceMapDevToolPlugin({
       filename: outputFile + '.map',
       append: false,
       module: true,
       columns: true,
       lineToLine: true
+    }),
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true
+    }),
+    new webpack.optimize.DedupePlugin(),
+    new webpack.DefinePlugin({
+      'process.env': { NODE_ENV: JSON.stringify('production') }
     })
 
-  ]
+  ],
 }
