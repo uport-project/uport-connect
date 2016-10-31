@@ -10,10 +10,11 @@
     "build-dist-prod": "webpack --config webpack.prod-config.js",
     "build": "npm run build-es5 && npm run build-dist && npm run build-dist-prod",
     "watch": "webpack --config webpack.config.js -w",
+    "testrpc": "./node_modules/.bin/testrpc",
     "test": "mocha && npm run karma",
     "karma-watch": "./node_modules/.bin/karma start --browsers PhantomJS",
-    "karma": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
-    "karma-CI": "./node_modules/.bin/karma start --single-run",
+    "karma": "node karmawrapper start --single-run --browsers PhantomJS",
+    "karma-CI": "node karmawrapper start --single-run --browsers PhantomJS",
     "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md",
     "prepublish": "npm run build",
     "postpublish": "publish-release  --reuseRelease --assets dist/uportlib.js,dist/uportlib.js.map,dist/uportlib.min.js,dist/uportlib.min.js.map",
@@ -128,6 +129,7 @@
     "semantic-release": "^4.3.5",
     "snazzy": "^5.0.0",
     "standard": "^8.0.0-beta.5",
+    "validate-commit-msg": "^2.8.2",
     "webpack": "2.1.0-beta.15"
   },
   "config": {
