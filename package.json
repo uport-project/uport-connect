@@ -152,7 +152,6 @@
     }
   },
   "release": {
-    "debug": true,
     "verifyConditions": "condition-circle"
   }
 }
