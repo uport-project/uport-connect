@@ -8,7 +8,7 @@
     "build-es5": "./node_modules/.bin/babel src -d lib",
     "build-dist": "webpack --config webpack.config.js",
     "build-dist-prod": "webpack --config webpack.prod-config.js",
-    "build": "npm run build-es5 && npm run build-dist && npm run build-dist-prod",
+    "build": "npm run build-es5",
     "watch": "webpack --config webpack.config.js -w",
     "testrpc": "./node_modules/.bin/testrpc",
     "test": "mocha && npm run karma",
@@ -16,7 +16,7 @@
     "karma": "node karmawrapper start --single-run --browsers PhantomJS",
     "karma-CI": "node karmawrapper start --single-run --browsers PhantomJS",
     "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md",
-    "prepublish": "npm run build",
+    "prepublish": "npm run build && npm run build-dist && npm run build-dist-prod",
     "postpublish": "publish-release  --reuseRelease --assets dist/uportlib.js,dist/uportlib.js.map,dist/uportlib.min.js,dist/uportlib.min.js.map",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "commitmsg": "./node_modules/validate-commit-msg/index.js"
