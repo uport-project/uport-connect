@@ -170,7 +170,7 @@
 
         status.updateStatus(statusMsg, (error, response) => {
           if (error) { throw error }
-          $("#txHashStatus").innerHTML = "Tx hash: " + r
+          $("#txHashStatus").innerHTML = "Tx hash: " + response
           $("#status").innerHTML = statusMsg
         })
       }
