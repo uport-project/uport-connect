@@ -3,12 +3,12 @@
 
 ## Introduction
 
-This tutorial will show you how to add support for uPort in your application, using the libraries uport-lib and uport-persona. We will create a simple application, FriendWallet,  allowing you to send ether to the contacts in your uPort contact list.
+This tutorial will show you how to add support for uPort in your application, using the libraries `uport-lib` and `uport-persona`. We will create a simple application, FriendWallet,  allowing you to send ether to the contacts in your uPort contact list.
 
 We will create this app in two steps:
 
-1. Using uport-lib we will enable you to connect your uport and sign transactions using the built-in QR code system.
-2. Using uport-persona will will show how to fetch profile data like your contact list as well as the names of your contacts and populate this in a list.
+1. Using `uport-lib` we will enable you to connect your uport and sign transactions using the built-in QR code system.
+2. Using `uport-persona` will will show how to fetch profile data like your contact list as well as the names of your contacts and populate this in a list.
 
 ## Getting started
 
@@ -25,7 +25,7 @@ We will be working in the directory `uport-lib/tutorial`.
 
 Make sure you have the uPort application installed on your mobile device, and that you have some contacts added.
 
-## Step 1 - Using uport-lib
+## Step 1 - Using `uport-lib`
 
 We've created a simple HTML file `friendwallet_step1.html` that you can find [here](TODO:link). It contains a section for connecting your uport, and another section for a transfer of Ether from your uport address to another address.
 
@@ -100,9 +100,11 @@ const sendEther = () => {
 
 This code will also trigger a QR code, prompting you to sign the transaction on the mobile app.
 
-Feel free to verify in the HTML file that you can send some test Ether to my address:
+Feel free to verify in the HTML file that you can send some test Ether to the following address:
 
-0xb65e3a3027fa941eec63411471d90e6c24b11ed1.
+```
+0xb65e3a3027fa941eec63411471d90e6c24b11ed1
+```
 
 You can check [here](https://test.ether.camp/account/b65e3a3027fa941eec63411471d90e6c24b11ed1) to make sure the transaction completes.
 
@@ -114,7 +116,7 @@ In this section we'll demonstrate how to fetch public profile data from your uPo
 
 For this section we will use the HTML file `friendwallet_step2.html`, and the javascript file `friendwallet_step2.js`. You'll notice that we've also included `uport-persona.js` in the HTML file.
 
-We will enhance the `uportConnect()` function by fetching your name and profile picture to display it in the UI, using the uport-persona library:
+We will enhance the `uportConnect()` function by fetching your name and profile picture to display it in the UI, using the `uport-persona` library:
 
 ```
 const uportConnect = () => {
@@ -138,7 +140,7 @@ In order to test it out, go to the HTML file and click "Connect uPort". After sc
 Next up we'll make a drop-down list of our friends so that we can send them Ether without showing their hex-addresses in the UI.
 
 This will include:
-* Fetch your contacts using the uport-persona library
+* Fetch your contacts using the `uport-persona` library
 * For each one of your contacts, grab the name and populate it into a list
 * Map the name to the address that we finally send to
 
