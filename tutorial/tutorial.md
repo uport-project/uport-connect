@@ -1,12 +1,29 @@
 
 # How to integrate uPort into your dapp
 
+## Introduction
+
 This tutorial will show you how to add support for uPort in your application, using the libraries uport-lib and uport-persona. We will create a simple application, FriendWallet,  allowing you to send ether to the contacts in your uPort contact list.
 
 We will create this app in two steps:
 
 1. Using uport-lib we will enable you to connect your uport and sign transactions using the built-in QR code system.
 2. Using uport-persona will will show how to fetch profile data like your contact list as well as the names of your contacts and populate this in a list.
+
+## Getting started
+
+Clone the `uport-lib` repository locally, and build it:
+
+```
+git clone https://github.com/ConsenSys/uport-lib
+cd uport-lib
+npm install
+npm run build-dist
+```
+
+We will be working in the directory `uport-lib/tutorial`.
+
+Make sure you have the uPort application installed on your mobile device, and that you have some contacts added.
 
 ## Step 1 - Using uport-lib
 
