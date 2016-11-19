@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>FriendWallet</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://uport.me/library/img/icons/favicon-16x16.png">
+    <script type="text/javascript" src="../node_modules/web3/dist/web3.js"></script>
+    <script type="text/javascript" src="../dist/uportlib.js"></script>
+    <style>
+      main { padding: 10px 30px; }
+      header { background: #EEE; }
+      .btn-sm{ padding: 3px 10px;
+               border-radius: 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header><h1 id="appName">FriendWallet</h1></header>
+      <hr/>
+      <section>
+        <h2>Connect uPort</h2>
+        <table>
+          <tobdy>
+            <tr><td><span>uPort Id: </span><span id="uportId"></span></td></tr>
+            <tr><td><span>Name: </span><span id="name"></span></td></tr>
+          </tobdy>
+        <table>
+        <button class="btn btn-sm btn-primary" id="connectUportBtn" onclick="uportConnect()">Connect uPort</button>
+      </section>
+      <hr/>
+      <section>
+        <h2>Send Ether</h2>
+        <table>
+          <thead>
+            <tr>
+              <td>Send To:</td>
+              <td>Amount:</td>
+              <td></td>
+            </tr>
+          </thead>
+          <tobdy>
+            <tr>
+              <td><select id="sendTo" onchange="updateState()"></select></td>
+              <td><input type="text" id="amount" size="10" placeholder="5" onchange="updateState()"/></td>
+              <td><button class="btn btn-sm btn-success" onclick="sendEther()">Send Ether</button></td>
+            </tr>
+            <tr>
+              <td><span>Transaction Hash(ID): </span><span id="txHashSentEth"></span></td>
+            </tr>
+          </tobdy>
+        </table>
+      </section>
+    </main>
+    <script>
+      // State and render functions
+
+      let $ = (selector) => document.querySelector(selector)
+      let globalState = {
+        nameAddrMap : {},
+        selectedSendToName : "",
+        uportId: "",
+        name: "",
+        txHash: "",
+        sendToVal: ""};
+
+      const render = function () {
+        $('#uportId').innerHTML = globalState.uportId;
+        $('#name').innerHTML = globalState.name;
+        $('#txHashSentEth').innerHTML = globalState.txHash;
+        $('#sendTo').value = globalState.sendToAddr;
+        $('#amount').value = globalState.sendToVal;
+        
+        let names = Object.keys(globalState.nameAddrMap);
+        console.log(names);
+        
+        $('#sendTo').innerHTML = ''
+        for (let i=0; i<names.length; i++) {
+          $('#sendTo').innerHTML += '<option value="' + names[i] + '">' + names[i] + '</option>'
+        }
+      }
+
+      const updateState = function () {
+        globalState.sendToVal = $('#amount').value;
+        globalState.selectedSendToName = $('#sendTo').value;
+        console.log(globalState)
+      }
+
+      ////////////////////////////////////////////////
+
+
+      ////////////////////////////////////////////////
+
+    </script>
+    <script type="text/javascript" src="friendwallet_step2.js"></script>
+  </body>
+</html>
