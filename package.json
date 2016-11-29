@@ -15,9 +15,9 @@
     "karma": "node karmawrapper start --single-run --browsers PhantomJS",
     "karma-CI": "node karmawrapper start --single-run --browsers PhantomJS",
     "prepublish": "npm run build-es5",
-    "postpublish": "publish-release  --reuseRelease --assets dist/uportlib.js,dist/uportlib.js.map,dist/uportlib.min.js,dist/uportlib.min.js.map",
+    "post-release": "publish-release  --token $GH_TOKEN --reuseRelease --assets dist/uportlib.js,dist/uportlib.js.map,dist/uportlib.min.js,dist/uportlib.min.js.map",
     "gen-readme": "./node_modules/jsdoc-to-markdown/bin/cli.js --template readme-template.hbs lib/*.js node_modules/uport-persona/lib/*.js > README.md",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post && npm run post-release",
     "commitmsg": "./node_modules/validate-commit-msg/index.js"
   },
   "repository": {
