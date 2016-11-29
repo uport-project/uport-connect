@@ -2,12 +2,12 @@
 
 // Setup
 
-let rpcUrl = 'https://consensysnet.infura.io:8545'
-let Uport = window.uportlib.Uport
-let web3 = new Web3()
-let appName = 'FriendWallet'
+const rpcUrl = 'https://consensysnet.infura.io:8545'
+const Uport = window.uportlib.Uport
+const web3 = new Web3()
+const appName = 'FriendWallet'
 
-let ipfs = {
+const ipfs = {
   host: 'ipfs.infura.io',
   port: '5001',
   protocol: 'https',
@@ -15,12 +15,12 @@ let ipfs = {
 }
 
 // App options
-let options = {
+const options = {
   ipfsProvider: ipfs
 }
 
-let uport = new Uport(appName, options)
-let uportProvider = uport.getUportProvider(rpcUrl)
+const uport = new Uport(appName, options)
+const uportProvider = uport.getUportProvider(rpcUrl)
 web3.setProvider(uportProvider)
 
 // uPort connect
@@ -30,26 +30,26 @@ const uportConnect = () => {
     if (error) { throw error }
     globalState.uportId = address
 
-    let Persona = window.uportlib.Persona
-    let persona = new Persona(address, ipfs, web3.currentProvider)
+    const Persona = window.uportlib.Persona
+    const persona = new Persona(address, ipfs, web3.currentProvider)
     persona.load().then(() => {
-      let profile = persona.getProfile()
+      const profile = persona.getProfile()
       globalState.name = profile.name
 
       // Set up the list of contacts
-      let contactAddresses = profile.knows
-      let contactPersonas = contactAddresses.map((addr) => {
+      const contactAddresses = profile.knows
+      const contactPersonas = contactAddresses.map((addr) => {
         return new Persona(addr, ipfs, web3.currentProvider)
       })
-      let contactPromises = contactPersonas.map((p) => {
+      const contactPromises = contactPersonas.map((p) => {
         return p.load()
       })
       Promise.all(contactPromises).then(() => {
         for (let i = 0; i < contactAddresses.length; i++) {
-          let persona = contactPersonas[i]
-          let profile = persona.getProfile()
+          const contactPersona = contactPersonas[i]
+          const contactProfile = contactPersona.getProfile()
 
-          globalState.nameAddrMap[profile.name] = contactAddresses[i]
+          globalState.nameAddrMap[contactProfile.name] = contactAddresses[i]
         }
         console.log(globalState.nameAddrMap)
         render()
@@ -60,10 +60,10 @@ const uportConnect = () => {
 
 // Send ether
 const sendEther = () => {
-  let value = parseFloat(globalState.sendToVal) * 1.0e18
-  let gasPrice = 100000000000
-  let gas = 500000
-  let sendToAddr = globalState.nameAddrMap[globalState.selectedSendToName]
+  const value = parseFloat(globalState.sendToVal) * 1.0e18
+  const gasPrice = 100000000000
+  const gas = 500000
+  const sendToAddr = globalState.nameAddrMap[globalState.selectedSendToName]
 
   web3.eth.sendTransaction(
     {

@@ -2,13 +2,13 @@
 
 // Setup
 
-let rpcUrl = 'https://consensysnet.infura.io:8545'
-let Uport = window.uportlib.Uport
-let web3 = new Web3()
-let appName = 'FriendWallet'
-let options = {}
-let uport = new Uport(appName, options)
-let uportProvider = uport.getUportProvider(rpcUrl)
+const rpcUrl = 'https://consensysnet.infura.io:8545'
+const Uport = window.uportlib.Uport
+const web3 = new Web3()
+const appName = 'FriendWallet'
+const options = {}
+const uport = new Uport(appName, options)
+const uportProvider = uport.getUportProvider(rpcUrl)
 web3.setProvider(uportProvider)
 
 // uPort connect
@@ -23,9 +23,9 @@ const uportConnect = function () {
 
 // Send ether
 const sendEther = () => {
-  let value = parseFloat(globalState.sendToVal) * 1.0e18
-  let gasPrice = 100000000000
-  let gas = 500000
+  const value = parseFloat(globalState.sendToVal) * 1.0e18
+  const gasPrice = 100000000000
+  const gas = 500000
 
   web3.eth.sendTransaction(
     {

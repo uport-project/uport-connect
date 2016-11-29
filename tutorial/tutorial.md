@@ -40,13 +40,13 @@ We will create a file `friendwallet_step1.js` that will contain the JavaScript i
 To begin with we add the necessary code to set up the `web3` object with the uPort provider:
 
 ```
-let rpcUrl = 'https://consensysnet.infura.io:8545'
-let Uport = window.uportlib.Uport
-let web3 = new Web3()
-let appName = 'FriendWallet'
-let options = {}
-let uport = new Uport(appName, options)
-let uportProvider = uport.getUportProvider(rpcUrl)
+const rpcUrl = 'https://consensysnet.infura.io:8545'
+const Uport = window.uportlib.Uport
+const web3 = new Web3()
+const appName = 'FriendWallet'
+const options = {}
+const uport = new Uport(appName, options)
+const  uportProvider = uport.getUportProvider(rpcUrl)
 web3.setProvider(uportProvider)
 ```
 
@@ -83,9 +83,9 @@ Next we add a function for sending Ether:
 
 ```
 const sendEther = () => {
-  let value = parseFloat(globalState.sendToVal) * 1.0e18
-  let gasPrice = 100000000000
-  let gas = 500000
+  const value = parseFloat(globalState.sendToVal) * 1.0e18
+  const gasPrice = 100000000000
+  const gas = 500000
 
   web3.eth.sendTransaction(
     {
@@ -130,10 +130,10 @@ const uportConnect = () => {
     if (error) { throw error }
     globalState.uportId = address
 
-    let Persona = window.uportlib.Persona
-    let persona = new Persona(address, ipfs, web3.currentProvider)
+    const Persona = window.uportlib.Persona
+    const persona = new Persona(address, ipfs, web3.currentProvider)
     persona.load().then(() => {
-      let profile = persona.getProfile()
+      const profile = persona.getProfile()
       globalState.name = profile.name
       render()
     })
@@ -153,8 +153,8 @@ This will include:
 First we fetch our contacts:
 
 ```
-let contactAddresses = profile.knows
-let contactPersonas = contactAddresses.map((addr) => {
+const contactAddresses = profile.knows
+const contactPersonas = contactAddresses.map((addr) => {
   return new Persona(addr, ipfs, web3.currentProvider)
 })
 ```
@@ -167,26 +167,26 @@ const uportConnect = () => {
     if (error) { throw error }
     globalState.uportId = address
 
-    let Persona = window.uportlib.Persona
-    let persona = new Persona(address, ipfs, web3.currentProvider)
+    const Persona = window.uportlib.Persona
+    const persona = new Persona(address, ipfs, web3.currentProvider)
     persona.load().then(() => {
-      let profile = persona.getProfile()
+      const profile = persona.getProfile()
       globalState.name = profile.name
 
       // Set up the list of contacts
-      let contactAddresses = profile.knows
-      let contactPersonas = contactAddresses.map((addr) => {
+      const contactAddresses = profile.knows
+      const contactPersonas = contactAddresses.map((addr) => {
         return new Persona(addr, ipfs, web3.currentProvider)
       })
-      let contactPromises = contactPersonas.map((p) => {
+      const contactPromises = contactPersonas.map((p) => {
         return p.load()
       })
       Promise.all(contactPromises).then(() => {
         for (let i = 0; i < contactAddresses.length; i++) {
-          let persona = contactPersonas[i]
-          let profile = persona.getProfile()
+          let contactPersona = contactPersonas[i]
+          let contactProfile = contactPersona.getProfile()
 
-          globalState.nameAddrMap[profile.name] = contactAddresses[i]
+          globalState.nameAddrMap[contactProfile.name] = contactAddresses[i]
         }
         console.log(globalState.nameAddrMap)
         render()
@@ -200,9 +200,9 @@ Finally update the code to send the transaction, so that it uses the drop-down m
 
 ```
 const sendEther = () => {
-  let value = parseFloat(globalState.sendToVal) * 1.0e18
-  let gasPrice = 100000000000
-  let gas = 500000
+  const value = parseFloat(globalState.sendToVal) * 1.0e18
+  const gasPrice = 100000000000
+  const gas = 500000
 
   web3.eth.sendTransaction(
     {

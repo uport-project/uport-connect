@@ -58,7 +58,7 @@
     <script>
       // State and render functions
 
-      let $ = (selector) => document.querySelector(selector)
+      const $ = (selector) => document.querySelector(selector)
       let globalState = {
         nameAddrMap : {},
         selectedSendToName : "",
@@ -73,10 +73,10 @@
         $('#txHashSentEth').innerHTML = globalState.txHash;
         $('#sendTo').value = globalState.sendToAddr;
         $('#amount').value = globalState.sendToVal;
-        
-        let names = Object.keys(globalState.nameAddrMap);
+
+        const names = Object.keys(globalState.nameAddrMap);
         console.log(names);
-        
+
         $('#sendTo').innerHTML = ''
         for (let i=0; i<names.length; i++) {
           $('#sendTo').innerHTML += '<option value="' + names[i] + '">' + names[i] + '</option>'
