@@ -15,7 +15,7 @@ exec('git pull', function (err, stdout) {
 
         // Run publishRelease
         publishRelease({
-          token: $GH_TOKEN,
+          token: process.env.GH_TOKEN,
           owner: 'ConsenSys',
           repo: 'uport-lib',
           tag: latestTag,
@@ -24,6 +24,7 @@ exec('git pull', function (err, stdout) {
           reuseRelease: true,
           assets: ['dist/uportlib.js', 'dist/uportlib.js.map', 'dist/uportlib.min.js', 'dist/uportlib.min.js.map'],
         }, function (err, release) {
+
           if (err) process.exit(1);
           process.exit(0);
         })
