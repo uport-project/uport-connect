@@ -64,7 +64,7 @@
   },
   "files": [
     "lib",
-    "dist"
+    "utils"
   ],
   "homepage": "https://github.com/ConsenSys/uport-lib#readme",
   "standard": {
