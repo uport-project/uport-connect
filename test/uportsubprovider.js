@@ -42,7 +42,7 @@ describe('UportSubprovider', () => {
   describe('getAddress', () => {
     it('Use msgServer to get address first time', (done) => {
       subprovider.uportConnectHandler = (uri) => {
-        assert.equal(uri, 'ethereum:me?callback_url=http://url.com')
+        assert.equal(uri, 'me.uport:me?callback_url=http://url.com')
       }
       subprovider.getAddress((err, address) => {
         assert.isNull(err)
@@ -82,7 +82,7 @@ describe('UportSubprovider', () => {
     it('Use msgServer to get txHash', (done) => {
       qrWasClosed = false
       pollShouldFail = false
-      let initialUri = 'ethereum:me?value=10'
+      let initialUri = 'me.uport:0x60dd15dec1732d6c8a6125b21f77d039821e5b93?value=10'
       subprovider.ethUriHandler = (uri) => {
         assert.equal(uri, initialUri + '&callback_url=http://url.com')
       }
