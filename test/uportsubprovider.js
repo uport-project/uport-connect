@@ -82,7 +82,7 @@ describe('UportSubprovider', () => {
     it('Use msgServer to get txHash', (done) => {
       qrWasClosed = false
       pollShouldFail = false
-      let initialUri = 'me.uport:0x60dd15dec1732d6c8a6125b21f77d039821e5b93?value=10'
+      let initialUri = 'ethereum:0x60dd15dec1732d6c8a6125b21f77d039821e5b93?value=10'
       subprovider.ethUriHandler = (uri) => {
         assert.equal(uri, initialUri + '&callback_url=http://url.com')
       }
