@@ -61,7 +61,7 @@ class MsgServer {
           // parse response into raw account
           let data
           try {
-            data = JSON.parse(body)
+            data = JSON.parse(body).message
             if (data.error) {
               clearInterval(self.intervalIds[topic.id])
               return cb(data.error)
@@ -72,7 +72,7 @@ class MsgServer {
             return cb(err)
           }
           // Check for param, stop polling and callback if present
-          if (data[topic.name]) {
+          if (data && data[topic.name]) {
             clearInterval(self.intervalIds[topic.id])
             self.intervalIds[topic.id] = null
             self.clearTopic(topic.url)

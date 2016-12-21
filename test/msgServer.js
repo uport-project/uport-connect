@@ -51,7 +51,7 @@ describe('MsgServer', function () {
         assert.isUndefined(res)
         done()
       })
-      let errorTopic = topic2
+      let errorTopic = Object.assign({}, topic2)
       errorTopic.name = 'error'
       setTimeout(
         postData.bind(null, errorTopic, data),
@@ -61,7 +61,7 @@ describe('MsgServer', function () {
 
     it('Has cleared topic', (done) => {
       postData(topic1, '0x234', (e, r, b) => {
-        assert.equal(b, topic1.id + ' not found!')
+        assert.equal(b.data.id, 'not found')
         done()
       })
     })
