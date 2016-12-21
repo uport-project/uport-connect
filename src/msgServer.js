@@ -16,13 +16,7 @@ class MsgServer {
     if (this.isOnMobile) {
       topic.url = window.location.href
     } else {
-      topic.url = this.chasquiUrl
-      if (topicName === 'address') {
-        // address url differs from topic
-        topic.url += 'addr/' + topic.id
-      } else {
-        topic.url += topicName + '/' + topic.id
-      }
+      topic.url = this.chasquiUrl + topic.id
     }
     return topic
   }
