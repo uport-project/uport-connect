@@ -9,8 +9,8 @@ import QRDisplay from '../utils/qrdisplay'
 
 const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
 // these are consensysnet constants, replace with mainnet before release!
-const INFURA_CONSENSYSNET = 'https://consensysnet.infura.io:8545'
-const UPORT_REGISTRY_ADDRESS = '0xa9be82e93628abaac5ab557a9b3b02f711c0151c'
+const INFURA_ROPSTEN = 'https://ropsten.infura.io'
+const UPORT_REGISTRY_ADDRESS = '0xb9C1598e24650437a3055F7f66AC1820c419a679'
 
 /**
  * This class is the main entry point for interaction with uport.
@@ -55,7 +55,7 @@ class Uport {
 
     // data source
     var rpcSubprovider = new RpcSubprovider({
-      rpcUrl: rpcUrl || INFURA_CONSENSYSNET
+      rpcUrl: rpcUrl || INFURA_ROPSTEN
     })
     this.web3Provider.addProvider(rpcSubprovider)
 

@@ -40,7 +40,7 @@ We will create a file `friendwallet_step1.js` that will contain the JavaScript i
 To begin with we add the necessary code to set up the `web3` object with the uPort provider:
 
 ```
-const rpcUrl = 'https://consensysnet.infura.io:8545'
+const rpcUrl = 'https://ropsten.infura.io'
 const Uport = window.uportlib.Uport
 const web3 = new Web3()
 const appName = 'FriendWallet'
