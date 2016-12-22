@@ -114,6 +114,7 @@ class UportSubprovider extends Subprovider {
       self.uportConnectHandler(ethUri)
       self.msgServer.waitForResult(topic, function (err, token) {
         self.closeQR()
+        if (err) return cb(err)
         let decoded = decodeToken(token)
         let address = decoded.payload.iss
         if (!err) self.address = address
