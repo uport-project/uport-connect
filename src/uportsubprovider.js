@@ -109,7 +109,7 @@ class UportSubprovider extends Subprovider {
       cb(null, self.address)
     } else {
       let topic = self.msgServer.newTopic('address')
-      let ethUri = 'ethereum:me?callback_url=' + topic.url
+      let ethUri = 'me.uport:me?callback_url=' + topic.url
       self.uportConnectHandler(ethUri)
       self.msgServer.waitForResult(topic, function (err, address) {
         self.closeQR()
