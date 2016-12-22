@@ -2,7 +2,7 @@
 
 // Setup
 
-const rpcUrl = 'https://consensysnet.infura.io:8545'
+const rpcUrl = 'https://ropsten.infura.io'
 const Uport = window.uportlib.Uport
 const web3 = new Web3()
 const appName = 'FriendWallet'
