@@ -108,7 +108,7 @@ class UportSubprovider extends Subprovider {
     if (self.address) {
       cb(null, self.address)
     } else {
-      let topic = self.msgServer.newTopic('address')
+      let topic = self.msgServer.newTopic('access_token')
       let ethUri = 'me.uport:me?callback_url=' + topic.url
       self.uportConnectHandler(ethUri)
       self.msgServer.waitForResult(topic, function (err, address) {

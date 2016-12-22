@@ -7,7 +7,7 @@ import RpcSubprovider from 'web3-provider-engine/subproviders/rpc'
 
 import QRDisplay from '../utils/qrdisplay'
 
-const CHASQUI_URL = 'https://chasqui.uport.me/'
+const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
 // these are consensysnet constants, replace with mainnet before release!
 const INFURA_CONSENSYSNET = 'https://consensysnet.infura.io:8545'
 const UPORT_REGISTRY_ADDRESS = '0xa9be82e93628abaac5ab557a9b3b02f711c0151c'
