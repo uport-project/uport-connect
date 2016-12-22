@@ -37,7 +37,10 @@ class Autosigner {
     let res = Autosigner.parse(data)
     let body = {}
     if (res.to === 'me') {
-      body.address = this.address
+      // Hardcoded dummy JWT containing the address
+      // Note that the signature will not match
+      body.access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL1ViTHNvTDNpT1R4c2J1c1oiLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg1MWY3OTM0OTMwZTUwMmExYTgzODFlOWZlYzlkOTMzY2Y3MzUwMjg1IiwiaWF0IjoxNDgyNDMwNzI5OTgxLCJleHAiOjE0ODI1MTcxMjk5ODF9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
+
       setTimeout(Autosigner.postData.bind(null, res.callback_url, body), 3000)
     } else {
       this.sendTx(res, (err, tx) => {

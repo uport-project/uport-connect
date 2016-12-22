@@ -12,7 +12,7 @@ let mochMsgServer = {
   },
   pollForResult: (topic, cb) => {
     if (pollShouldFail) {
-      cb(MSG_DATA)
+      cb(new Error('Polling error'))
     } else {
       cb(null, MSG_DATA)
     }
@@ -22,7 +22,9 @@ let mochMsgServer = {
 }
 mochMsgServer.waitForResult = (topic, cb) => { mochMsgServer.pollForResult(topic, cb) }
 
-const MSG_DATA = '0x0123456789abcdef'
+const MSG_DATA = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
+
+const UPORT_ID = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
 
 let subprovider
 let qrWasClosed = false
@@ -46,7 +48,7 @@ describe('UportSubprovider', () => {
       }
       subprovider.getAddress((err, address) => {
         assert.isNull(err)
-        assert.equal(address, MSG_DATA)
+        assert.equal(address, UPORT_ID)
         assert.isTrue(qrWasClosed)
         done()
       })
@@ -59,7 +61,7 @@ describe('UportSubprovider', () => {
       }
       subprovider.getAddress((err, address) => {
         assert.isNull(err)
-        assert.equal(address, MSG_DATA)
+        assert.equal(address, UPORT_ID)
         assert.isFalse(qrWasClosed)
         done()
       })
@@ -71,7 +73,7 @@ describe('UportSubprovider', () => {
       subprovider.uportConnectHandler = (uri) => {}
       subprovider.getAddress((err, address) => {
         assert.isUndefined(address)
-        assert.equal(err, MSG_DATA)
+        assert.equal(err.message, 'Polling error')
         assert.isTrue(qrWasClosed)
         done()
       })
@@ -100,7 +102,7 @@ describe('UportSubprovider', () => {
       subprovider.ethUriHandler = (uri) => {}
       subprovider.signAndReturnTxHash('', (err, txHash) => {
         assert.isUndefined(txHash)
-        assert.equal(err, MSG_DATA)
+        assert.equal(err.message, 'Polling error')
         assert.isTrue(qrWasClosed)
         done()
       })
@@ -155,7 +157,7 @@ describe('UportSubprovider', () => {
 
       subprovider.handleRequest(payload, null, (err, address) => {
         if (err) { throw err }
-        assert.equal(address, MSG_DATA)
+        assert.equal(address, UPORT_ID)
         done()
       })
     })
@@ -165,7 +167,7 @@ describe('UportSubprovider', () => {
 
       subprovider.handleRequest(payload, null, (err, addressList) => {
         if (err) { throw err }
-        assert.equal(addressList[0], MSG_DATA)
+        assert.equal(addressList[0], UPORT_ID)
         done()
       })
     })
@@ -173,7 +175,7 @@ describe('UportSubprovider', () => {
     it('eth_sendTransaction should return txHash', (done) => {
       payload.method = 'eth_sendTransaction'
       payload.params = [{
-        from: MSG_DATA,
+        from: UPORT_ID,
         to: '0x032f23',
         value: '0x03fad4c3'
       }]

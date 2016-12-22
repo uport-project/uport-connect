@@ -27,7 +27,7 @@ describe('uport-lib integration tests', function () {
     Autosigner.load(testrpcProv, (err, as) => {
       if (err) { throw err }
       autosinger = as
-
+      console.log(autosinger.address)
       web3.eth.getAccounts((err, accounts) => {
         if (err) { throw err }
 
@@ -35,8 +35,9 @@ describe('uport-lib integration tests', function () {
         let statusContractABI = web3.eth.contract(testData.statusContractAbiData)
         status = statusContractABI.new({
           data: testData.statusContractBin,
-          from: accounts[0]
-        }, () => {})
+          from: accounts[0],
+          gas: 3000000
+        })
         // Send ether to Autosigner
         web3.eth.sendTransaction({from: accounts[0], to: autosinger.address, value: web3.toWei(90)}, (e, r) => {
           // Change provider
