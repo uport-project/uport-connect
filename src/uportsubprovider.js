@@ -9,7 +9,7 @@
 
 import async from 'async'
 import Subprovider from 'web3-provider-engine/subproviders/subprovider'
-import jwt from 'jwt-js'
+import jsontokens from 'jsontokens'
 
 // handles the following RPC methods:
 // eth_coinbase
@@ -114,8 +114,7 @@ class UportSubprovider extends Subprovider {
       self.uportConnectHandler(ethUri)
       self.msgServer.waitForResult(topic, function (err, token) {
         self.closeQR()
-        let decoded = jwt.decodeToken(token)
-        console.log(decoded.payload)
+        let decoded = jsontokens.decodeToken(token)
         let address = decoded.payload.iss
         if (!err) self.address = address
         cb(err, address)
