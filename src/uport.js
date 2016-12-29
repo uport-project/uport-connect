@@ -128,18 +128,15 @@ class Uport {
    * This method returns an instance of profile of the current uport user.
    *
    * @memberof    Uport
-   * @method      getProfile
+   * @method      getUserPersona
    * @return      {Promise<Object>}    an object containing the public profile for the user
    */
-  getProfile () {
+  getUserPersona () {
     const self = this
-    if (!self.ipfsProvider) throw new Error('ipfs not set')
-    if (!self.web3Provider) throw new Error('web3Provider not set')
     return new Promise((resolve, reject) => {
       self.subprovider.getAddress((err, address) => {
         if (err) { reject(err) }
-        const registry = new Persona.Registry(self.ipfsProvider, self.web3Provider, self.uportRegistryAddress)
-        registry.getProfile(address).then(resolve).catch(reject)
+        self.registry.getPersona(address).then(resolve).catch(reject)
       })
     })
   }

@@ -47,7 +47,7 @@ Here we use [Infura](https://infura.io/) as an example.
 ```js
 import { Uport } from 'uport-lib'
 
-let uport = new Uport('MyDApp', options)
+let uport = new Uport('MyDApp')
 let web3 = uport.getWeb3()
 
 uport.getUserPersona()
@@ -82,7 +82,6 @@ The `closeQr` function is called when the action has been confirmed in the uport
 
 ```js
 let options = {
-  ipfsProvider: { ... }
   qrDisplay: {
     openQr(data) { // your code here },
     closeQr() { // your code here }

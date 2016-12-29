@@ -47,7 +47,7 @@ Here we use [Infura](https://infura.io/) as an example.
 ```js
 import { Uport } from 'uport-lib'
 
-let uport = new Uport('MyDApp', options)
+let uport = new Uport('MyDApp')
 let web3 = uport.getWeb3()
 
 uport.getUserPersona()
@@ -82,7 +82,6 @@ The `closeQr` function is called when the action has been confirmed in the uport
 
 ```js
 let options = {
-  ipfsProvider: { ... }
   qrDisplay: {
     openQr(data) { // your code here },
     closeQr() { // your code here }
@@ -154,3 +153,84 @@ npm run gen-readme
 -->
 
 ## Documentation
+ERROR, Cannot find class.
+<a name="Registry"></a>
+
+## Registry
+Class representing a uPort Registry.
+
+**Kind**: global class  
+
+* [Registry](#Registry)
+    * [.constructor(settings)](#Registry+constructor) ⇒ <code>Object</code>
+    * [.getPublicProfile()](#Registry+getPublicProfile) ⇒ <code>Promise.&lt;JSON, Error&gt;</code>
+    * [.getPersona()](#Registry+getPersona) ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
+    * [.getPersonas()](#Registry+getPersonas) ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
+
+<a name="Registry+constructor"></a>
+
+### registry.constructor(settings) ⇒ <code>Object</code>
+Class constructor.
+ Creates a new Registry object. The registryAddress is an optional argument and if not specified will be at the moment set to the default ropsten network uport-registry.
+
+**Kind**: instance method of <code>[Registry](#Registry)</code>  
+**Returns**: <code>Object</code> - self  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| settings | <code>Object</code> | optional settings containing web3, ipfs and registry settings |
+
+<a name="Registry+getPublicProfile"></a>
+
+### registry.getPublicProfile() ⇒ <code>Promise.&lt;JSON, Error&gt;</code>
+Gets the public profile JSON object stored in IPFS for the given address.
+
+**Kind**: instance method of <code>[Registry](#Registry)</code>  
+**Returns**: <code>Promise.&lt;JSON, Error&gt;</code> - A promise that returns the JSON object stored in IPFS for the given address  
+<a name="Registry+getPersona"></a>
+
+### registry.getPersona() ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
+Gets the the data stored in IPFS for the given object and creates a PublicPersona object.
+
+**Kind**: instance method of <code>[Registry](#Registry)</code>  
+**Returns**: <code>Promise.&lt;PublicPersona, Error&gt;</code> - A promise that returns a new PublicPersona object.  
+<a name="Registry+getPersonas"></a>
+
+### registry.getPersonas() ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
+Gets the data stored in IPFS for an array of given addresses and creates an array of PublicPersona objects.
+
+**Kind**: instance method of <code>[Registry](#Registry)</code>  
+**Returns**: <code>Promise.&lt;PublicPersona, Error&gt;</code> - A promise that returns an array of new PublicPersona objects.  
+
+<a name="PublicPersona"></a>
+
+## PublicPersona
+Class representing PublicPersona, extends PersonaInterface
+
+**Kind**: global class  
+
+* [PublicPersona](#PublicPersona)
+    * [.constructor(publicProfile, address)](#PublicPersona+constructor) ⇒ <code>Object</code>
+    * [.profile()](#PublicPersona+profile) ⇒ <code>Object</code>
+
+<a name="PublicPersona+constructor"></a>
+
+### publicPersona.constructor(publicProfile, address) ⇒ <code>Object</code>
+Class constructor.
+ Creates a new PublicPersona object.
+
+**Kind**: instance method of <code>[PublicPersona](#PublicPersona)</code>  
+**Returns**: <code>Object</code> - self  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| publicProfile | <code>JSON</code> | Public Profile on IPFS |
+| address | <code>String</code> | The identity address |
+
+<a name="PublicPersona+profile"></a>
+
+### publicPersona.profile() ⇒ <code>Object</code>
+A getter which returns a simple Profile Object
+
+**Kind**: instance method of <code>[PublicPersona](#PublicPersona)</code>  
+

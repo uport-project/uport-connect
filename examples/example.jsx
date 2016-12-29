@@ -7,7 +7,7 @@ import './App.css'
 class App extends Component {
 
   componentWillMount () {
-    let uport = new Uport('TEST92184091284091284', options)
+    let uport = new Uport('TEST92184091284091284')
     let web3 = uport.getWeb3()
 
     this.getCoinbase = function () {
