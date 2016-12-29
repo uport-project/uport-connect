@@ -89,8 +89,7 @@
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport-persona": "ConsenSys/uport-persona#62aae03be2d33f588e76657a8e19efb299650466",
-    "uport-registry": "ConsenSys/uport-registry#62a29989d7ff7318264ab63622a5b01c296dcc18",
+    "uport-persona": "2.0.0",
     "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {
