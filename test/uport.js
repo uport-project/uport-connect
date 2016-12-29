@@ -16,7 +16,7 @@ for (let i = 40; i > 0; --i) addr1 += chars[Math.floor(Math.random() * chars.len
 describe('uport-lib integration tests', function () {
   this.timeout(30000)
 
-  let autosinger, status, web3Provider, web3
+  let autosigner, status, web3Provider, web3
 
   before((done) => {
     global.navigator = {}
@@ -26,8 +26,8 @@ describe('uport-lib integration tests', function () {
     // Create Autosigner
     Autosigner.load(testrpcProv, (err, as) => {
       if (err) { throw err }
-      autosinger = as
-      console.log(autosinger.address)
+      autosigner = as
+      console.log(autosigner.address)
       web3.eth.getAccounts((err, accounts) => {
         if (err) { throw err }
 
@@ -39,11 +39,14 @@ describe('uport-lib integration tests', function () {
           gas: 3000000
         })
         // Send ether to Autosigner
-        web3.eth.sendTransaction({from: accounts[0], to: autosinger.address, value: web3.toWei(90)}, (e, r) => {
+        web3.eth.sendTransaction({from: accounts[0], to: autosigner.address, value: web3.toWei(90)}, (e, r) => {
           // Change provider
           // Autosigner is a qrDisplay
           // that automatically signs transactions
-          let uport = new Uport('Integration Tests', { qrDisplay: autosinger })
+          let uport = new Uport('Integration Tests', {
+            rpcUrl: 'http://localhost:8545',
+            qrDisplay: autosigner 
+          })
           // Using the uportSubprovider be able to use testrpc programmatically.
           // However TestRPC.provider() is causing problems with istanbul so it
           // isn't used currently, but we still want to keep this strucure for later.
@@ -52,8 +55,6 @@ describe('uport-lib integration tests', function () {
           web3Provider.addProvider(uportSubprovider)
           web3Provider.addProvider(new Web3Subprovider(testrpcProv))
           web3Provider.start()
-
-          web3.setProvider(web3Provider)
           done()
         })
       })
@@ -63,7 +64,7 @@ describe('uport-lib integration tests', function () {
   it('getCoinbase', (done) => {
     web3.eth.getCoinbase((err, address) => {
       if (err) { throw err }
-      assert.equal(address, autosinger.address)
+      assert.equal(address, autosigner.address)
       web3.eth.defaultAccount = address
       done()
     })
@@ -73,7 +74,7 @@ describe('uport-lib integration tests', function () {
     web3.eth.getAccounts((err, addressList) => {
       if (err) { throw err }
       assert.equal(addressList.length, 1, 'there should be just one address')
-      assert.equal(addressList[0], autosinger.address)
+      assert.equal(addressList[0], autosigner.address)
       done()
     })
   })

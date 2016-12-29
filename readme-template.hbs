@@ -45,27 +45,14 @@ Since the information of the connected user is stored on ipfs we need to provide
 Here we use [Infura](https://infura.io/) as an example.
 
 ```js
-import Web3 from 'web3'
 import { Uport } from 'uport-lib'
 
-let web3 = new Web3()
-let options = {
-  ipfsProvider: {
-    host: 'ipfs.infura.io',
-    port: '5001',
-    protocol: 'https',
-    root: ''
-  }
-}
 let uport = new Uport('MyDApp', options)
-let rpcUrl = "http://localhost:8545"
-let uportProvider = uport.getUportProvider(rpcUrl)
-
-web3.setProvider(uportProvider)
+let web3 = uport.getWeb3()
 
 uport.getUserPersona()
      .then((persona) => {
-       let profile = persona.getProfile()
+       let profile = persona.profile
        console.log(profile)
      })
 ```
@@ -111,19 +98,14 @@ The `closeQr` is called once the phone has taken an action on the data in the QR
 
 ### Interacting with persona objects of other users
 
-You can also import the `Persona` and the `MutablePersona` classes from uport lib to interact with any persona in the `uport-registry`.
+You can also import the `Persona` classes from uport lib to interact with any persona in the `uport-registry`.
 
 ```js
-import { Persona, MutablePersona } from 'uport-lib'
-
-let userAddress = "0x..."
-let ipfsProvider = { ... }
-let persona = new Persona(userAddress, ipfsProvider, web3.currentProvider)
-persona.load()
-       .then((attributes) => {
-         console.log(attributes)
-       })
-```
+uport.getUserPersona()
+     .then((persona) => {
+       let profile = persona.profile
+       console.log(profile)
+     })```
 
 More information on how to use personas can be found in the [uport-persona](https://github.com/ConsenSys/uport-persona) repo, or by reading the documentation below.
 
@@ -173,5 +155,5 @@ npm run gen-readme
 
 ## Documentation
 {{#class name="Uport"}}{{>docs}}{{/class}}
-{{#class name="Persona"}}{{>docs}}{{/class}}
-{{#class name="MutablePersona"}}{{>docs}}{{/class}}
+{{#class name="Registry"}}{{>docs}}{{/class}}
+{{#class name="PublicPersona"}}{{>docs}}{{/class}}

@@ -81,13 +81,15 @@
   },
   "dependencies": {
     "async": "^2.0.1",
+    "ipfs-mini": "^1.0.1",
     "is-mobile": "^0.2.2",
     "json-loader": "^0.5.4",
     "nets": "^3.2.0",
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport-persona": "^1.2.5",
+    "uport-persona": "ConsenSys/uport-persona#23dc92a40b7c7bd647a3b3176b436f13e48430d7",
+    "uport-registry": "ConsenSys/uport-registry#ipfsjs-wrapper-error",
     "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {

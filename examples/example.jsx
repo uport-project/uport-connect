@@ -7,19 +7,8 @@ import './App.css'
 class App extends Component {
 
   componentWillMount () {
-    let rpcUrl = 'https://consensysnet.infura.io:8545'
-    let web3 = new Web3()
-    let options = {
-      ipfsProvider: {
-        host: 'ipfs.infura.io',
-        port: '5001',
-        protocol: 'https',
-        root: ''
-      }
-    }
     let uport = new Uport('TEST92184091284091284', options)
-    let uportProvider = uport.getUportProvider(rpcUrl)
-    web3.setProvider(uportProvider)
+    let web3 = uport.getWeb3()
 
     this.getCoinbase = function () {
       web3.eth.getCoinbase(function (err, address) {
@@ -28,7 +17,7 @@ class App extends Component {
         web3.eth.defaultAccount = address
 
         uport.getUserPersona().then((userPersona) => {
-          let profile = userPersona.getProfile()
+          let profile = userPersona.profile
           console.log(profile)
         })
       })

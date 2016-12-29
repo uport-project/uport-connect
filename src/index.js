@@ -1,3 +1,5 @@
 import Uport from './uport'
-import { Persona, MutablePersona } from 'uport-persona'
-export { Uport, Persona, MutablePersona }
+import { Registry, PublicPersona } from 'uport-persona'
+var api = { Uport: Uport, PublicPersona: PublicPersona, Registry: Registry }
+
+export default api

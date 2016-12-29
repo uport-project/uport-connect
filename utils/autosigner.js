@@ -28,8 +28,8 @@ class Autosigner {
       if (err) cb(err)
       let KeystoreMethod = Lightwallet.keystore
       let Keystore = new KeystoreMethod(SEED, pwDerivedKey)
-      let autosinger = new Autosigner(web3Provider, Keystore, pwDerivedKey)
-      cb(null, autosinger)
+      let autosigner = new Autosigner(web3Provider, Keystore, pwDerivedKey)
+      cb(null, autosigner)
     })
   }
 
