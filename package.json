@@ -84,12 +84,12 @@
     "ipfs-mini": "^1.0.1",
     "is-mobile": "^0.2.2",
     "json-loader": "^0.5.4",
+    "jsontokens": "^0.6.5",
     "nets": "^3.2.0",
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport-persona": "ConsenSys/uport-persona#23dc92a40b7c7bd647a3b3176b436f13e48430d7",
-    "uport-registry": "ConsenSys/uport-registry#ipfsjs-wrapper-error",
+    "uport-persona": "ConsenSys/uport-persona#62aae03be2d33f588e76657a8e19efb299650466",
     "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {
@@ -114,7 +114,6 @@
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc-to-markdown": "^1.3.7",
     "json-loader": "^0.5.4",
-    "jsontokens": "^0.6.5",
     "karma": "^1.3.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.0.0",
