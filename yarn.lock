@@ -353,7 +353,7 @@ aws4@^1.2.1:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.5.0.tgz#0a29ffb79c31c9e712eeb087e8e7a64b4a56d755"
 
-babel-cli@^6.16.0:
+babel-cli@^6.18.0:
   version "6.18.0"
   resolved "https://registry.yarnpkg.com/babel-cli/-/babel-cli-6.18.0.tgz#92117f341add9dead90f6fa7d0a97c0cc08ec186"
   dependencies:
@@ -382,7 +382,7 @@ babel-code-frame@^6.16.0, babel-code-frame@^6.20.0:
     esutils "^2.0.2"
     js-tokens "^2.0.0"
 
-babel-core@^6.17.0, babel-core@^6.18.0:
+babel-core@^6.18.0, babel-core@^6.21.0:
   version "6.21.0"
   resolved "https://registry.yarnpkg.com/babel-core/-/babel-core-6.21.0.tgz#75525480c21c803f826ef3867d22c19f080a3724"
   dependencies:
@@ -406,7 +406,7 @@ babel-core@^6.17.0, babel-core@^6.18.0:
     slash "^1.0.0"
     source-map "^0.5.0"
 
-babel-eslint@^7.0.0:
+babel-eslint@^7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/babel-eslint/-/babel-eslint-7.1.1.tgz#8a6a884f085aa7060af69cfc77341c2f99370fb2"
   dependencies:
@@ -503,7 +503,7 @@ babel-helpers@^6.16.0:
     babel-runtime "^6.0.0"
     babel-template "^6.16.0"
 
-babel-loader@^6.2.5:
+babel-loader@^6.2.10:
   version "6.2.10"
   resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-6.2.10.tgz#adefc2b242320cd5d15e65b31cea0e8b1b02d4b0"
   dependencies:
@@ -524,7 +524,7 @@ babel-plugin-check-es2015-constants@^6.3.13:
   dependencies:
     babel-runtime "^6.0.0"
 
-babel-plugin-external-helpers@^6.8.0:
+babel-plugin-external-helpers@^6.18.0:
   version "6.18.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-external-helpers/-/babel-plugin-external-helpers-6.18.0.tgz#c6bbf87a4448eb49616f24a8b8088503863488da"
   dependencies:
@@ -720,7 +720,7 @@ babel-polyfill@^6.13.0, babel-polyfill@^6.16.0:
     core-js "^2.4.0"
     regenerator-runtime "^0.10.0"
 
-babel-preset-es2015@^6.16.0:
+babel-preset-es2015@^6.18.0:
   version "6.18.0"
   resolved "https://registry.yarnpkg.com/babel-preset-es2015/-/babel-preset-es2015-6.18.0.tgz#b8c70df84ec948c43dcf2bf770e988eb7da88312"
   dependencies:
@@ -749,7 +749,7 @@ babel-preset-es2015@^6.16.0:
     babel-plugin-transform-es2015-unicode-regex "^6.3.13"
     babel-plugin-transform-regenerator "^6.16.0"
 
-babel-register@^6.16.3, babel-register@^6.18.0:
+babel-register@^6.18.0:
   version "6.18.0"
   resolved "https://registry.yarnpkg.com/babel-register/-/babel-register-6.18.0.tgz#892e2e03865078dd90ad2c715111ec4449b32a68"
   dependencies:
@@ -6309,9 +6309,9 @@ uport-persona@ConsenSys/uport-persona#62aae03be2d33f588e76657a8e19efb299650466:
     jsontokens "^0.6.5"
     uport-registry ConsenSys/uport-registry#ipfs-mini
 
-uport-registry@ConsenSys/uport-registry#ipfs-mini:
+uport-registry@ConsenSys/uport-registry#62a29989d7ff7318264ab63622a5b01c296dcc18:
   version "1.3.0"
-  resolved "https://codeload.github.com/ConsenSys/uport-registry/tar.gz/b43e721383cabe5eb3072e1820f9fc6bd2b534af"
+  resolved "https://codeload.github.com/ConsenSys/uport-registry/tar.gz/62a29989d7ff7318264ab63622a5b01c296dcc18"
   dependencies:
     bluebird "*"
     bs58 "^4.0.0"
