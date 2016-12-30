@@ -48,7 +48,7 @@ class Uport {
     this.msgServer = new MsgServer(chasquiUrl, this.isOnMobile)
     this.subprovider = this.createUportSubprovider()
     this.provider = this.createUportProvider()
-    registrySettings.web3 = this.provider
+    registrySettings.web3prov = this.provider
     this.registry = new Registry(registrySettings)
   }
 
