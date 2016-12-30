@@ -16,45 +16,39 @@ for (let i = 40; i > 0; --i) addr1 += chars[Math.floor(Math.random() * chars.len
 describe('uport-lib integration tests', function () {
   this.timeout(30000)
 
-  let autosigner, status, web3Provider, web3
+  let autosigner, status, vanillaWeb3, web3
 
   before((done) => {
     global.navigator = {}
 
     let testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
-    web3 = new Web3(testrpcProv)
+    vanillaWeb3 = new Web3(testrpcProv)
     // Create Autosigner
     Autosigner.load(testrpcProv, (err, as) => {
       if (err) { throw err }
       autosigner = as
       console.log(autosigner.address)
-      web3.eth.getAccounts((err, accounts) => {
+      vanillaWeb3.eth.getAccounts((err, accounts) => {
         if (err) { throw err }
 
         // Create status contract
-        let statusContractABI = web3.eth.contract(testData.statusContractAbiData)
+        let statusContractABI = vanillaWeb3.eth.contract(testData.statusContractAbiData)
         status = statusContractABI.new({
           data: testData.statusContractBin,
           from: accounts[0],
           gas: 3000000
         })
         // Send ether to Autosigner
-        web3.eth.sendTransaction({from: accounts[0], to: autosigner.address, value: web3.toWei(90)}, (e, r) => {
+        vanillaWeb3.eth.sendTransaction({from: accounts[0], to: autosigner.address, value: vanillaWeb3.toWei(90)}, (e, r) => {
           // Change provider
           // Autosigner is a qrDisplay
           // that automatically signs transactions
           let uport = new Uport('Integration Tests', {
+            // ipfsProvider: {host: '127.0.0.1', port: 5001, protocol: 'http'},
             rpcUrl: 'http://localhost:8545',
             qrDisplay: autosigner 
           })
-          // Using the uportSubprovider be able to use testrpc programmatically.
-          // However TestRPC.provider() is causing problems with istanbul so it
-          // isn't used currently, but we still want to keep this strucure for later.
-          let uportSubprovider = uport.getUportSubprovider()
-          web3Provider = new ProviderEngine()
-          web3Provider.addProvider(uportSubprovider)
-          web3Provider.addProvider(new Web3Subprovider(testrpcProv))
-          web3Provider.start()
+          web3 = uport.getWeb3()
           done()
         })
       })
@@ -103,7 +97,6 @@ describe('uport-lib integration tests', function () {
   })
 
   after((done) => {
-    web3Provider.stop()
     done()
   })
 })
