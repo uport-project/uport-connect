@@ -6325,16 +6325,16 @@ unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
 
-uport-persona@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/uport-persona/-/uport-persona-2.0.2.tgz#9b64fda573c29b426f8b3e068ef1dd436be6e554"
+uport-persona@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/uport-persona/-/uport-persona-2.0.3.tgz#5f2c675bd3d0024deb2c60a201503375195ffbbf"
   dependencies:
     jsontokens "^0.6.5"
-    uport-registry "2.0.0"
+    uport-registry "^2.0.1"
 
-uport-registry@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/uport-registry/-/uport-registry-2.0.0.tgz#0c0ced3f31722964aa96a8f2da5edf888933d44f"
+uport-registry@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/uport-registry/-/uport-registry-2.0.1.tgz#4068b20551d7b8b36d2f20b664b5bc07715cf2cc"
   dependencies:
     bluebird "*"
     bs58 "^4.0.0"
