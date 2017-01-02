@@ -6,6 +6,7 @@ module.exports = function (config) {
     browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
     files: [
+      './node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
       'test/*.js'
     ],
     preprocessors: {
@@ -20,10 +21,7 @@ module.exports = function (config) {
           {
             test: /\.js$/,
             exclude: /node_modules\/(?![querystring])/,
-            loader: 'babel',
-            query: {
-              presets: ['es2015']
-            }
+            loader: 'babel'
           },
           {
             test: /\.json$/,

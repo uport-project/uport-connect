@@ -16,13 +16,7 @@ class MsgServer {
     if (this.isOnMobile) {
       topic.url = window.location.href
     } else {
-      topic.url = this.chasquiUrl
-      if (topicName === 'address') {
-        // address url differs from topic
-        topic.url += 'addr/' + topic.id
-      } else {
-        topic.url += topicName + '/' + topic.id
-      }
+      topic.url = this.chasquiUrl + topic.id
     }
     return topic
   }
@@ -67,7 +61,7 @@ class MsgServer {
           // parse response into raw account
           let data
           try {
-            data = JSON.parse(body)
+            data = JSON.parse(body).message
             if (data.error) {
               clearInterval(self.intervalIds[topic.id])
               return cb(data.error)
@@ -78,7 +72,7 @@ class MsgServer {
             return cb(err)
           }
           // Check for param, stop polling and callback if present
-          if (data[topic.name]) {
+          if (data && data[topic.name]) {
             clearInterval(self.intervalIds[topic.id])
             self.intervalIds[topic.id] = null
             self.clearTopic(topic.url)

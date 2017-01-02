@@ -3,7 +3,7 @@ import request from 'request'
 import nets from 'nets'
 import MsgServer from '../lib/msgServer.js'
 
-const chasquiUrl = 'https://chasqui.uport.me/'
+const chasquiUrl = 'https://chasqui.uport.me/api/v1/topic/'
 const testHref = 'http://not.real.url/'
 
 let topic1
@@ -18,15 +18,15 @@ describe('MsgServer', function () {
     before(function () { msgServer = new MsgServer(chasquiUrl, false) })
 
     it('Creates new topics correctly', (done) => {
-      topic1 = msgServer.newTopic('address')
-      assert.equal(topic1.name, 'address')
+      topic1 = msgServer.newTopic('access_token')
+      assert.equal(topic1.name, 'access_token')
       assert.equal(topic1.id.length, 16)
-      assert.equal(topic1.url, chasquiUrl + 'addr/' + topic1.id)
+      assert.equal(topic1.url, chasquiUrl + topic1.id)
 
       topic2 = msgServer.newTopic('tx')
       assert.equal(topic2.name, 'tx')
       assert.equal(topic2.id.length, 16)
-      assert.equal(topic2.url, chasquiUrl + 'tx/' + topic2.id)
+      assert.equal(topic2.url, chasquiUrl + topic2.id)
 
       done()
     })
@@ -51,7 +51,7 @@ describe('MsgServer', function () {
         assert.isUndefined(res)
         done()
       })
-      let errorTopic = topic2
+      let errorTopic = Object.assign({}, topic2)
       errorTopic.name = 'error'
       setTimeout(
         postData.bind(null, errorTopic, data),
@@ -61,7 +61,7 @@ describe('MsgServer', function () {
 
     it('Has cleared topic', (done) => {
       postData(topic1, '0x234', (e, r, b) => {
-        assert.equal(b, topic1.id + ' not found!')
+        assert.equal(b.data.id, 'not found')
         done()
       })
     })
@@ -74,8 +74,8 @@ describe('MsgServer', function () {
     })
 
     it('Creates new topics correctly', (done) => {
-      topic1 = msgServer.newTopic('address')
-      assert.equal(topic1.name, 'address')
+      topic1 = msgServer.newTopic('access_token')
+      assert.equal(topic1.name, 'access_token')
       // assert.equal(topic1.url, testHref)
 
       topic2 = msgServer.newTopic('tx')
