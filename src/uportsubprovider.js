@@ -96,6 +96,7 @@ class UportSubprovider extends Subprovider {
 
     let topic = self.msgServer.newTopic('tx')
     ethUri += '&callback_url=' + topic.url
+    console.log(ethUri)
     self.ethUriHandler(ethUri)
     self.msgServer.waitForResult(topic, function (err, txHash) {
       self.closeQR()

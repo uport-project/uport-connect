@@ -30,5 +30,3 @@ dist
 
 .DS_Store
 
-# temporarily ignore yarn.lock
-yarn.lock

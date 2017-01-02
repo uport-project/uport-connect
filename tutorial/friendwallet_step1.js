@@ -2,15 +2,10 @@
 
 // Setup
 
-const rpcUrl = 'https://ropsten.infura.io'
 const Uport = window.uportlib.Uport
-const web3 = new Web3()
 const appName = 'FriendWallet'
-const options = {}
-const uport = new Uport(appName, options)
-const uportProvider = uport.getUportProvider(rpcUrl)
-web3.setProvider(uportProvider)
-
+const uport = new Uport(appName)
+const web3 = uport.getWeb3()
 // uPort connect
 
 const uportConnect = function () {
