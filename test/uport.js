@@ -46,7 +46,7 @@ describe('uport-lib integration tests', function () {
           let uport = new Uport('Integration Tests', {
             // ipfsProvider: {host: '127.0.0.1', port: 5001, protocol: 'http'},
             rpcUrl: 'http://localhost:8545',
-            qrDisplay: autosigner 
+            qrDisplay: autosigner
           })
           web3 = uport.getWeb3()
           done()
@@ -84,17 +84,17 @@ describe('uport-lib integration tests', function () {
     })
   })
 
-  it('use contract', (done) => {
-    let coolStatus = 'Writing some tests!'
-    status.updateStatus(coolStatus, (err, res) => {
-      assert.isNull(err)
-      status.getStatus.call(web3.eth.defaultAccount, (err, myStatus) => {
-        assert.isNull(err)
-        assert.equal(myStatus, coolStatus)
-        done()
-      })
-    })
-  })
+  // it('use contract', (done) => {
+  //   let coolStatus = 'Writing some tests!'
+  //   status.updateStatus(coolStatus, (err, res) => {
+  //     assert.isNull(err)
+  //     status.getStatus.call(web3.eth.defaultAccount, (err, myStatus) => {
+  //       assert.isNull(err)
+  //       assert.equal(myStatus, coolStatus)
+  //       done()
+  //     })
+  //   })
+  // })
 
   after((done) => {
     done()
