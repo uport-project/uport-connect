@@ -84,7 +84,7 @@ describe('UportSubprovider', () => {
     it('Use msgServer to get txHash', (done) => {
       qrWasClosed = false
       pollShouldFail = false
-      let initialUri = 'ethereum:0x60dd15dec1732d6c8a6125b21f77d039821e5b93?value=10'
+      let initialUri = 'me.uport:0x60dd15dec1732d6c8a6125b21f77d039821e5b93?value=10'
       subprovider.ethUriHandler = (uri) => {
         assert.equal(uri, initialUri + '&callback_url=http://url.com')
       }
@@ -115,7 +115,7 @@ describe('UportSubprovider', () => {
       txParams.data = '0x23fad893'
       subprovider.txParamsToUri(txParams, (err, uri) => {
         if (err) { throw err }
-        assert.equal(uri, 'ethereum:0x032f23?bytecode=0x23fad893')
+        assert.equal(uri, 'me.uport:0x032f23?bytecode=0x23fad893')
         done()
       })
     })
@@ -125,7 +125,7 @@ describe('UportSubprovider', () => {
       txParams.value = '0x03fad4c3'
       subprovider.txParamsToUri(txParams, (err, uri) => {
         if (err) { throw err }
-        assert.equal(uri, 'ethereum:0x032f23?value=66770115')
+        assert.equal(uri, 'me.uport:0x032f23?value=66770115')
         done()
       })
     })
@@ -134,7 +134,7 @@ describe('UportSubprovider', () => {
       txParams.data = '0x23fad893'
       subprovider.txParamsToUri(txParams, (err, uri) => {
         if (err) { throw err }
-        assert.equal(uri, 'ethereum:0x032f23?value=66770115&bytecode=0x23fad893')
+        assert.equal(uri, 'me.uport:0x032f23?value=66770115&bytecode=0x23fad893')
         done()
       })
     })
