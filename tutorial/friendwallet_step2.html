@@ -44,7 +44,7 @@
           </thead>
           <tobdy>
             <tr>
-              <td><select id="sendTo" onchange="updateState()"></select></td>
+              <td><input type="text" id="sendTo" size="40" placeholder="0x1234567891234567" onchange="updateState()"/></td>
               <td><input type="text" id="amount" size="10" placeholder="5" onchange="updateState()"/></td>
               <td><button class="btn btn-sm btn-success" onclick="sendEther()">Send Ether</button></td>
             </tr>
@@ -60,11 +60,9 @@
 
       const $ = (selector) => document.querySelector(selector)
       let globalState = {
-        nameAddrMap : {},
-        selectedSendToName : "",
         uportId: "",
-        name: "",
         txHash: "",
+        sendToAddr: "",
         sendToVal: ""};
 
       const render = function () {
@@ -73,19 +71,11 @@
         $('#txHashSentEth').innerHTML = globalState.txHash;
         $('#sendTo').value = globalState.sendToAddr;
         $('#amount').value = globalState.sendToVal;
-
-        const names = Object.keys(globalState.nameAddrMap);
-        console.log(names);
-
-        $('#sendTo').innerHTML = ''
-        for (let i=0; i<names.length; i++) {
-          $('#sendTo').innerHTML += '<option value="' + names[i] + '">' + names[i] + '</option>'
-        }
       }
 
       const updateState = function () {
+        globalState.sendToAddr = $('#sendTo').value;
         globalState.sendToVal = $('#amount').value;
-        globalState.selectedSendToName = $('#sendTo').value;
         console.log(globalState)
       }
 
