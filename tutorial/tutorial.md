@@ -3,12 +3,12 @@
 
 ## Introduction
 
-This tutorial will show you how to add support for uPort in your application. Using the libraries `uport-lib` and `uport-persona`, we will create a simple application, FriendWallet,  allowing you to send Ether to the contacts in your uPort contact list.
+This tutorial will show you how to add support for uPort in your application. Using the `uport-lib` library, we will create a simple application, FriendWallet, where you can connect your uPort and send Ether transactions. Later on you will be able to send Ether to the contacts in your uPort contact list.
 
 We will create this app in two steps:
 
 1. Using `uport-lib` we will enable you to connect your uPort and sign transactions using the built-in QR code system.
-2. Using `uport-persona` we will show you how to fetch profile data like your contact list as well as the names of your contacts and populate this in a list.
+2. Using the "Persona" tools we will show you how to fetch profile data like your name and populate this in the UI.
 
 *Note: The examples provided inline here and in the example files use ES6. Although our library is also written in ES6, it is transpiled to ES5, thus is perfectly compatible if you choose to use ES5 instead. These examples are simple to change to ES5 if your needs require.*
 
@@ -25,13 +25,9 @@ npm run build-dist
 
 We will be working in the directory `uport-lib/tutorial`.
 
-Make sure you have the uPort application installed on your mobile device, and that you have some contacts added. An iOS beta developer version of the app is currently available through TestFlight. To receive instructions on how to acquire the app please enter your details at the following url https://uport.me/devbeta with the access code "devcon2".
+Make sure you have the uPort application installed on your mobile device. An iOS beta developer version of the app is currently available through TestFlight. To receive instructions on how to acquire the app please enter your details at the following url <https://uport.me/devbeta> with the access code "devcon2".
 
-If you need some test contacts for this example, you can add the following contacts using the QR codes below.  
-
-(COMING SOON)
-
-## Step 1 - Using `uport-lib`
+## Step 1 - Connect and sign transactions
 
 We've created a simple HTML file `friendwallet_step1.html` that you can find [here](https://github.com/ConsenSys/uport-lib/blob/develop/tutorial/friendwallet_step1.html). It contains a section for connecting your uPort, and another section for a transfer of Ether from your uPort address to another address.
 
@@ -40,17 +36,13 @@ We will create a file `friendwallet_step1.js` that will contain the JavaScript i
 To begin with we add the necessary code to set up the `web3` object with the uPort provider:
 
 ```
-const rpcUrl = 'https://ropsten.infura.io'
 const Uport = window.uportlib.Uport
-const web3 = new Web3()
 const appName = 'FriendWallet'
-const options = {}
-const uport = new Uport(appName, options)
-const  uportProvider = uport.getUportProvider(rpcUrl)
-web3.setProvider(uportProvider)
+const uport = new Uport(appName)
+const web3 = uport.getWeb3()
 ```
 
-The uPort library contains a web3 provider. This is the mechanism that interprets calls to web3 functions and this is what will trigger the QR codes for connecting your uPort and signing transactions.
+The uPort library sets up the web3 object using a web3 provider. This is the mechanism that interprets calls to web3 functions and this is what will trigger the QR codes for connecting your uPort and signing transactions.
 
 Now add the `uportConnect()` function that will populate the user's uPort address in the UI:
 
@@ -104,7 +96,7 @@ const sendEther = () => {
 }
 ```
 
-This code will also trigger a QR code, prompting you to sign the transaction on the mobile app.
+This code will also trigger a QR code, prompting you to sign the transaction on the mobile app. This is a good time to go to the [Ropsten Faucet](http://faucet.ropsten.be:3001) and get some Ropsten Ether for your uPort before testing that sending works.
 
 Feel free to verify in the HTML file that you can send some test Ether to the following address:
 
@@ -120,7 +112,7 @@ Congratulations! You have successfully been able to connect your uPort and to si
 
 In this section we'll demonstrate how to fetch public profile data from your uPort, and the uPort of others. The profile data is stored in IPFS and cryptographically linked to your uPort via a registry on Ethereum.
 
-For this section we will use the HTML file `friendwallet_step2.html`, and the javascript file `friendwallet_step2.js`. You'll notice that we've also included `uport-persona.js` in the HTML file.
+For this section we will use the HTML file `friendwallet_step2.html`, and the javascript file `friendwallet_step2.js`.
 
 We will enhance the `uportConnect()` function by fetching your name and profile picture to display it in the UI, using the `uport-persona` library:
 
@@ -128,12 +120,11 @@ We will enhance the `uportConnect()` function by fetching your name and profile 
 const uportConnect = () => {
   web3.eth.getCoinbase((error, address) => {
     if (error) { throw error }
-    globalState.uportId = address
-
-    const Persona = window.uportlib.Persona
-    const persona = new Persona(address, ipfs, web3.currentProvider)
-    persona.load().then(() => {
-      const profile = persona.getProfile()
+    globalState.uportId = address    
+    uport.getUserPersona(address).then((persona)=> {
+      console.log(persona)
+      const profile = persona.profile
+      console.log(profile)
       globalState.name = profile.name
       render()
     })
@@ -141,84 +132,8 @@ const uportConnect = () => {
 }
 ```
 
-In order to test it out, go to the HTML file and click "Connect uPort". After scanning the QR code you should see your uPort identifier as well as your name populated in the UI.
+In order to test it out, open the HTML file and click "Connect uPort". After scanning the QR code you should see your uPort identifier as well as your name populated in the UI.
 
-Next we'll make a drop-down list of our friends so that we can send them Ether without showing their hex-addresses in the UI.
+If you look at the Javascript console you will also see the whole public profile JSON object.
 
-This will include:
-* Fetch your contacts using the `uport-persona` library
-* For each one of your contacts, grab the name and populate it into a list
-* Map the name to the address that we finally send to
-
-First we fetch our contacts:
-
-```
-const contactAddresses = profile.knows
-const contactPersonas = contactAddresses.map((addr) => {
-  return new Persona(addr, ipfs, web3.currentProvider)
-})
-```
-
-Then for each contact we fetch the name of this contact and create an object with names as keys and addresses as values. This object is stored in the globalState. Here is the finished `uportConnect()` function:
-
-```
-const uportConnect = () => {
-  web3.eth.getCoinbase((error, address) => {
-    if (error) { throw error }
-    globalState.uportId = address
-
-    const Persona = window.uportlib.Persona
-    const persona = new Persona(address, ipfs, web3.currentProvider)
-    persona.load().then(() => {
-      const profile = persona.getProfile()
-      globalState.name = profile.name
-
-      // Set up the list of contacts
-      const contactAddresses = profile.knows
-      const contactPersonas = contactAddresses.map((addr) => {
-        return new Persona(addr, ipfs, web3.currentProvider)
-      })
-      const contactPromises = contactPersonas.map((p) => {
-        return p.load()
-      })
-      Promise.all(contactPromises).then(() => {
-        for (let i = 0; i < contactAddresses.length; i++) {
-          let contactPersona = contactPersonas[i]
-          let contactProfile = contactPersona.getProfile()
-
-          globalState.nameAddrMap[contactProfile.name] = contactAddresses[i]
-        }
-        console.log(globalState.nameAddrMap)
-        render()
-      })
-    })
-  })
-}
-```
-
-Finally update the code to send the transaction, so that it uses the drop-down menu rather than the input field:
-
-```
-const sendEther = () => {
-  const value = parseFloat(globalState.sendToVal) * 1.0e18
-  const gasPrice = 100000000000
-  const gas = 500000
-
-  web3.eth.sendTransaction(
-    {
-      from: globalState.uportId,
-      to: globalState.sendToAddr,
-      value: value,
-      gasPrice: gasPrice,
-      gas: gas
-    },
-    (error, txHash) => {
-      if (error) { throw error }
-      globalState.txHash = txHash
-      render()
-    }
-  )
-}
-```
-
-To test it out, go to the HTML file, connect your uPort and send some Ether to one of your contacts! To see if the send was successful, look up the corresponding transaction hash at <https://test.ether.camp>.
+You should now have a basic grasp of implementing uPort in your Dapp!
