@@ -101,12 +101,13 @@ The `closeQr` is called once the phone has taken an action on the data in the QR
 
 You can also import the `Persona` classes from uport lib to interact with any persona in the `uport-registry`.
 
-```js
+``` js
 uport.getUserPersona()
      .then((persona) => {
        let profile = persona.profile
        console.log(profile)
-     })```
+     })
+```
 
 More information on how to use personas can be found in the [uport-persona](https://github.com/ConsenSys/uport-persona) repo, or by reading the documentation below.
 
