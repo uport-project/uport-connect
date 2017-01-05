@@ -1,5 +1,7 @@
-[![uport][uport-image]][uport-url]]
-[![uport chat][gitter-image]][gitter-url]]
+<!--
+[![uport][uport-image]][uport-url]
+[![uport chat][gitter-image]][gitter-url]
+-->
 
 <!--npm-->
 <!--
@@ -108,8 +110,6 @@ uport.getUserPersona()
 
 More information on how to use personas can be found in the [uport-persona](https://github.com/ConsenSys/uport-persona) repo, or by reading the documentation below.
 
----------------------------------------------
-
 ## Contributing
 #### Testing / Building (& watching) / Docs
 
@@ -121,8 +121,6 @@ npm run build
 npm run watch
 npm run gen-readme
 ```
-
----------------------------------------------
 
 <!-- Badge Variables -->
 
