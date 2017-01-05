@@ -1,5 +1,5 @@
-[![uport][uport-image]][uport-url]
-[![uport chat][gitter-image]][gitter-url]
+[![uport][uport-image]][uport-url]]
+[![uport chat][gitter-image]][gitter-url]]
 
 <!--npm-->
 <!--
