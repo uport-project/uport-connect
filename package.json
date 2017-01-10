@@ -68,6 +68,8 @@
     "url": "https://github.com/ConsenSys/uport-lib/issues"
   },
   "files": [
+    "dist",
+    "src",
     "lib",
     "utils"
   ],

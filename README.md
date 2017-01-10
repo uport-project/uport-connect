@@ -1,5 +1,7 @@
+<!--
 [![uport][uport-image]][uport-url]
 [![uport chat][gitter-image]][gitter-url]
+-->
 
 <!--npm-->
 <!--
@@ -99,138 +101,17 @@ The `closeQr` is called once the phone has taken an action on the data in the QR
 
 You can also import the `Persona` classes from uport lib to interact with any persona in the `uport-registry`.
 
-```js
+``` js
 uport.getUserPersona()
      .then((persona) => {
        let profile = persona.profile
        console.log(profile)
-     })```
+     })
+```
 
 More information on how to use personas can be found in the [uport-persona](https://github.com/ConsenSys/uport-persona) repo, or by reading the documentation below.
-
----------------------------------------------
 
 ## Contributing
 #### Testing / Building (& watching) / Docs
 
 This basic commands can be found in `package.json -> scripts: { }` for contributing to the library.
-
-```
-npm run test
-npm run build
-npm run watch
-npm run gen-readme
-```
-
----------------------------------------------
-
-<!-- Badge Variables -->
-
-[uport-image]: https://ipfs.pics/ipfs/QmVHY83dQyym1gDWeMBom7vLJfQ6iGycSWDYZgt2n9Lzah
-[uport-url]: https://uport.me
-[gitter-image]: https://img.shields.io/badge/gitter-uport--lib-red.svg?style=flat-square
-[gitter-url]: https://gitter.im/ConsenSys/uport-lib
-
-<!-- TODO: Add applicable badges
-[travis-url]: https://travis-ci.org/webpack/webpack
-[travis-image]: https://img.shields.io/travis/webpack/webpack/master.svg
-[appveyor-url]: https://ci.appveyor.com/project/sokra/webpack/branch/master
-[appveyor-image]: https://ci.appveyor.com/api/projects/status/github/webpack/webpack?svg=true
-[coveralls-url]: https://coveralls.io/r/webpack/webpack/
-[coveralls-image]: https://img.shields.io/coveralls/webpack/webpack.svg
-[npm-url]: https://www.npmjs.com/package/webpack
-[npm-image]: https://img.shields.io/npm/v/webpack.svg
-[downloads-image]: https://img.shields.io/npm/dm/webpack.svg
-[downloads-url]: http://badge.fury.io/js/webpack
-[david-url]: https://david-dm.org/webpack/webpack
-[david-image]: https://img.shields.io/david/webpack/webpack.svg
-[david-dev-url]: https://david-dm.org/webpack/webpack#info=devDependencies
-[david-dev-image]: https://david-dm.org/webpack/webpack/dev-status.svg
-[david-peer-url]: https://david-dm.org/webpack/webpack#info=peerDependencies
-[david-peer-image]: https://david-dm.org/webpack/webpack/peer-status.svg
-[nodei-image]: https://nodei.co/npm/webpack.png?downloads=true&downloadRank=true&stars=true
-[nodei-url]: https://www.npmjs.com/package/webpack
--->
-
-## Documentation
-ERROR, Cannot find class.
-<a name="Registry"></a>
-
-## Registry
-Class representing a uPort Registry.
-
-**Kind**: global class  
-
-* [Registry](#Registry)
-    * [.constructor(settings)](#Registry+constructor) ⇒ <code>Object</code>
-    * [.getPublicProfile()](#Registry+getPublicProfile) ⇒ <code>Promise.&lt;JSON, Error&gt;</code>
-    * [.getPersona()](#Registry+getPersona) ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
-    * [.getPersonas()](#Registry+getPersonas) ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
-
-<a name="Registry+constructor"></a>
-
-### registry.constructor(settings) ⇒ <code>Object</code>
-Class constructor.
- Creates a new Registry object. The registryAddress is an optional argument and if not specified will be at the moment set to the default ropsten network uport-registry.
-
-**Kind**: instance method of <code>[Registry](#Registry)</code>  
-**Returns**: <code>Object</code> - self  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| settings | <code>Object</code> | optional settings containing web3, ipfs and registry settings |
-
-<a name="Registry+getPublicProfile"></a>
-
-### registry.getPublicProfile() ⇒ <code>Promise.&lt;JSON, Error&gt;</code>
-Gets the public profile JSON object stored in IPFS for the given address.
-
-**Kind**: instance method of <code>[Registry](#Registry)</code>  
-**Returns**: <code>Promise.&lt;JSON, Error&gt;</code> - A promise that returns the JSON object stored in IPFS for the given address  
-<a name="Registry+getPersona"></a>
-
-### registry.getPersona() ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
-Gets the the data stored in IPFS for the given object and creates a PublicPersona object.
-
-**Kind**: instance method of <code>[Registry](#Registry)</code>  
-**Returns**: <code>Promise.&lt;PublicPersona, Error&gt;</code> - A promise that returns a new PublicPersona object.  
-<a name="Registry+getPersonas"></a>
-
-### registry.getPersonas() ⇒ <code>Promise.&lt;PublicPersona, Error&gt;</code>
-Gets the data stored in IPFS for an array of given addresses and creates an array of PublicPersona objects.
-
-**Kind**: instance method of <code>[Registry](#Registry)</code>  
-**Returns**: <code>Promise.&lt;PublicPersona, Error&gt;</code> - A promise that returns an array of new PublicPersona objects.  
-
-<a name="PublicPersona"></a>
-
-## PublicPersona
-Class representing PublicPersona, extends PersonaInterface
-
-**Kind**: global class  
-
-* [PublicPersona](#PublicPersona)
-    * [.constructor(publicProfile, address)](#PublicPersona+constructor) ⇒ <code>Object</code>
-    * [.profile()](#PublicPersona+profile) ⇒ <code>Object</code>
-
-<a name="PublicPersona+constructor"></a>
-
-### publicPersona.constructor(publicProfile, address) ⇒ <code>Object</code>
-Class constructor.
- Creates a new PublicPersona object.
-
-**Kind**: instance method of <code>[PublicPersona](#PublicPersona)</code>  
-**Returns**: <code>Object</code> - self  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| publicProfile | <code>JSON</code> | Public Profile on IPFS |
-| address | <code>String</code> | The identity address |
-
-<a name="PublicPersona+profile"></a>
-
-### publicPersona.profile() ⇒ <code>Object</code>
-A getter which returns a simple Profile Object
-
-**Kind**: instance method of <code>[PublicPersona](#PublicPersona)</code>  
-

@@ -25,7 +25,7 @@ npm run build-dist
 
 We will be working in the directory `uport-lib/tutorial`.
 
-Make sure you have the uPort application installed on your mobile device. An iOS beta developer version of the app is currently available through TestFlight. To receive instructions on how to acquire the app please enter your details at the following url <https://uport.me/devbeta> with the access code "devcon2".
+Make sure you have the uPort application installed on your mobile device. An iOS beta developer version of the app is currently available through TestFlight. To receive instructions on how to acquire the app please enter your details at the following url <https://uport.me/signup> with the access code "devcon2".
 
 ## Step 1 - Connect and sign transactions
 
