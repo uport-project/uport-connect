@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import ProviderEngine from 'web3-provider-engine'
 import RpcSubprovider from 'web3-provider-engine/subproviders/rpc'
 
-import QRDisplay from '../utils/qrdisplay'
+import QRDisplay from './util/qrdisplay'
 
 const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
 // these are consensysnet constants, replace with mainnet before release!
