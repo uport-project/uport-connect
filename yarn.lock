@@ -6346,9 +6346,9 @@ uport-registry@^2.0.1:
     ipfs-mini "^1.0.1"
     web3 "*"
 
-uport-registry@^2.0.5:
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/uport-registry/-/uport-registry-2.0.5.tgz#86b5c12a5ba3c68bde8727e5247e398b390e3b91"
+uport-registry@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/uport-registry/-/uport-registry-2.0.6.tgz#2ce4fc1fe4fcc2b83200c373416540ebfe0514dc"
   dependencies:
     bluebird "*"
     bs58 "^4.0.0"

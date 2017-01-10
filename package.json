@@ -97,7 +97,7 @@
     "qs": "^6.2.1",
     "request": "^2.75.0",
     "uport-persona": "^2.0.3",
-    "uport-registry": "^2.0.5",
+    "uport-registry": "^2.0.6",
     "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {
