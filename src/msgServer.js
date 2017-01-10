@@ -1,6 +1,6 @@
 import nets from 'nets'
 import qs from 'qs'
-import randomString from '../utils/randomString'
+import randomString from './util/randomString'
 
 class MsgServer {
   constructor (chasquiUrl, isOnMobile) {
