@@ -110,7 +110,9 @@ class Uport {
       msgServer: self.msgServer,
       uportConnectHandler: self.handleURI.bind(self),
       ethUriHandler: self.handleURI.bind(self),
-      closeQR: self.qrdisplay.closeQr.bind(self.qrdisplay)
+      closeQR: self.qrdisplay.closeQr.bind(self.qrdisplay),
+      isQRCancelled: self.qrdisplay.isQRCancelled.bind(self.qrdisplay),
+      resetQRCancellation: self.qrdisplay.resetQRCancellation.bind(self.qrdisplay)
     }
     return new UportSubprovider(opts)
   }
