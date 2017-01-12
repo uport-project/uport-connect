@@ -32,6 +32,8 @@ class UportSubprovider extends Subprovider {
     this.ethUriHandler = opts.ethUriHandler
 
     this.closeQR = opts.closeQR
+    this.isQRCancelled = opts.isQRCancelled
+    this.resetQRCancellation = opts.resetQRCancellation
 
     // Set address if present
     this.address = opts.address
@@ -98,7 +100,9 @@ class UportSubprovider extends Subprovider {
     ethUri += '&callback_url=' + topic.url
     console.log(ethUri)
     self.ethUriHandler(ethUri)
-    self.msgServer.waitForResult(topic, function (err, txHash) {
+    let cancelHandler = {isCancelled: self.isQRCancelled, 
+                         resetCancellation: self.resetQRCancellation}
+    self.msgServer.waitForResult(topic, cancelHandler, function (err, txHash) {
       self.closeQR()
       cb(err, txHash)
     })
@@ -113,7 +117,9 @@ class UportSubprovider extends Subprovider {
       let topic = self.msgServer.newTopic('access_token')
       let ethUri = 'me.uport:me?callback_url=' + topic.url
       self.uportConnectHandler(ethUri)
-      self.msgServer.waitForResult(topic, function (err, token) {
+      let cancelHandler = {isCancelled: self.isQRCancelled, 
+                           resetCancellation: self.resetQRCancellation}
+      self.msgServer.waitForResult(topic, cancelHandler, function (err, token) {
         self.closeQR()
         if (err) return cb(err)
         let decoded = decodeToken(token)

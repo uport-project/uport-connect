@@ -17,6 +17,14 @@ class QRDisplay {
     uportQR.style.display = 'none'
   }
 
+  isQRCancelled() {
+    return (document.getElementById('uport-qr-text').innerHTML === 'Cancelling')
+  }
+
+  resetQRCancellation() {
+    document.getElementById('uport-qr-text').innerHTML = 'Please scan with uport app'
+  }
+
   getUportQRDisplay () {
     let bg = document.getElementById('uport-qr')
     if (bg) return bg
@@ -30,14 +38,26 @@ class QRDisplay {
 
     let text = document.createElement('p')
     text.innerHTML = 'Please scan with uport app'
+    text.id = 'uport-qr-text'
+
+    let cancelButton = document.createElement('button')
+    cancelButton.innerHTML = 'Cancel'
+    cancelButton.addEventListener('click', function(event) {
+      document.getElementById('uport-qr-text').innerHTML = 'Cancelling';
+    });
 
     let qrImg = document.createElement('img')
     qrImg.setAttribute('style', 'z-index:102;')
 
     box.appendChild(qrImg)
     box.appendChild(text)
+    box.appendChild(cancelButton)
     bg.appendChild(box)
     document.body.appendChild(bg)
+
+    // let test = document.getElementById('uport-qr-text')
+    // test.innerHTML = 'testing...'
+
     return bg
   }
 }
