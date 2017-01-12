@@ -53,6 +53,10 @@ class Autosigner {
 
   closeQr () {}
 
+  isQRCancelled () {return false}
+
+  resetQRCancellation () {}
+
   sendTx (params, cb) {
     this.createAndSignTx(params, (err, signedTx) => {
       if (err) cb(err)
