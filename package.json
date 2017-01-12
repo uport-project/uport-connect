@@ -119,7 +119,7 @@
     "cz-conventional-changelog": "^1.2.0",
     "eslint": "^3.2.2",
     "eth-lightwallet": "^2.4.3",
-    "ethereumjs-testrpc": "^2.2.4",
+    "ethereumjs-testrpc": "^3.0.3",
     "ethereumjs-tx": "^1.1.1",
     "husky": "^0.11.9",
     "istanbul": "^0.4.5",
