@@ -180,7 +180,6 @@ describe('UportSubprovider', () => {
     it('eth_sendTransaction should return txHash', (done) => {
       payload.method = 'eth_sendTransaction'
       payload.params = [{
-        from: UPORT_ID,
         to: '0x032f23',
         value: '0x03fad4c3'
       }]
