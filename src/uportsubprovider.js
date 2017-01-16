@@ -60,7 +60,6 @@ class UportSubprovider extends Subprovider {
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
         async.waterfall([
-          self.validateTransaction.bind(self, txParams),
           self.txParamsToUri.bind(self, txParams),
           self.signAndReturnTxHash.bind(self)
         ], end)
@@ -128,31 +127,6 @@ class UportSubprovider extends Subprovider {
         cb(err, address)
       })
     }
-  }
-
-  validateTransaction (txParams, cb) {
-    const self = this
-    self.validateSender(txParams.from, function (err, senderIsValid) {
-      if (err) return cb(err)
-      if (!senderIsValid) return cb(new Error('Unknown address - unable to sign transaction for this address.'))
-      cb()
-    })
-  }
-
-  validateMessage (msgParams, cb) {
-    const self = this
-    self.validateSender(msgParams.from, function (err, senderIsValid) {
-      if (err) return cb(err)
-      if (!senderIsValid) return cb(new Error('Unknown address - unable to sign message for this address.'))
-      cb()
-    })
-  }
-
-  validateSender (senderAddress, cb) {
-    const self = this
-
-    let senderIsValid = senderAddress === self.address
-    cb(null, senderIsValid)
   }
 }
 
