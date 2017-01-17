@@ -1,7 +1,7 @@
 import UportSubprovider from './uportsubprovider'
 import MsgServer from './msgServer'
 import { Registry } from 'uport-persona'
-import isMobile from 'is-mobile'
+import MobileDetect from 'mobile-detect'
 import Web3 from 'web3'
 import ProviderEngine from 'web3-provider-engine'
 import RpcSubprovider from 'web3-provider-engine/subproviders/rpc'
@@ -43,7 +43,8 @@ class Uport {
       registrySettings.ipfs = opts.ipfsProvider
     }
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
-    this.isOnMobile = isMobile(navigator.userAgent)
+    const md = new MobileDetect(navigator.userAgent)
+    this.isOnMobile = (md.mobile() !== null)
     const chasquiUrl = opts.chasquiUrl || CHASQUI_URL
     this.msgServer = new MsgServer(chasquiUrl, this.isOnMobile)
     this.subprovider = this.createUportSubprovider()
