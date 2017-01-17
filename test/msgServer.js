@@ -5,6 +5,8 @@ import MsgServer from '../lib/msgServer.js'
 
 const chasquiUrl = 'https://chasqui.uport.me/api/v1/topic/'
 const testHref = 'http://not.real.url/'
+const cancelHandler = {isCancelled: function () {return false},
+                      resetCancellation: function () {}}
 
 let topic1
 let topic2
@@ -33,7 +35,7 @@ describe('MsgServer', function () {
 
     it('Correctly polls for data', (done) => {
       let data = '0x123456789'
-      msgServer.waitForResult(topic1, function (err, res) {
+      msgServer.waitForResult(topic1, cancelHandler, function (err, res) {
         assert.equal(res, data, 'Should get correct data from server.')
         assert.isNull(err)
         done()
@@ -46,7 +48,7 @@ describe('MsgServer', function () {
 
     it('Gives error if polling yeilds error', (done) => {
       let data = 'some weird error'
-      msgServer.waitForResult(topic2, function (err, res) {
+      msgServer.waitForResult(topic2, cancelHandler, function (err, res) {
         assert.equal(err, data)
         assert.isUndefined(res)
         done()
@@ -87,7 +89,7 @@ describe('MsgServer', function () {
 
     it('Correctly waits for data', (done) => {
       let data = '0x123456789'
-      msgServer.waitForResult(topic1, function (err, res) {
+      msgServer.waitForResult(topic1, cancelHandler, function (err, res) {
         assert.equal(res, data, 'Should get correct data.')
         assert.isNull(err)
         done()
@@ -98,7 +100,7 @@ describe('MsgServer', function () {
 
     it('Gives error if error posted', (done) => {
       let data = 'some weird error'
-      msgServer.waitForResult(topic2, function (err, res) {
+      msgServer.waitForResult(topic2, cancelHandler, function (err, res) {
         assert.equal(err, data)
         assert.isUndefined(res)
         done()

@@ -32,6 +32,8 @@ class UportSubprovider extends Subprovider {
     this.ethUriHandler = opts.ethUriHandler
 
     this.closeQR = opts.closeQR
+    this.isQRCancelled = opts.isQRCancelled
+    this.resetQRCancellation = opts.resetQRCancellation
 
     // Set address if present
     this.address = opts.address
@@ -58,7 +60,6 @@ class UportSubprovider extends Subprovider {
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
         async.waterfall([
-          self.validateTransaction.bind(self, txParams),
           self.txParamsToUri.bind(self, txParams),
           self.signAndReturnTxHash.bind(self)
         ], end)
@@ -98,7 +99,9 @@ class UportSubprovider extends Subprovider {
     ethUri += '&callback_url=' + topic.url
     console.log(ethUri)
     self.ethUriHandler(ethUri)
-    self.msgServer.waitForResult(topic, function (err, txHash) {
+    let cancelHandler = {isCancelled: self.isQRCancelled, 
+                         resetCancellation: self.resetQRCancellation}
+    self.msgServer.waitForResult(topic, cancelHandler, function (err, txHash) {
       self.closeQR()
       cb(err, txHash)
     })
@@ -113,7 +116,9 @@ class UportSubprovider extends Subprovider {
       let topic = self.msgServer.newTopic('access_token')
       let ethUri = 'me.uport:me?callback_url=' + topic.url
       self.uportConnectHandler(ethUri)
-      self.msgServer.waitForResult(topic, function (err, token) {
+      let cancelHandler = {isCancelled: self.isQRCancelled, 
+                           resetCancellation: self.resetQRCancellation}
+      self.msgServer.waitForResult(topic, cancelHandler, function (err, token) {
         self.closeQR()
         if (err) return cb(err)
         let decoded = decodeToken(token)
@@ -122,31 +127,6 @@ class UportSubprovider extends Subprovider {
         cb(err, address)
       })
     }
-  }
-
-  validateTransaction (txParams, cb) {
-    const self = this
-    self.validateSender(txParams.from, function (err, senderIsValid) {
-      if (err) return cb(err)
-      if (!senderIsValid) return cb(new Error('Unknown address - unable to sign transaction for this address.'))
-      cb()
-    })
-  }
-
-  validateMessage (msgParams, cb) {
-    const self = this
-    self.validateSender(msgParams.from, function (err, senderIsValid) {
-      if (err) return cb(err)
-      if (!senderIsValid) return cb(new Error('Unknown address - unable to sign message for this address.'))
-      cb()
-    })
-  }
-
-  validateSender (senderAddress, cb) {
-    const self = this
-
-    let senderIsValid = senderAddress === self.address
-    cb(null, senderIsValid)
   }
 }
 
