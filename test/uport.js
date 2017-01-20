@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import Web3 from 'web3'
-import { Uport } from '../lib/index'
+import { Uport } from './uport-config'
 import Autosigner from '../utils/autosigner'
 import ProviderEngine from 'web3-provider-engine'
 import Web3Subprovider from 'web3-provider-engine/subproviders/web3'

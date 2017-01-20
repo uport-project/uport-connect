@@ -4,6 +4,7 @@ machine:
 test:
   override:
     - npm run karma-CI
+    - npm run karma-CI-integration
   post:
     -  bash <(curl -s https://codecov.io/bash)
     -  npm run build-dist && npm run build-dist-prod

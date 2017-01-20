@@ -1,0 +1,9 @@
+#!/bin/bash
+# Clean/remove setup
+
+rm -r node_modules
+rm uport.js
+rm karma.conf.js
+rm testData.json
+rm ../uport-lib-0.0.0-semantic-release.tgz
+rm -r coverage
