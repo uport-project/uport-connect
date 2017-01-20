@@ -7,7 +7,6 @@
  * - signTransaction(tx) -- sign a raw transaction object
  */
 
-import async from 'async'
 import Subprovider from 'web3-provider-engine/subproviders/subprovider'
 import { decodeToken } from 'jsontokens'
 
@@ -59,10 +58,11 @@ class UportSubprovider extends Subprovider {
 
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
-        async.waterfall([
-          self.txParamsToUri.bind(self, txParams),
-          self.signAndReturnTxHash.bind(self)
-        ], end)
+
+        self.txParamsToUri(txParams, (err, val) => {
+            self.signAndReturnTxHash(val, end)
+        })
+
         return
 
       default:
@@ -99,7 +99,7 @@ class UportSubprovider extends Subprovider {
     ethUri += '&callback_url=' + topic.url
     console.log(ethUri)
     self.ethUriHandler(ethUri)
-    let cancelHandler = {isCancelled: self.isQRCancelled, 
+    let cancelHandler = {isCancelled: self.isQRCancelled,
                          resetCancellation: self.resetQRCancellation}
     self.msgServer.waitForResult(topic, cancelHandler, function (err, txHash) {
       self.closeQR()
@@ -116,7 +116,7 @@ class UportSubprovider extends Subprovider {
       let topic = self.msgServer.newTopic('access_token')
       let ethUri = 'me.uport:me?callback_url=' + topic.url
       self.uportConnectHandler(ethUri)
-      let cancelHandler = {isCancelled: self.isQRCancelled, 
+      let cancelHandler = {isCancelled: self.isQRCancelled,
                            resetCancellation: self.resetQRCancellation}
       self.msgServer.waitForResult(topic, cancelHandler, function (err, token) {
         self.closeQR()

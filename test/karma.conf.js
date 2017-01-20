@@ -6,11 +6,11 @@ module.exports = function (config) {
     browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
     files: [
-      './node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
-      'test/*.js'
+      '../node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
+      '*.js'
     ],
     preprocessors: {
-        'test/*.js': [ 'webpack', 'sourcemap' ]
+        '*.js': [ 'webpack', 'sourcemap' ]
     },
     reporters: [ 'mocha', 'coverage' ],
 
