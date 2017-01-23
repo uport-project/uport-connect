@@ -115,3 +115,11 @@ More information on how to use personas can be found in the [uport-persona](http
 #### Testing / Building (& watching) / Docs
 
 This basic commands can be found in `package.json -> scripts: { }` for contributing to the library.
+
+#### npm install from Github
+
+To install this package from Github and the develop branch:
+```bash
+$ npm install "git://github.com/ConsenSys/uport-lib.git#develop" --save
+$ (cd node_modules/uport-lib && npm install babel-cli && npm run prepublish)
+```
