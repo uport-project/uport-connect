@@ -117,7 +117,8 @@
           $('#addr').innerHTML = address
 
           uport.getUserPersona().then((userPersona) => {
-            let profile = userPersona.getProfile()
+            console.log(userPersona)
+            let profile = userPersona.profile
             $('#name').innerHTML = profile.name
             console.log(profile)
           })
