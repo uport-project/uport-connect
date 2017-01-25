@@ -92,7 +92,10 @@
       // App Steup
       let rpcUrl = "https://consensysnet.infura.io:8545";
       let Uport = window.uportlib.Uport;
-      let web3 = new Web3();
+      let uportlib = window.uportlib
+      // let web3 = new Web3();
+      let web3 = new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/uport-registry-lib'))
+
 
       // App options
       let options = {
@@ -104,27 +107,23 @@
         }
       }
 
-      let uport = new Uport(appName, options)
-      let uportProvider = uport.getUportProvider(rpcUrl)
-      web3.setProvider(uportProvider)
-
-      ////////////////////////////////////////////////
+      let myuport = new Uport(appName, options)
 
       const loginBtnClick = function () {
-        web3.eth.getCoinbase((error, address) => {
-          if (error) { throw error }
-          web3.eth.defaultAccount = address
-          $('#addr').innerHTML = address
 
-          uport.getUserPersona().then((userPersona) => {
-            console.log(userPersona)
-            let profile = userPersona.profile
-            $('#name').innerHTML = profile.name
-            console.log(profile)
-          })
-          $('#connectUportBtn').style.display = 'none'
+        const connectResponse = myuport.connect()
+
+        uportlib.openQR(connectResponse.uri)
+
+        connectResponse.listen.then((address) => {
+          console.log(address)
+          uportlib.closeQR()
         })
+
+
+
       }
+
 
       ////////////////////////////////////////////////
 
@@ -132,8 +131,11 @@
       // Generating contract ABI's is out of scope of this document
       // See Truffle for help with contract compiling
       // https://truffle.readthedocs.io/en/latest/
+
+
+
       const updateStatus = () => {
-        let statusContract = web3.eth.contract(
+        let statusContract = myuport.contract(
           [
             {
               "constant": false,
@@ -169,35 +171,44 @@
         let status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93")
         let statusMsg = $("#sts").value
 
+        console.log(status)
+
+        // TODO remove this call back now necessary
         status.updateStatus(statusMsg, (error, response) => {
-          if (error) { throw error }
-          $("#txHashStatus").innerHTML = "Tx hash: " + response
-          $("#status").innerHTML = statusMsg
+          console.log(error)
+          console.log(response)
+
+          uportlib.openQR(response.uri)
+
+          response.listen.then((tx) => {
+            console.log(tx)
+            uportlib.closeQR()
+          })
         })
       }
 
       ////////////////////////////////////////////////
 
       // Send ether to a friend with Web3
-      const sendEther = () => {
-        let toAddr = $('#sendTo').value
-        let value = parseFloat($('#amount').value) * 1.0e18
-        let gasPrice = 100000000000
-        let gas = 500000
-
-        web3.eth.sendTransaction(
-          {
-            to: toAddr,
-            value: value,
-            gasPrice: gasPrice,
-            gas: gas
-          },
-          (error, txhash) => {
-            if (error) { throw error }
-            $('#txHashSentEth').innerHTML = txhash
-          }
-        )
-      }
+      // const sendEther = () => {
+      //   let toAddr = $('#sendTo').value
+      //   let value = parseFloat($('#amount').value) * 1.0e18
+      //   let gasPrice = 100000000000
+      //   let gas = 500000
+      //
+      //   web3.eth.sendTransaction(
+      //     {
+      //       to: toAddr,
+      //       value: value,
+      //       gasPrice: gasPrice,
+      //       gas: gas
+      //     },
+      //     (error, txhash) => {
+      //       if (error) { throw error }
+      //       $('#txHashSentEth').innerHTML = txhash
+      //     }
+      //   )
+      // }
     </script>
   </body>
 </html>

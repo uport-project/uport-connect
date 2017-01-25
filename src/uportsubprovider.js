@@ -11,8 +11,6 @@ import Subprovider from 'web3-provider-engine/subproviders/subprovider'
 import { decodeToken } from 'jsontokens'
 
 // handles the following RPC methods:
-// eth_coinbase
-// eth_accounts
 // eth_sendTransaction
 
 class UportSubprovider extends Subprovider {
@@ -20,15 +18,6 @@ class UportSubprovider extends Subprovider {
     super()
     // Chasqui URL (default to standard)
     this.msgServer = opts.msgServer
-
-    // uportConnectHandler deals with displaying the
-    // uport connect data as QR code or clickable link
-    this.uportConnectHandler = opts.uportConnectHandler
-
-    // ethUriHandler deals with displaying the
-    // ethereum URI either as a QR code or
-    // clickable link for mobile
-    this.ethUriHandler = opts.ethUriHandler
 
     this.closeQR = opts.closeQR
     this.isQRCancelled = opts.isQRCancelled
@@ -43,23 +32,11 @@ class UportSubprovider extends Subprovider {
 
     switch (payload.method) {
 
-      case 'eth_coinbase':
-        self.getAddress(function (err, address) {
-          end(err, address)
-        })
-        return
-
-      case 'eth_accounts':
-        self.getAddress(function (err, address) {
-        // the result should be a list of addresses
-          end(err, [address])
-        })
-        return
-
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
 
         self.txParamsToUri(txParams, (err, val) => {
+          // TODO what about error?
             self.signAndReturnTxHash(val, end)
         })
 
@@ -97,36 +74,21 @@ class UportSubprovider extends Subprovider {
 
     let topic = self.msgServer.newTopic('tx')
     ethUri += '&callback_url=' + topic.url
-    console.log(ethUri)
-    self.ethUriHandler(ethUri)
-    let cancelHandler = {isCancelled: self.isQRCancelled,
-                         resetCancellation: self.resetQRCancellation}
-    self.msgServer.waitForResult(topic, cancelHandler, function (err, txHash) {
-      self.closeQR()
-      cb(err, txHash)
-    })
-  }
 
-  getAddress (cb) {
-    const self = this
 
-    if (self.address) {
-      cb(null, self.address)
-    } else {
-      let topic = self.msgServer.newTopic('access_token')
-      let ethUri = 'me.uport:me?callback_url=' + topic.url
-      self.uportConnectHandler(ethUri)
-      let cancelHandler = {isCancelled: self.isQRCancelled,
-                           resetCancellation: self.resetQRCancellation}
-      self.msgServer.waitForResult(topic, cancelHandler, function (err, token) {
-        self.closeQR()
-        if (err) return cb(err)
-        let decoded = decodeToken(token)
-        let address = decoded.payload.iss
-        if (!err) self.address = address
-        cb(err, address)
+    const listener = new Promise((resolve, reject) => {
+      self.msgServer.waitForResult(topic, function (err, txHash) {
+        if (err) { reject(err) }
+        // self.closeQR()
+        resolve(txHash)
       })
-    }
+    })
+
+    const res = { "uri": ethUri, "listen": listener }
+
+    // TODO hack, not necessary to return through callback, can maybe remove while still using web3, may also just need to wait.
+    cb(null, res)
+
   }
 }
 
