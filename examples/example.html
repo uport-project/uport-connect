@@ -171,21 +171,17 @@
         let status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93")
         let statusMsg = $("#sts").value
 
-        console.log(status)
+        const txnResponse = status.updateStatus(statusMsg)
 
-        // TODO remove this call back now necessary
-        status.updateStatus(statusMsg, (error, response) => {
-          console.log(error)
-          console.log(response)
+        uportlib.openQR(txnResponse.uri)
 
-          uportlib.openQR(response.uri)
-
-          response.listen.then((tx) => {
-            console.log(tx)
-            uportlib.closeQR()
-          })
+        txnResponse.listen.then((tx) => {
+          console.log(tx)
+          uportlib.closeQR()
         })
-      }
+
+
+        }
 
       ////////////////////////////////////////////////
 
