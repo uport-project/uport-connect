@@ -6,6 +6,8 @@ import { decodeToken } from 'jsontokens'
 // eth_accounts
 // eth_sendTransaction
 
+// TODO support contract.new
+
 export default class UportSubprovider extends Subprovider {
   constructor (opts) {
     super()
@@ -34,12 +36,14 @@ export default class UportSubprovider extends Subprovider {
 
     switch (payload.method) {
 
+      // TODO consider removing, not necessary for interaction with uport
       case 'eth_coinbase':
         self.getAddress(function (err, address) {
           end(err, address)
         })
         return
 
+      // TODO consider removing, not necessary for interaction with uport
       case 'eth_accounts':
         self.getAddress(function (err, address) {
         // the result should be a list of addresses
@@ -98,6 +102,7 @@ export default class UportSubprovider extends Subprovider {
     })
   }
 
+  // TODO consider removing, not necessary for interaction with uport, user uport.connect
   getAddress (cb) {
     const self = this
 

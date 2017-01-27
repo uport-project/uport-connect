@@ -116,11 +116,9 @@ class Uport {
   //   return this.address
   // }
 
-  // TODO support contract.new
+  // TODO support contract.new (maybe?)
   contract(abi) {
-    // TODO don't pass msgServer, have contractfacotry return uris, wrap all
-    // contract functions in funcs that return uri and messaging server promises.
-    return new ContractFactory(abi, this.msgServer)
+    return new ContractFactory(abi, contractFunctionExtend(this.msgServer))
   }
 
   sendTransaction(txobj) {
@@ -133,5 +131,41 @@ class Uport {
     }
 
   }
+
+const contractFunctionExtend = (msgServer) => (methodTxObject) => {
+  let ethUri = txParamsToUri(methodTxObject)
+  const topic = msgServer.newTopic('tx')
+  ethUri += '&callback_url=' + topic.url
+
+  const listener = new Promise((resolve, reject) => {
+    msgServer.waitForResult(topic, (err, txHash) => {
+      if (err) { reject(err) }
+      resolve(txHash)
+    })
+  })
+
+  return {"uri": ethUri, "listen": listener  }
+}
+
+const txParamsToUri = (txParams) => {
+    let uri = 'me.uport:' + txParams.to
+    let symbol
+    if (!txParams.to) {
+      return cb(new Error('Contract creation is not supported by uportProvider'))
+    }
+    if (txParams.value) {
+      uri += '?value=' + parseInt(txParams.value, 16)
+    }
+    if (txParams.data) {
+      symbol = txParams.value ? '&' : '?'
+      uri += symbol + 'bytecode=' + txParams.data
+    }
+    if (txParams.gas) {
+      symbol = txParams.value || txParams.data ? '&' : '?'
+      uri += symbol + 'gas=' + parseInt(txParams.gas, 16)
+    }
+    return uri
+  }
+
 
 export { Uport }

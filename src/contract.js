@@ -1,7 +1,5 @@
 const abi = require('ethjs-abi');
 const arrayContainsArray = require('ethjs-util').arrayContainsArray;
-import MsgServer from './msgServer'
-import MobileDetect from 'mobile-detect'
 
 //TODO Move message server back to uport.js
 
@@ -30,7 +28,7 @@ function getCallableMethodsFromABI(contractABI) {
   return contractABI.filter((json) => ((json.type === 'function' || json.type === 'event') && json.name.length > 0));
 }
 
-function ContractFactory(contractABI, msgServer) {
+function ContractFactory(contractABI, extend) {
     const output = {};
     output.at = function atContract(address) {
 
@@ -38,10 +36,6 @@ function ContractFactory(contractABI, msgServer) {
         const self = this;
         self.abi = contractABI || [];
         self.address = address || '0x';
-        const md = new MobileDetect(navigator.userAgent)
-        this.isOnMobile = (md.mobile() !== null)
-        const chasquiUrl = CHASQUI_URL
-        this.msgServer = new MsgServer(chasquiUrl, this.isOnMobile)
 
         getCallableMethodsFromABI(contractABI).forEach((methodObject) => {
 
@@ -65,23 +59,9 @@ function ContractFactory(contractABI, msgServer) {
                   // queryMethod = 'sendTransaction';
                 }
 
-                let ethUri = txParamsToUri(methodTxObject)
+                if (!extend) return methodTxObject
 
-
-                //TODO Separate the messaging server more
-                const topic = this.msgServer.newTopic('tx')
-
-                ethUri += '&callback_url=' + topic.url
-
-                const listener = new Promise((resolve, reject) => {
-                  this.msgServer.waitForResult(topic, (err, txHash) => {
-                    if (err) { reject(err) }
-                    resolve(txHash)
-                  })
-                })
-
-                return {"uri": ethUri, "listen": listener  }
-
+                return extend(methodTxObject)
             }
             // if filter throw error
           };
@@ -93,27 +73,5 @@ function ContractFactory(contractABI, msgServer) {
 
     return output;
   };
-
-
-const txParamsToUri = (txParams) => {
-    let uri = 'me.uport:' + txParams.to
-    let symbol
-    if (!txParams.to) {
-      return cb(new Error('Contract creation is not supported by uportProvider'))
-    }
-    if (txParams.value) {
-      uri += '?value=' + parseInt(txParams.value, 16)
-    }
-    if (txParams.data) {
-      symbol = txParams.value ? '&' : '?'
-      uri += symbol + 'bytecode=' + txParams.data
-    }
-    if (txParams.gas) {
-      symbol = txParams.value || txParams.data ? '&' : '?'
-      uri += symbol + 'gas=' + parseInt(txParams.gas, 16)
-    }
-    return uri
-  }
-
 
   export default ContractFactory
