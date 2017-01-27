@@ -6,7 +6,6 @@ import UportWeb3 from './uportWeb3'
 
 
 //TODO Only our default now (maybe), not customizable, or minimally
-import QRDisplay from './util/qrdisplay'
 
 import { decodeToken } from 'jsontokens'
 
@@ -32,7 +31,6 @@ class Uport {
    * @method      constructor
    * @param       {String}            dappName                the name of your dapp
    * @param       {Object}            opts                    optional parameters
-   * @param       {Object}            opts.qrDisplay          custom QR-code displaying
    * @param       {String}            opts.registryAddress    the address of an uport-registry
    * @param       {Object}            opts.ipfsProvider       an ipfsProvider (defaults to infura)
    * @param       {String}            opts.rpcUrl             a JSON rpc url (defaults to https://ropsten.infura.io)
@@ -62,10 +60,11 @@ class Uport {
     this.registry = new Registry(registrySettings)
   }
 
-  getWeb3() {
+  // optional qr display arg
+  getWeb3(qrDisplay) {
     const opts = {
       infuraApiKey:this.infuraApiKey,
-      qrdisplay: this.qrDisplay,
+      qrdisplay: qrDisplay,
       rpcUrl: this.rpcUrl,
       chasquiUrl: this.chasquiUrl
     }
@@ -117,7 +116,7 @@ class Uport {
   //   return this.address
   // }
 
-
+  // TODO support contract.new
   contract(abi) {
     // TODO don't pass msgServer, have contractfacotry return uris, wrap all
     // contract functions in funcs that return uri and messaging server promises.
@@ -135,21 +134,4 @@ class Uport {
 
   }
 
-
-// TODO export qr stuff differently
-
-const qrdisplay = new QRDisplay()
-
-const openQR = (data) => {
-  qrdisplay.openQr(data)
-}
-
-const closeQR = () => {
-  qrdisplay.closeQr()
-}
-
-const getQRDataURI = (data) => {
-  qrdisplay.getQRDataURI(data)
-}
-
-export {Uport, openQR, closeQR}
+export { Uport }

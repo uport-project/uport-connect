@@ -6,7 +6,7 @@ import ProviderEngine from 'web3-provider-engine'
 import RpcSubprovider from 'web3-provider-engine/subproviders/rpc'
 import UportSubprovider from './uportSubprovider'
 
-import QRDisplay from './util/qrdisplay'
+import { QRUtil } from './util/qrdisplay'
 
 const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
 // these are consensysnet constants, replace with mainnet before release!
@@ -19,7 +19,7 @@ const handleURI = (isOnMobile) => (qrdisplay) => (uri) => {
   if (isOnMobile) {
     window.location.assign(uri)
   } else {
-    qrdisplay.openQr(uri)
+    QRUtil.openQr(uri)
   }
 }
 
@@ -39,6 +39,8 @@ const createUportProvider = (rpcUrl, subprovider) => {
   return web3Provider
 }
 
+
+// TODO write new docs here
   /**
    * Creates a new uport object.
    *
@@ -57,21 +59,21 @@ const createUportProvider = (rpcUrl, subprovider) => {
 const UportWeb3 = (dappNameArg, opts = {}) => {
     const dappName = dappNameArg || 'uport-lib-app'
     const infuraApiKey = opts.infuraApiKey || dappName.replace(/\W/g,'')
-    const qrdisplay = opts.qrDisplay || new QRDisplay()
+    const qrdisplay = opts.qrDisplay || {openQr: QRUtil.openQr, closeQr: QRUtil.closeQr }
     const rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + infuraApiKey)
     const md = new MobileDetect(navigator.userAgent)
     const isOnMobile = (md.mobile() !== null)
     const chasquiUrl = opts.chasquiUrl || CHASQUI_URL
     const msgServer = new MsgServer(chasquiUrl, isOnMobile)
 
-
     const subProviderOpts = {
       msgServer: msgServer,
       uportConnectHandler: handleURI(isOnMobile)(qrdisplay),
-      ethUriHandler: handleURI(isOnMobile)(qrdisplay),
-      closeQR: qrdisplay.closeQr.bind(qrdisplay),
-      isQRCancelled: qrdisplay.isQRCancelled.bind(qrdisplay),
-      resetQRCancellation: qrdisplay.resetQRCancellation.bind(qrdisplay)
+      ethUriHandler: handleURI(isOnMobile)(qrdisplay)
+      // TODO add this back in
+      // closeQR: qrdisplay.closeQr.bind(qrdisplay),
+      // isQRCancelled: qrdisplay.isQRCancelled.bind(qrdisplay),
+      // resetQRCancellation: qrdisplay.resetQRCancellation.bind(qrdisplay)
     }
 
     const subprovider = new UportSubprovider(subProviderOpts)
@@ -85,5 +87,6 @@ const UportWeb3 = (dappNameArg, opts = {}) => {
     return web3
   }
 
+// TODO maybe export at top level still
 
 export default UportWeb3

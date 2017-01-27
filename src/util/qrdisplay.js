@@ -1,38 +1,34 @@
 import qrImage from 'qr-image'
 
-// TODO change utils funcs, now need for class
+// TODO docs on how to use as image
+const getQRDataURI = (data) => {
+  let pngBuffer = qrImage.imageSync(data, {type: 'png'})
+  return 'data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64')
+}
 
-class QRDisplay {
-
-  openQr (data) {
-    let uportQR = this.getUportQRDisplay()
+const openQr = (data) => {
+    let uportQR = getUportQRDisplay()
     uportQR.style.display = 'block'
 
-    let dataUri = this.getQRDataURI(data)
+    let dataUri = getQRDataURI(data)
     let qrImg = uportQR.children[0].children[0]
     qrImg.setAttribute('src', dataUri)
   }
 
-  // TODO docs on how to use as image
-  getQRDataURI(data) {
-    let pngBuffer = qrImage.imageSync(data, {type: 'png'})
-    return 'data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64')
-  }
-
-  closeQr () {
-    let uportQR = this.getUportQRDisplay()
+const closeQr = () => {
+    let uportQR = getUportQRDisplay()
     uportQR.style.display = 'none'
   }
 
-  isQRCancelled() {
+const isQRCancelled = () => {
     return (document.getElementById('uport-qr-text').innerHTML === 'Cancelling')
   }
 
-  resetQRCancellation() {
+const resetQRCancellation = () => {
     document.getElementById('uport-qr-text').innerHTML = 'Please scan with uport app'
   }
 
-  getUportQRDisplay () {
+const getUportQRDisplay = () => {
     let bg = document.getElementById('uport-qr')
     if (bg) return bg
 
@@ -67,6 +63,14 @@ class QRDisplay {
 
     return bg
   }
-}
 
-export default QRDisplay
+
+const QRUtil = { getUportQRDisplay: getUportQRDisplay,
+             resetQRCancellation: resetQRCancellation,
+             isQRCancelled: isQRCancelled,
+             closeQr: closeQr,
+             openQr: openQr,
+             getQRDataURI: getQRDataURI
+            }
+
+export { QRUtil }
