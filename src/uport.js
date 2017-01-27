@@ -2,6 +2,7 @@ import MsgServer from './msgServer'
 import { Registry } from 'uport-persona'
 import MobileDetect from 'mobile-detect'
 import ContractFactory from './contract'
+import UportWeb3 from './uportWeb3'
 
 
 //TODO Only our default now (maybe), not customizable, or minimally
@@ -17,6 +18,7 @@ const UPORT_REGISTRY_ADDRESS = '0xb9C1598e24650437a3055F7f66AC1820c419a679'
 
 // TODO Add simple QR wrapper for the orginal default flow, just means wrapping open/close functionality
 // TODO add cancel back in, should be really simple now
+// TODO extend this uport to uport with web3 so we can eventually have sepearte distributions.
 
 /**
  * This class is the main entry point for interaction with uport.
@@ -44,10 +46,10 @@ class Uport {
     this.dappName = dappName || 'uport-lib-app'
     this.infuraApiKey = opts.infuraApiKey || this.dappName.replace(/\W/g,'')
 
-    // const registrySettings = {}
-    // registrySettings.registryAddress = opts.registryAddress || UPORT_REGISTRY_ADDRESS
+    const registrySettings = {}
+    registrySettings.registryAddress = opts.registryAddress || UPORT_REGISTRY_ADDRESS
     if (opts.ipfsProvider) {
-      // registrySettings.ipfs = opts.ipfsProvider
+      registrySettings.ipfs = opts.ipfsProvider
     }
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
     const md = new MobileDetect(navigator.userAgent)
@@ -55,12 +57,19 @@ class Uport {
     const chasquiUrl = opts.chasquiUrl || CHASQUI_URL
     this.msgServer = new MsgServer(chasquiUrl, this.isOnMobile)
 
-    // this.subprovider = this.createUportSubprovider()
-    // this.provider = this.createUportProvider()
+    // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider
-    // this.registry = new Registry(registrySettings)
+    this.registry = new Registry(registrySettings)
+  }
 
-    this.registry = new Registry()
+  getWeb3() {
+    const opts = {
+      infuraApiKey:this.infuraApiKey,
+      qrdisplay: this.qrDisplay,
+      rpcUrl: this.rpcUrl,
+      chasquiUrl: this.chasquiUrl
+    }
+    return UportWeb3(this.dappName, opts)
   }
 
   /**
@@ -122,9 +131,10 @@ class Uport {
     // return uri
     //  & return promise
 
-    })
+    }
+
   }
-}
+
 
 // TODO export qr stuff differently
 
