@@ -148,4 +148,8 @@ const closeQR = () => {
   qrdisplay.closeQr()
 }
 
+const getQRDataURI = (data) => {
+  qrdisplay.getQRDataURI(data)
+}
+
 export {Uport, openQR, closeQR}

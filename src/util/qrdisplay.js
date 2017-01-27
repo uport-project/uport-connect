@@ -1,15 +1,22 @@
 import qrImage from 'qr-image'
 
+// TODO change utils funcs, now need for class
+
 class QRDisplay {
 
   openQr (data) {
     let uportQR = this.getUportQRDisplay()
     uportQR.style.display = 'block'
 
-    let pngBuffer = qrImage.imageSync(data, {type: 'png'})
-    let dataUri = 'data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64')
+    let dataUri = this.getQRDataURI(data)
     let qrImg = uportQR.children[0].children[0]
     qrImg.setAttribute('src', dataUri)
+  }
+
+  // TODO docs on how to use as image
+  getQRDataURI(data) {
+    let pngBuffer = qrImage.imageSync(data, {type: 'png'})
+    return 'data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64')
   }
 
   closeQr () {
