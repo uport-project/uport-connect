@@ -20,11 +20,11 @@ class MsgServer {
     }
     return topic
   }
-  waitForResult (topic, cancelHandler, cb) {
+  waitForResult (topic, cb) {
     if (this.isOnMobile) {
       this.waitForHashChange(topic, cb)
     } else {
-      this.pollForResult(topic, cancelHandler, cb)
+      this.pollForResult(topic, cb)
     }
   }
   waitForHashChange (topic, cb) {
@@ -43,7 +43,7 @@ class MsgServer {
       }
     }
   }
-  pollForResult (topic, cancelHandler, cb) {
+  pollForResult (topic,  cb) {
     const self = this
 
     self.intervalIds[topic.id] = setInterval(
@@ -78,10 +78,7 @@ class MsgServer {
             self.clearTopic(topic.url)
             return cb(null, data[topic.name])
           }
-          else if (cancelHandler.isCancelled()) {
-            cancelHandler.resetCancellation()
-            cb(new Error("Cancelled."))
-          }
+      
         }
       ), 2000)
   }

@@ -1,12 +1,3 @@
-/*
- * Emulate 'eth_accounts' / 'eth_sendTransaction' using 'eth_sendRawTransaction'
- *
- * The two callbacks a user needs to implement are:
- * TODO - update this
- * - getAccounts() -- array of addresses supported
- * - signTransaction(tx) -- sign a raw transaction object
- */
-
 import Subprovider from 'web3-provider-engine/subproviders/subprovider'
 import { decodeToken } from 'jsontokens'
 
@@ -15,7 +6,9 @@ import { decodeToken } from 'jsontokens'
 // eth_accounts
 // eth_sendTransaction
 
-class UportSubprovider extends Subprovider {
+// TODO support contract.new
+
+export default class UportSubprovider extends Subprovider {
   constructor (opts) {
     super()
     // Chasqui URL (default to standard)
@@ -43,12 +36,14 @@ class UportSubprovider extends Subprovider {
 
     switch (payload.method) {
 
+      // TODO consider removing, not necessary for interaction with uport
       case 'eth_coinbase':
         self.getAddress(function (err, address) {
           end(err, address)
         })
         return
 
+      // TODO consider removing, not necessary for interaction with uport
       case 'eth_accounts':
         self.getAddress(function (err, address) {
         // the result should be a list of addresses
@@ -97,16 +92,17 @@ class UportSubprovider extends Subprovider {
 
     let topic = self.msgServer.newTopic('tx')
     ethUri += '&callback_url=' + topic.url
-    console.log(ethUri)
     self.ethUriHandler(ethUri)
-    let cancelHandler = {isCancelled: self.isQRCancelled,
-                         resetCancellation: self.resetQRCancellation}
-    self.msgServer.waitForResult(topic, cancelHandler, function (err, txHash) {
+    // let cancelHandler = {isCancelled: self.isQRCancelled,
+    //                      resetCancellation: self.resetQRCancellation}
+    // self.msgServer.waitForResult(topic, cancelHandler, function (err, txHash) {
+    self.msgServer.waitForResult(topic, function (err, txHash) {
       self.closeQR()
       cb(err, txHash)
     })
   }
 
+  // TODO consider removing, not necessary for interaction with uport, user uport.connect
   getAddress (cb) {
     const self = this
 
@@ -116,9 +112,10 @@ class UportSubprovider extends Subprovider {
       let topic = self.msgServer.newTopic('access_token')
       let ethUri = 'me.uport:me?callback_url=' + topic.url
       self.uportConnectHandler(ethUri)
-      let cancelHandler = {isCancelled: self.isQRCancelled,
-                           resetCancellation: self.resetQRCancellation}
-      self.msgServer.waitForResult(topic, cancelHandler, function (err, token) {
+      // let cancelHandler = {isCancelled: self.isQRCancelled,
+      //                      resetCancellation: self.resetQRCancellation}
+      // self.msgServer.waitForResult(topic, cancelHandler, function (err, token) {
+      self.msgServer.waitForResult(topic, function (err, token) {
         self.closeQR()
         if (err) return cb(err)
         let decoded = decodeToken(token)
@@ -129,5 +126,3 @@ class UportSubprovider extends Subprovider {
     }
   }
 }
-
-export default UportSubprovider
