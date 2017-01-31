@@ -71,6 +71,35 @@ class Uport {
     return UportWeb3(this.dappName, opts)
   }
 
+  connect(showHandler) {
+    // TODO do we need this
+
+    const topic = this.msgServer.newTopic('access_token')
+    const uri = 'me.uport:me?callback_url=' + topic.url
+
+    return this.request({uri, topic, showHandler})
+                  .then((token) => {
+                    // TODO add token verification
+                    let decoded = decodeToken(token)
+                    let address = decoded.payload.iss
+                    return address
+                  })
+  }
+
+
+  request({uri, topic, showHandler}) {
+    // TODO need self reference
+    showHandler(uri)
+    // wrapping msg server func in promise
+    return new Promise((resolve, reject) => {
+      this.msgServer.waitForResult(topic, (err, res) => {
+        if (err) reject(err)
+        resolve(res)
+      })
+    })
+  }
+
+
   /**
    * This method returns an instance of profile of the current uport user.
    *
@@ -91,51 +120,32 @@ class Uport {
   }
   // TODO maybe just get the persona with connect?
 
-  //  TODO maybe check if connected ?
-  connect() {
-
-    const self = this
-
-    let topic = self.msgServer.newTopic('access_token')
-    let ethUri = 'me.uport:me?callback_url=' + topic.url
-
-    const listener = new Promise((resolve, reject) => {
-        self.msgServer.waitForResult(topic, (err, token) => {
-          if (err) reject(err)
-          let decoded = decodeToken(token)
-          let address = decoded.payload.iss
-          resolve(address)
-        })
-    })
-
-    return { "uri": ethUri, "listen": listener }
-  }
 
   // TODO support contract.new (maybe?)
-  contract(abi) {
-    return new ContractFactory(abi, txObjectHandler(this.msgServer))
+  contract(abi, showHandler) {
+    return new ContractFactory(abi, this.txObjectHandler(showHandler))
   }
 
-  sendTransaction(txobj) {
-    return txObjectHandler(this.msgServer)(txobj)
+  sendTransaction(txobj, showHandler) {
+    return this.txObjectHandler(showHandler)(txobj)
+  }
+
+  txObjectHandler(showHandler) {
+    return (methodTxObject) => {
+      let uri = txParamsToUri(methodTxObject)
+      const topic = this.msgServer.newTopic('tx')
+      uri += '&callback_url=' + topic.url
+
+      return this.request({uri, topic, showHandler})
+                  .then((txHash) => {
+                    if (err) reject(err)
+                    resolve(txHash)
+                  })
+    }
   }
 }
 
-// TODO rename
-const txObjectHandler = (msgServer) => (methodTxObject) => {
-  let ethUri = txParamsToUri(methodTxObject)
-  const topic = msgServer.newTopic('tx')
-  ethUri += '&callback_url=' + topic.url
 
-  const listener = new Promise((resolve, reject) => {
-    msgServer.waitForResult(topic, (err, txHash) => {
-      if (err) { reject(err) }
-      resolve(txHash)
-    })
-  })
-
-  return {"uri": ethUri, "listen": listener  }
-}
 
 const txParamsToUri = (txParams) => {
     let uri = 'me.uport:' + txParams.to
