@@ -111,28 +111,18 @@ class Uport {
     return { "uri": ethUri, "listen": listener }
   }
 
-  // get address() {
-  //  rename
-  //   return this.address
-  // }
-
   // TODO support contract.new (maybe?)
   contract(abi) {
-    return new ContractFactory(abi, contractFunctionExtend(this.msgServer))
+    return new ContractFactory(abi, txObjectHandler(this.msgServer))
   }
 
   sendTransaction(txobj) {
-
-    // to txm param
-    // message server
-    // return uri
-    //  & return promise
-
-    }
-
+    return txObjectHandler(this.msgServer)(txobj)
   }
+}
 
-const contractFunctionExtend = (msgServer) => (methodTxObject) => {
+// TODO rename
+const txObjectHandler = (msgServer) => (methodTxObject) => {
   let ethUri = txParamsToUri(methodTxObject)
   const topic = msgServer.newTopic('tx')
   ethUri += '&callback_url=' + topic.url
