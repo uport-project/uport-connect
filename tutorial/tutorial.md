@@ -3,33 +3,33 @@
 
 ## Introduction
 
-This tutorial will show you how to add support for uPort in your application. Using the `uport-lib` library, we will create a simple application, FriendWallet, where you can connect your uPort and send Ether transactions. Later on you will be able to send Ether to the contacts in your uPort contact list.
+This tutorial will show you how to add support for uPort in your application. Using the `uport-connect` library, we will create a simple application, FriendWallet, where you can connect your uPort and send Ether transactions. Later on you will be able to send Ether to the contacts in your uPort contact list.
 
 We will create this app in two steps:
 
-1. Using `uport-lib` we will enable you to connect your uPort and sign transactions using the built-in QR code system.
+1. Using `uport-connect` we will enable you to connect your uPort and sign transactions using the built-in QR code system.
 2. Using the "Persona" tools we will show you how to fetch profile data like your name and populate this in the UI.
 
 *Note: The examples provided inline here and in the example files use ES6. Although our library is also written in ES6, it is transpiled to ES5, thus is perfectly compatible if you choose to use ES5 instead. These examples are simple to change to ES5 if your needs require.*
 
 ## Getting started
 
-Clone the `uport-lib` repository locally, and build it:
+Clone the `uport-connect` repository locally, and build it:
 
 ```
-git clone https://github.com/ConsenSys/uport-lib
-cd uport-lib
+git clone https://github.com/uport-project/uport-connect
+cd uport-connect
 npm install
 npm run build-dist
 ```
 
-We will be working in the directory `uport-lib/tutorial`.
+We will be working in the directory `uport-connect/tutorial`.
 
 Make sure you have the uPort application installed on your mobile device. An iOS beta developer version of the app is currently available through TestFlight. To receive instructions on how to acquire the app please enter your details at the following url <https://uport.me/signup> with the access code "devcon2".
 
 ## Step 1 - Connect and sign transactions
 
-We've created a simple HTML file `friendwallet_step1.html` that you can find [here](https://github.com/ConsenSys/uport-lib/blob/develop/tutorial/friendwallet_step1.html). It contains a section for connecting your uPort, and another section for a transfer of Ether from your uPort address to another address.
+We've created a simple HTML file `friendwallet_step1.html` that you can find [here](https://github.com/uport-project/uport-connect/blob/develop/tutorial/friendwallet_step1.html). It contains a section for connecting your uPort, and another section for a transfer of Ether from your uPort address to another address.
 
 We will create a file `friendwallet_step1.js` that will contain the JavaScript integration code.
 

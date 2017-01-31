@@ -13,7 +13,7 @@ let addr1 = '0x'
 
 for (let i = 40; i > 0; --i) addr1 += chars[Math.floor(Math.random() * chars.length)]
 
-describe('uport-lib integration tests', function () {
+describe('uport-connect integration tests', function () {
   this.timeout(30000)
 
   let autosigner, status, vanillaWeb3, web3

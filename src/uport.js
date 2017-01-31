@@ -41,7 +41,7 @@ class Uport {
 
   //  TODO do we need registry settings
   constructor (dappName, opts = {}) {
-    this.dappName = dappName || 'uport-lib-app'
+    this.dappName = dappName || 'uport-connect-app'
     this.infuraApiKey = opts.infuraApiKey || this.dappName.replace(/\W/g,'')
 
     const registrySettings = {}

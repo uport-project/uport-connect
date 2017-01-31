@@ -34,29 +34,44 @@ Signing transactions thus requires that the transactions are sent to the phone w
 This is accomplished by showing the user a QR-code for each transaction.
 The user can then verify the transaction on the phone and send it to the Ethereum network.
 
-In order to make this flow easy for developers, `uport-lib` provides a custom web3 provider which takes care of all of this.
+In order to make this flow easy for developers, `uport-connect` provides a custom web3 provider which takes care of all of this.
 
 ---------------------------------------------
 
-## Using uPort in your dapp
+## Using uPort in your Application
 
 ### Getting Started
-First we will instantiate the Uport and Web3 objects.
-Then we will get the information of the connected user.
-Since the information of the connected user is stored on ipfs we need to provide uport-lib with an ipfs provider upon on creation of Uport instance.
-Here we use [Infura](https://infura.io/) as an example.
 
-```js
-import { Uport } from 'uport-lib'
+First we will instantiate the Uport object.
 
-let uport = new Uport('MyDApp')
+```javascript
+import { Uport } from 'uport-connect'
+
+const uport = new Uport('MyDApp')
+```
+
+To ask the user for their credentials use `requestCredentials()`:
+
+```javascript
+uport.requestCredentials().then((credentials) => {
+  console.log(credentials)
+})
+```
+
+If all we want is the address of the connected user we can use `connect()`:
+
+```javascript
+uport.connect().then((address) => {
+  console.log(address)
+})
+```
+
+### Using with web3
+
+We provide a convenience method to create a uPort enabled version of the web3 object:
+
+```javascript
 let web3 = uport.getWeb3()
-
-uport.getUserPersona()
-     .then((persona) => {
-       let profile = persona.profile
-       console.log(profile)
-     })
 ```
 
 After the above setup, you can now use the `web3` object as normal.
@@ -72,44 +87,23 @@ Check out the examples folder too for how to integrate **uport** in your DApp
 
 ---------------------------------------------
 
-### Custom Display of QR codes
+### Customizing QR code requests
 
-`uport-lib` features a default QR-code display function, which injects a `<div>` containing the QR-code into the DOM.
+`uport-connect` features a default QR-code display function, which injects a `<div>` containing the QR-code into the DOM.
 However, you might want to display the QR-code in a different way.
 
-You can provide a `qrDisplay` object with two functions when uport is created.
-The `openQr` function is called when the user needs to confirm something on the uport app.
-The data argument is a uri that needs to be displayed in a QR-code so that the uport app can scan it.
-The `closeQr` function is called when the action has been confirmed in the uport app and the QR-code can be removed from the screen.
+You can provide your own `showHandler` function which can be used to handle it your self using your own frontend library.
 
 ```js
-let options = {
-  qrDisplay: {
-    openQr(data) { // your code here },
-    closeQr() { // your code here }
+const uport = new Uport('MyDApp', { 
+  showHandler: (uri) => {
+    // show URI handler or button to send user to mobile app
   }
-}
+})
 ```
-
-The `openQr` function is called each time some information needs to get to the phone.
-
-The `closeQr` is called once the phone has taken an action on the data in the QR-code.
 
 ---------------------------------------------
 
-### Interacting with persona objects of other users
-
-You can also import the `Persona` classes from uport lib to interact with any persona in the `uport-registry`.
-
-``` js
-uport.getUserPersona()
-     .then((persona) => {
-       let profile = persona.profile
-       console.log(profile)
-     })
-```
-
-More information on how to use personas can be found in the [uport-persona](https://github.com/ConsenSys/uport-persona) repo, or by reading the documentation below.
 
 ## Contributing
 #### Testing / Building (& watching) / Docs
@@ -120,6 +114,6 @@ This basic commands can be found in `package.json -> scripts: { }` for contribut
 
 To install this package from Github and the develop branch:
 ```bash
-$ npm install "git://github.com/ConsenSys/uport-lib.git#develop" --save
-$ (cd node_modules/uport-lib && npm install babel-cli && npm run prepublish)
+$ npm install "git://github.com/uport-project/uport-connect.git#develop" --save
+$ (cd node_modules/uport-connect && npm install babel-cli && npm run prepublish)
 ```

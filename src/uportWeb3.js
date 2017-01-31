@@ -57,7 +57,7 @@ const createUportProvider = (rpcUrl, subprovider) => {
    * @return      {Object}            self
    */
 const UportWeb3 = (dappNameArg, opts = {}) => {
-    const dappName = dappNameArg || 'uport-lib-app'
+    const dappName = dappNameArg || 'uport-connect-app'
     const infuraApiKey = opts.infuraApiKey || dappName.replace(/\W/g,'')
     const qrdisplay = opts.qrDisplay || {openQr: QRUtil.openQr, closeQr: QRUtil.closeQr }
     const rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + infuraApiKey)

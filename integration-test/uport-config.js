@@ -1,2 +1,2 @@
-import { Uport, PublicPersona, Registry } from 'uport-lib'
+import { Uport, PublicPersona, Registry } from 'uport-connect'
 export { Uport, PublicPersona, Registry }
