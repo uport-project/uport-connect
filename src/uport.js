@@ -158,7 +158,12 @@ const txParamsToUri = (txParams) => {
     }
     if (txParams.data) {
       symbol = txParams.value ? '&' : '?'
-      uri += symbol + 'bytecode=' + txParams.data
+      const hexRE = /[0-9A-Fa-f]{6}/g;
+      if(hexRE.test(txParams.data)) {
+        uri += `${symbol}bytecode=${txParams.data}`
+      } else {
+        uri += `${symbol}function=${txParams.data}`
+      }
     }
     if (txParams.gas) {
       symbol = txParams.value || txParams.data ? '&' : '?'

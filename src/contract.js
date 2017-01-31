@@ -1,9 +1,4 @@
-const abi = require('ethjs-abi');
 const arrayContainsArray = require('ethjs-util').arrayContainsArray;
-
-//TODO Move message server back to uport.js
-
-const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
 
 // A derivative work of Nick Dodson's eths-contract https://github.com/ethjs/ethjs-contract/blob/master/src/index.js
 
@@ -52,7 +47,7 @@ function ContractFactory(contractABI, extend) {
                     to: self.address,
                   });
 
-                methodTxObject.data = abi.encodeMethod(methodObject, methodArgs);
+                methodTxObject.data = encodeMethodReadable(methodObject, methodArgs)
 
                 if (methodObject.constant === false) {
                   // TODO if true throw error
@@ -74,4 +69,30 @@ function ContractFactory(contractABI, extend) {
     return output;
   };
 
-  export default ContractFactory
+
+const encodeMethodReadable = (methodObject, methodArgs) => {
+  let dataString = `${methodObject.name}(`
+    for (let i = 0; i < methodObject.inputs.length; i++) {
+      const input = methodObject.inputs[i]
+      let argString = `${input.type} `
+
+      if (input.type === 'string') {
+        argString += `'${methodArgs[i]}'`
+      } else if (input.type === ( 'bytes32' || 'bytes')) {
+        // TODO don't assume hex input?
+        // argString += `0x${new Buffer(methodArgs[i], 'hex')}`
+        argString += `${methodArgs[i]}`
+      } else {
+        argString += `${methodArgs[i]}`
+      }
+
+      dataString += argString
+
+      if ((methodObject.inputs.length - 1) !== i) {
+        dataString += `, `
+      }
+    }
+    return dataString += `)`
+}
+
+export default ContractFactory
