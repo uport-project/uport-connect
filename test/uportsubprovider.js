@@ -1,11 +1,12 @@
 import { assert } from 'chai'
 import UportSubprovider from '../lib/uportsubprovider.js'
+import { Uport } from '../lib/uport'
 
 const cancelHandler = {isCancelled: function () {return false},
                       resetCancellation: function () {}}
 
 let pollShouldFail = false
-let mochMsgServer = {
+let mockMsgServer = {
   newTopic: (topicName) => {
     return {
       name: 'topic',
@@ -23,7 +24,7 @@ let mochMsgServer = {
   },
   setOnMobile: () => {}
 }
-mochMsgServer.waitForResult = (topic, cb) => { mochMsgServer.pollForResult(topic, cb) }
+mockMsgServer.waitForResult = (topic, cb) => { mockMsgServer.pollForResult(topic, cb) }
 
 const MSG_DATA = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
 
@@ -34,14 +35,16 @@ let qrWasClosed = false
 
 describe('UportSubprovider', () => {
   before(() => {
+    const uport = new Uport({msgserver: mockMsgServer})
     let opts = {
-      msgServer: mochMsgServer,
+      msgServer: mockMsgServer,
       ethUriHandler: (uri) => {},
       closeQR: () => {
         qrWasClosed = true
       },
       isQRCancelled: () => {return false},
-      resetQRCancellation: () => {}
+      resetQRCancellation: () => {},
+      connect: uport.connect
     }
     subprovider = new UportSubprovider(opts)
   })

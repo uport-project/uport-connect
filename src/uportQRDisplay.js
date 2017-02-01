@@ -14,10 +14,12 @@ class UportQRDisplay extends Uport {
     console.log(this)
     this.openQR(uri)
     return new Promise((resolve, reject) => {
-      this.msgServer.waitForResult(topic, (err, res) => {
+      topic.then(res => {
         this.closeQR()
-        if (err) reject(err)
         resolve(res)
+      }).catch(err => {
+        this.closeQR()
+        reject(err)
       })
     })
   }
