@@ -14,7 +14,7 @@ describe('MsgServer', function () {
 
   describe('On desktop', function () {
 
-    before(function () { msgServer = new MsgServer(chasquiUrl, false) })
+    before(function () { msgServer = new MsgServer(chasquiUrl, false, 500) })
 
     it('Correctly polls for data', (done) => {
       let data = '0x123456789'
@@ -25,7 +25,7 @@ describe('MsgServer', function () {
       })
       setTimeout(
         () => postData(topic.url, 'access_token', data),
-        3000
+        1000
       )
     })
 
@@ -38,7 +38,7 @@ describe('MsgServer', function () {
       })
       setTimeout(
         () => postData(topic.url, 'error', data),
-        3000
+        1000
       )
     })
 
@@ -52,7 +52,7 @@ describe('MsgServer', function () {
       })
       setTimeout(
         () => postData(topic.url, 'access_token', '0x123'),
-        3000
+        1000
       )
     })
   })
