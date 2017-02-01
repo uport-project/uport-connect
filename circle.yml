@@ -21,6 +21,9 @@ dependencies:
 
 test:
   override:
-    - yarn test
+    - yarn run karma-CI
+    - yarn run karma-CI-integration
   post:
-    - bash <(curl -s https://codecov.io/bash)    
+    -  bash <(curl -s https://codecov.io/bash)
+    -  yarn run build-dist && npm run build-dist-prod
+    -  yarn run semantic-release || true
