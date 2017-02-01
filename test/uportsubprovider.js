@@ -1,5 +1,5 @@
 import { assert } from 'chai'
-import UportSubprovider from '../lib/uportsubprovider.js'
+import UportSubprovider from '../lib/uportSubprovider.js'
 import { Uport } from '../lib/uport'
 
 const cancelHandler = {isCancelled: function () {return false},
