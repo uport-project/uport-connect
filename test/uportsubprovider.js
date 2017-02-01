@@ -2,31 +2,15 @@ import { assert } from 'chai'
 import UportSubprovider from '../lib/uportSubprovider.js'
 import { Uport } from '../lib/uport'
 
-const cancelHandler = {isCancelled: function () {return false},
-                      resetCancellation: function () {}}
-
 let pollShouldFail = false
-let mockMsgServer = {
-  newTopic: (topicName) => {
-    return {
-      name: 'topic',
-      id: 'sdfghjkl',
-      url: 'http://url.com'
-    }
-  },
-  pollForResult: (topic, cb) => {
-    if (pollShouldFail) {
-      cb(new Error('Polling error'))
-    } else {
-      cb(null, MSG_DATA)
-    }
-    return MSG_DATA
-  },
-  setOnMobile: () => {}
-}
-mockMsgServer.waitForResult = (topic, cb) => { mockMsgServer.pollForResult(topic, cb) }
-
 const MSG_DATA = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
+
+const mockTopicFactory = (topicName) => {
+  return new Promise((resolve, reject) => {
+    if (pollShouldFail) reject(Error('Polling error'))
+    else resolve(MSG_DATA)
+  })
+}
 
 const UPORT_ID = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
 
@@ -35,16 +19,16 @@ let qrWasClosed = false
 
 describe('UportSubprovider', () => {
   before(() => {
-    const uport = new Uport({msgserver: mockMsgServer})
+    const uport = new Uport('UportSubprovider', {topicFactory: mockTopicFactory})
     let opts = {
-      msgServer: mockMsgServer,
+      topicFactory: mockTopicFactory,
       ethUriHandler: (uri) => {},
       closeQR: () => {
         qrWasClosed = true
       },
       isQRCancelled: () => {return false},
       resetQRCancellation: () => {},
-      connect: uport.connect
+      connect: uport.connect.bind(uport)
     }
     subprovider = new UportSubprovider(opts)
   })

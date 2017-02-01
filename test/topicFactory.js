@@ -1,49 +1,52 @@
 import { assert } from 'chai'
 import request from 'request'
 import nets from 'nets'
-import MsgServer from '../lib/msgServer.js'
+import TopicFactory from '../lib/topicFactory.js'
 
 const chasquiUrl = 'https://chasqui.uport.me/api/v1/topic/'
-const testHref = 'http://not.real.url/'
-let topic1
-let topic2
-let msgServer
+let topicFactory
 
-describe('MsgServer', function () {
+describe('TopicFactory', function () {
   this.timeout(10000)
 
   describe('On desktop', function () {
 
-    before(function () { msgServer = new MsgServer(chasquiUrl, false, 500) })
+    before(function () { topicFactory = TopicFactory(chasquiUrl, false, 500) })
 
     it('Correctly polls for data', (done) => {
       let data = '0x123456789'
-      const topic = msgServer.newTopic('access_token')
+      const topic = topicFactory('access_token')
       topic.then((res) => {
         assert.equal(res, data, 'Should get correct data from server.')
+        done()
+      }).catch(err => {
+        assert.equal(err, null, 'Should not have error')
         done()
       })
       setTimeout(
         () => postData(topic.url, 'access_token', data),
-        1000
+        3000
       )
     })
 
     it('Gives error if polling yields error', (done) => {
       const data = 'some weird error'
-      const topic = msgServer.newTopic('tx')
-      topic.catch(err => {
+      const topic = topicFactory('tx')
+      topic.then(res => {
+        assert.equal(res, null, 'Should not have data')
+        done()
+      }).catch(err => {
         assert.equal(err, data)
         done()
       })
       setTimeout(
         () => postData(topic.url, 'error', data),
-        1000
+        3000
       )
     })
 
     it('Has cleared topic', (done) => {
-      const topic = msgServer.newTopic('access_token')
+      const topic = topicFactory('access_token')
       topic.then((res) => {
         postData(topic.url, 'access_token', '0x234', (e, r, b) => {
           assert.equal(b.data.id, 'not found')
@@ -52,31 +55,31 @@ describe('MsgServer', function () {
       })
       setTimeout(
         () => postData(topic.url, 'access_token', '0x123'),
-        1000
+        3000
       )
     })
   })
 
   describe('On Mobile', () => {
     before(function () {
-      msgServer = new MsgServer(chasquiUrl, true)
-      // window.location.href = testHref
+      topicFactory = new TopicFactory(chasquiUrl, true)
     })
 
     it('Correctly waits for data', (done) => {
       let data = '0x123456789'
-      const topic = msgServer.newTopic('access_token')
+      const topic = topicFactory('access_token')
       topic.then(res => {
+        console.log('waited for data from hash change')
         assert.equal(res, data, 'Should get correct data.')
         done()
       })
-      global.window.location.hash = '#acess_token=' + data
+      global.window.location.hash = '#access_token=' + data
       global.window.onhashchange()
     })
 
     it('Gives error if error posted', (done) => {
       let data = 'some weird error'
-      const topic = msgServer.newTopic('access_token')
+      const topic = topicFactory('access_token')
       topic.catch(err => {
         assert.equal(err, data)
         done()
@@ -88,7 +91,7 @@ describe('MsgServer', function () {
 })
 
 function postData (url, name, data, cb) {
-  let body = {}
+  const body = {}
   body[name] = data
   if (!cb) cb = () => {}
   nets({

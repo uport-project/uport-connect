@@ -1,4 +1,4 @@
-import MsgServer from './msgServer'
+import TopicFactory from './topicFactory'
 import MobileDetect from 'mobile-detect'
 import Web3 from 'web3'
 import ProviderEngine from 'web3-provider-engine'
@@ -63,10 +63,10 @@ const UportWeb3 = (dappNameArg, opts = {}) => {
     const md = new MobileDetect(navigator.userAgent)
     const isOnMobile = (md.mobile() !== null)
     const chasquiUrl = opts.chasquiUrl || CHASQUI_URL
-    const msgServer = new MsgServer(chasquiUrl, isOnMobile)
+    const topicFactory = TopicFactory(chasquiUrl, isOnMobile)
 
     const subProviderOpts = {
-      msgServer: msgServer,
+      topicFactory: topicFactory,
       uportConnectHandler: handleURI(isOnMobile)(qrdisplay),
       ethUriHandler: handleURI(isOnMobile)(qrdisplay)
       // TODO add this back in

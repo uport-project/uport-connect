@@ -1,4 +1,4 @@
-import MsgServer from './msgServer'
+import TopicFactory from './topicFactory'
 // import UportJs from 'uport'
 // import UportLite from 'uport-lite'
 import MobileDetect from 'mobile-detect'
@@ -52,7 +52,7 @@ class Uport {
     const md = new MobileDetect(navigator.userAgent)
     this.isOnMobile = (md.mobile() !== null)
     const chasquiUrl = opts.chasquiUrl || CHASQUI_URL
-    this.msgServer = opts.msgServer || new MsgServer(chasquiUrl, this.isOnMobile)
+    this.topicFactory = opts.topicFactory || TopicFactory(chasquiUrl, this.isOnMobile)
 
     // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider
@@ -75,7 +75,7 @@ class Uport {
   connect (showHandler) {
     // TODO do we need this
 
-    const topic = this.msgServer.newTopic('access_token')
+    const topic = this.topicFactory('access_token')
     const uri = 'me.uport:me?callback_url=' + topic.url
 
     return this.request({uri, topic, showHandler})
@@ -106,7 +106,7 @@ class Uport {
   txObjectHandler (showHandler) {
     return (methodTxObject) => {
       let uri = txParamsToUri(methodTxObject)
-      const topic = this.msgServer.newTopic('tx')
+      const topic = this.newTopic('tx')
       uri += '&callback_url=' + topic.url
 
       return this.request({uri, topic, showHandler})
