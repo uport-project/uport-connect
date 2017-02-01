@@ -4,7 +4,7 @@ import randomString from './util/randomString'
 
 
 class MsgServer {
-  constructor (chasquiUrl, isOnMobile) {
+  constructor (chasquiUrl, isOnMobile, pollingInterval = 2000) {
     this.chasquiUrl = chasquiUrl
     this.isOnMobile = isOnMobile
   }
@@ -23,7 +23,7 @@ class MsgServer {
       if (this.isOnMobile) {
         waitForHashChange(topicName, cb)
       } else {
-        pollForResult(topicName, url, cb)
+        pollForResult(topicName, url, pollingInterval, cb)
       }
     })
     topic.url = url
@@ -48,7 +48,7 @@ function waitForHashChange (topicName, cb) {
   }
 }
 
-function pollForResult (topicName, url, cb) {
+function pollForResult (topicName, url, pollingInterval, cb) {
   const interval = setInterval(
     () => nets(
       {
@@ -79,11 +79,12 @@ function pollForResult (topicName, url, cb) {
           return cb(null, data[topicName])
         }
       }
-    ), 2000)
+    ), pollingInterval)
 }
 
 
 function clearTopic (url) {
+  console.log('clearTopic: '+ url)
   nets({
     uri: url,
     method: 'DELETE',
