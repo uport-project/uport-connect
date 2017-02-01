@@ -6,7 +6,6 @@ import randomString from './util/randomString'
 class MsgServer {
   constructor (chasquiUrl, isOnMobile) {
     this.chasquiUrl = chasquiUrl
-    this.intervalIds = {}
     this.isOnMobile = isOnMobile
   }
   newTopic (topicName) {
