@@ -11,8 +11,8 @@ import { decodeToken } from 'jsontokens'
 export default class UportSubprovider extends Subprovider {
   constructor (opts) {
     super()
-    // Chasqui URL (default to standard)
-    this.msgServer = opts.msgServer
+    // Topic Factory
+    this.topicFactory = opts.topicFactory
 
     // uportConnectHandler deals with displaying the
     // uport connect data as QR code or clickable link
@@ -29,8 +29,8 @@ export default class UportSubprovider extends Subprovider {
 
     // Set address if present
     this.address = opts.address
-    this.getAddress = (cb ) => {
-      opts.connect().then(address => cb(null, address)).catch(error=>cb(error))
+    this.getAddress = (cb) => {
+      opts.connect().then(address => cb(null, address)).catch(error=> cb(error))
     }
   }
 
@@ -93,15 +93,15 @@ export default class UportSubprovider extends Subprovider {
   signAndReturnTxHash (ethUri, cb) {
     const self = this
 
-    let topic = self.msgServer.newTopic('tx')
+    let topic = self.topicFactory('tx')
     ethUri += '&callback_url=' + topic.url
     self.ethUriHandler(ethUri)
     topic.then(txHash => {
       self.closeQr()
-      cb(null, txHas)
+      cb(null, txHash)
     }).catch(err => {
       self.closeQr()
-      cb(err)      
+      cb(err)
     })
   }
 
