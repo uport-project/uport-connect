@@ -1,5 +1,6 @@
 import MsgServer from './msgServer'
-import { Registry } from 'uport-persona'
+// import UportJs from 'uport'
+// import UportLite from 'uport-lite'
 import MobileDetect from 'mobile-detect'
 import ContractFactory from './contract'
 import UportWeb3 from './uportWeb3'
@@ -57,7 +58,8 @@ class Uport {
 
     // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider
-    this.registry = new Registry(registrySettings)
+    // this.registry = UportLite({rpcUrl: this.rpcUrl, registryAddress: registrySettings.registryAddress})
+    // this.backend = new UportJs.default.Uport({registry: this.registry})
   }
 
   // optional qr display arg
@@ -98,28 +100,6 @@ class Uport {
       })
     })
   }
-
-
-  /**
-   * This method returns an instance of profile of the current uport user.
-   *
-   * @memberof    Uport
-   * @method      getUserPersona
-   * @return      {Promise<Object>}    an object containing the public profile for the user
-   */
-   // returns a response object with qr data, generate image func, and promise listener
-  //  maybe you should have to pass an object her
-  getUserPersona () {
-    // TODO now this has to return a response object
-    return new Promise((resolve, reject) => {
-      self.getAddress().listen()
-        .then(self.registry.getPersona)
-        .then(resolve)
-        .catch(reject)
-    })
-  }
-  // TODO maybe just get the persona with connect?
-
 
   // TODO support contract.new (maybe?)
   contract(abi, showHandler) {
