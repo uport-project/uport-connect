@@ -3586,17 +3586,13 @@ jodid25519@^1.0.0:
   dependencies:
     jsbn "~0.1.0"
 
-js-sha3@0.5.5:
+js-sha3@0.5.5, js-sha3@^0.5.5:
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.5.5.tgz#baf0c0e8c54ad5903447df96ade7a4a1bca79a4a"
 
 js-sha3@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.3.1.tgz#86122802142f0828502a0d1dee1d95e253bb0243"
-
-js-sha3@^0.5.5:
-  version "0.5.6"
-  resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.5.6.tgz#c7f906ce0bd5a2042c9f88c52f5d872fccacc252"
 
 js-tokens@^2.0.0:
   version "2.0.0"
@@ -6039,6 +6035,10 @@ strip-json-comments@~1.0.1, strip-json-comments@~1.0.4:
 strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
+
+supervisor@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/supervisor/-/supervisor-0.12.0.tgz#de7e6337015b291851c10f3538c4a7f04917ecc1"
 
 supports-color@3.1.2, supports-color@^3.1.0:
   version "3.1.2"

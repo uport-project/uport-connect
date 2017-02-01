@@ -29,6 +29,9 @@ export default class UportSubprovider extends Subprovider {
 
     // Set address if present
     this.address = opts.address
+    this.getAddress = (cb ) => {
+      opts.connect().then(address => cb(null, address)).catch(error=>cb(error))
+    }
   }
 
   handleRequest (payload, next, end) {
@@ -93,36 +96,13 @@ export default class UportSubprovider extends Subprovider {
     let topic = self.msgServer.newTopic('tx')
     ethUri += '&callback_url=' + topic.url
     self.ethUriHandler(ethUri)
-    // let cancelHandler = {isCancelled: self.isQRCancelled,
-    //                      resetCancellation: self.resetQRCancellation}
-    // self.msgServer.waitForResult(topic, cancelHandler, function (err, txHash) {
-    self.msgServer.waitForResult(topic, function (err, txHash) {
-      self.closeQR()
-      cb(err, txHash)
+    topic.then(txHash => {
+      self.closeQr()
+      cb(null, txHas)
+    }).catch(err => {
+      self.closeQr()
+      cb(err)      
     })
   }
 
-  // TODO consider removing, not necessary for interaction with uport, user uport.connect
-  getAddress (cb) {
-    const self = this
-
-    if (self.address) {
-      cb(null, self.address)
-    } else {
-      let topic = self.msgServer.newTopic('access_token')
-      let ethUri = 'me.uport:me?callback_url=' + topic.url
-      self.uportConnectHandler(ethUri)
-      // let cancelHandler = {isCancelled: self.isQRCancelled,
-      //                      resetCancellation: self.resetQRCancellation}
-      // self.msgServer.waitForResult(topic, cancelHandler, function (err, token) {
-      self.msgServer.waitForResult(topic, function (err, token) {
-        self.closeQR()
-        if (err) return cb(err)
-        let decoded = decodeToken(token)
-        let address = decoded.payload.iss
-        if (!err) self.address = address
-        cb(err, address)
-      })
-    }
-  }
 }

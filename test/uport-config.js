@@ -1,2 +1,2 @@
-import { Uport, PublicPersona, Registry } from '../lib/index'
-export { Uport, PublicPersona, Registry }
+import {  Uport, QRUtil, UportQRDisplay} from '../lib/index'
+export {  Uport, QRUtil, UportQRDisplay }
