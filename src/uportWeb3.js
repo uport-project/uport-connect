@@ -1,5 +1,4 @@
 import MsgServer from './msgServer'
-import { Registry } from 'uport-persona'
 import MobileDetect from 'mobile-detect'
 import Web3 from 'web3'
 import ProviderEngine from 'web3-provider-engine'
