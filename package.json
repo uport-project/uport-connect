@@ -11,7 +11,7 @@
     "watch": "./node_modules/.bin/webpack --config webpack.config.js -w",
     "testrpc": "./node_modules/.bin/testrpc",
     "test": "./node_modules/.bin/mocha && npm run karma",
-    "autotest": "./node_modules/.bin/supervisor -q -n exit -x ./node_modules/.bin/mocha -- --reporter spec --recursive",
+    "autotest": "./node_modules/.bin/supervisor -q -n exit -x ./node_modules/.bin/mocha -- --reporter spec",
     "karma-watch": "./node_modules/.bin/karma start test/karma.conf.js--browsers PhantomJS",
     "karma": "node karmawrapper start test/karma.conf.js --single-run --browsers PhantomJS",
     "karma-CI": "node karmawrapper start test/karma.conf.js --single-run --browsers PhantomJS",

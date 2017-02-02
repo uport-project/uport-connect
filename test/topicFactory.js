@@ -1,7 +1,7 @@
 import { assert } from 'chai'
 import request from 'request'
 import nets from 'nets'
-import TopicFactory from '../lib/topicFactory.js'
+import TopicFactory from '../src/topicFactory.js'
 
 let topicFactory
 
