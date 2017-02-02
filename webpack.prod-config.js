@@ -3,7 +3,7 @@
 // Webpack
 const webpack = require('webpack')
 
-let libraryName = 'uportlib'
+let libraryName = 'uport-connect'
 let outputFile = libraryName + '.min.js'
 
 // Final Config

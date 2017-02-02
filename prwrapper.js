@@ -22,7 +22,7 @@ exec('git fetch', function (err, stdout) {
           name: 'uport-connect',
           notes: '',
           reuseRelease: true,
-          assets: ['dist/uportlib.js', 'dist/uportlib.js.map', 'dist/uportlib.min.js', 'dist/uportlib.min.js.map'],
+          assets: ['dist/uport-connect.js', 'dist/uport-connect.js.map', 'dist/uport-connect.min.js', 'dist/uport-connect.min.js.map'],
         }, function (err, release) {
 
           if (err) process.exit(1);
