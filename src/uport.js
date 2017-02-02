@@ -1,5 +1,5 @@
 import TopicFactory from './topicFactory'
-// import UportJs from 'uport'
+import UportJs from 'uport'
 // import UportLite from 'uport-lite'
 import MobileDetect from 'mobile-detect'
 import ContractFactory from './contract'
@@ -37,6 +37,8 @@ class Uport {
    * @method      constructor
    * @param       {String}            appName                the name of your app
    * @param       {Object}            opts                    optional parameters
+   * @param       {String}            opts.clientId           a uport id for your application
+   * @param       {Function}          opts.uportJs            configured uportJs object. Configure this is you need to create signed requests
    * @param       {String}            opts.rpcUrl             a JSON rpc url (defaults to https://ropsten.infura.io)
    * @param       {String}            opts.infuraApiKey       Infura API Key (register here http://infura.io/register.html)
    * @param       {Function}          opts.topicFactory       A function creating a topic
@@ -50,6 +52,7 @@ class Uport {
   constructor (appName, opts = {}) {
     this.appName = appName || 'uport-connect-app'
     this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
+    this.clientId = opts.clientId
 
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
     this.isOnMobile = opts.isMobile || isMobile()
@@ -61,7 +64,7 @@ class Uport {
     // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider
     // this.registry = UportLite({rpcUrl: this.rpcUrl, registryAddress: registrySettings.registryAddress})
-    // this.backend = new UportJs.default.Uport({registry: this.registry})
+    this.uportJs = opts.uportJs || new UportJs.Uport()
   }
 
   getWeb3 () {
@@ -74,7 +77,7 @@ class Uport {
 
   connect (uriHandler = null) {
     const topic = this.topicFactory('access_token')
-    const uri = 'me.uport:me?callback_url=' + encodeURIComponent(topic.url)
+    const uri = paramsToUri(this.addAppParameters({to: 'me'}, topic.url))
 
     return this.request({uri, topic, uriHandler})
                   .then((token) => {
@@ -111,16 +114,28 @@ class Uport {
     return this.txObjectHandler(txobj, uriHandler)
   }
 
-  txObjectHandler (methodTxObject, uriHandler = null) {
-    let uri = txParamsToUri(methodTxObject)
-    const topic = this.topicFactory('tx')
-    uri += '&callback_url=' + encodeURIComponent(topic.url)
+  addAppParameters (txObject, callbackUrl) {
+    const appTxObject = Object.assign({}, txObject)
+    if (callbackUrl) {
+      appTxObject.callback_url = callbackUrl
+    }
+    if (this.appName) {
+      appTxObject.label = this.appName
+    }
+    if (this.clientId) {
+      appTxObject.client_id = this.clientId
+    }
+    return appTxObject
+  }
 
+  txObjectHandler (methodTxObject, uriHandler = null) {
+    const topic = this.topicFactory('tx')
+    let uri = paramsToUri(this.addAppParameters(methodTxObject, topic.url))
     return this.request({uri, topic, uriHandler})
   }
 }
 
-const txParamsToUri = (txParams) => {
+const paramsToUri = (txParams) => {
   if (!txParams.to) {
     throw new Error('Contract creation is not supported by uportProvider')
   }
@@ -134,6 +149,11 @@ const txParamsToUri = (txParams) => {
   } else if (txParams.data) {
     params.push(['bytecode', txParams.data])
   }
+  ['label', 'callback_url', 'client_id'].map(param => {
+    if (txParams[param]) {
+      params.push([param, txParams[param]])
+    }
+  })
   return `${uri}?${params.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
