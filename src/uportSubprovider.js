@@ -1,5 +1,4 @@
 import Subprovider from 'web3-provider-engine/subproviders/subprovider'
-import { decodeToken } from 'jsontokens'
 
 // handles the following RPC methods:
 // eth_coinbase
@@ -9,28 +8,19 @@ import { decodeToken } from 'jsontokens'
 // TODO support contract.new
 
 export default class UportSubprovider extends Subprovider {
-  constructor (opts) {
+  constructor ({connect, sendTransaction}) {
     super()
-    // Topic Factory
-    this.topicFactory = opts.topicFactory
-
-    // uportConnectHandler deals with displaying the
-    // uport connect data as QR code or clickable link
-    this.uportConnectHandler = opts.uportConnectHandler
-
-    // ethUriHandler deals with displaying the
-    // ethereum URI either as a QR code or
-    // clickable link for mobile
-    this.ethUriHandler = opts.ethUriHandler
-
-    this.closeQR = opts.closeQR
-    this.isQRCancelled = opts.isQRCancelled
-    this.resetQRCancellation = opts.resetQRCancellation
-
-    // Set address if present
-    this.address = opts.address
+    const self = this
     this.getAddress = (cb) => {
-      opts.connect().then(address => cb(null, address)).catch(error=> cb(error))
+      if (self.address) return cb(null, self.address)
+      connect().then(address => {
+        self.address = address
+        cb(null, address)
+      }).catch(error => cb(error))
+    }
+
+    this.sendTransaction = (txobj, cb) => {
+      sendTransaction(txobj).then(address => cb(null, address)).catch(error => cb(error))
     }
   }
 
@@ -57,10 +47,9 @@ export default class UportSubprovider extends Subprovider {
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
 
-        self.txParamsToUri(txParams, (err, val) => {
-            self.signAndReturnTxHash(val, end)
+        self.sendTransaction(txParams, (err, tx) => {
+          end(err, tx)
         })
-
         return
 
       default:
@@ -69,40 +58,4 @@ export default class UportSubprovider extends Subprovider {
 
     }
   }
-
-  txParamsToUri (txParams, cb) {
-    let uri = 'me.uport:' + txParams.to
-    let symbol
-    if (!txParams.to) {
-      return cb(new Error('Contract creation is not supported by uportProvider'))
-    }
-    if (txParams.value) {
-      uri += '?value=' + parseInt(txParams.value, 16)
-    }
-    if (txParams.data) {
-      symbol = txParams.value ? '&' : '?'
-      uri += symbol + 'bytecode=' + txParams.data
-    }
-    if (txParams.gas) {
-      symbol = txParams.value || txParams.data ? '&' : '?'
-      uri += symbol + 'gas=' + parseInt(txParams.gas, 16)
-    }
-    cb(null, uri)
-  }
-
-  signAndReturnTxHash (ethUri, cb) {
-    const self = this
-
-    let topic = self.topicFactory('tx')
-    ethUri += '&callback_url=' + topic.url
-    self.ethUriHandler(ethUri)
-    topic.then(txHash => {
-      self.closeQr()
-      cb(null, txHash)
-    }).catch(err => {
-      self.closeQr()
-      cb(err)
-    })
-  }
-
 }
