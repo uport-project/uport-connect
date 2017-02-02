@@ -129,14 +129,10 @@ const txParamsToUri = (txParams) => {
   if (txParams.value) {
     params.push(['value', parseInt(txParams.value, 16)])
   }
-  if (txParams.data) {
-    params.push(['bytecode', txParams.data])
-  }
   if (txParams.function) {
     params.push(['function', txParams.function])
-  }
-  if (txParams.gas) {
-    params.push(['gas', parseInt(txParams.gas, 16)])
+  } else if (txParams.data) {
+    params.push(['bytecode', txParams.data])
   }
   return `${uri}?${params.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }

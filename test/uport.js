@@ -10,6 +10,12 @@ const mockTopic = (response = UPORT_ID) => {
   return topic
 }
 
+const errorTopic = () => {
+  const topic = new Promise((resolve, reject) => reject(new Error('It broke')))
+  topic.url = 'https://chasqui.uport.me/api/v1/topic/123'
+  return topic
+}
+
 describe('Uport', () => {
   describe('request', () => {
     const uri = 'me.uport:me'
@@ -112,6 +118,27 @@ describe('Uport', () => {
         done()
       })
     })
+
+    it('remembers to close if there is an error on the topic', (done) => {
+      let opened, closed
+      const uport = new Uport('UportTests', {
+        showHandler: (_uri) => {
+          expect(_uri).to.equal(uri)
+          opened = true
+        },
+        closeHandler: () => { closed = true }
+      })
+      uport.request({topic: errorTopic(), uri}).then(response => {
+        assert.fail()
+        done()
+      }, error => {
+        expect(error.message).to.equal('It broke')
+        expect(opened).to.equal(true)
+        expect(closed).to.equal(true)        
+        done()
+      })
+    })
+
   })
 
   describe('connect', () => {
@@ -158,6 +185,8 @@ describe('Uport', () => {
           return mockTopic('FAKETX')
         },
         showHandler: (uri) => {
+          // Note it intentionally leaves out data as function overrides it
+          // gas is not included in uri
           expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&function=transfer(address%200x819320ce2f72768054ac01248734c7d4f9929f6c%2Cuint%2012312)&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
         },
         closeHandler: () => null
@@ -165,6 +194,8 @@ describe('Uport', () => {
       uport.sendTransaction({
         to: UPORT_ID,
         value: '0xff',
+        data: 'abcdef01',
+        gas: '0x4444',
         function: `transfer(address ${UPORT_ID},uint 12312)`
       }).then(txhash => {
         expect(txhash).to.equal('FAKETX')
@@ -172,6 +203,42 @@ describe('Uport', () => {
       })
     })
 
-  })
+    it('shows simple url with data', (done) => {
+      const uport = new Uport('UportTests', {
+        topicFactory: (name) => {
+          expect(name).to.equal('tx')
+          return mockTopic('FAKETX')
+        },
+        showHandler: (uri) => {
+          // gas is not included in uri
+          expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&bytecode=abcdef01&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
+        },
+        closeHandler: () => null
+      })
+      uport.sendTransaction({
+        to: UPORT_ID,
+        value: '0xff',
+        data: 'abcdef01',
+        gas: '0x4444'
+      }).then(txhash => {
+        expect(txhash).to.equal('FAKETX')
+        done()
+      })
+    })
 
+    it('throws an error for contract transactions', (done) => {
+      const uport = new Uport('UportTests', {
+        showHandler: (uri) => null,
+        closeHandler: () => null
+      })
+      expect(
+        () => uport.sendTransaction({
+          value: '0xff',
+          data: 'abcdef01',
+          gas: '0x4444'
+        })
+      ).to.throw('Contract creation is not supported by uportProvider')
+      done()
+    })
+  })
 })
