@@ -56,7 +56,11 @@ class Uport {
   }
 
   getWeb3 () {
-    return UportWeb3(this)
+    return UportWeb3({
+      connect: this.connect.bind(this),
+      sendTransaction: this.sendTransaction.bind(this),
+      rpcUrl: this.rpcUrl
+    })
   }
 
   connect (showHandler = null) {
@@ -73,22 +77,24 @@ class Uport {
   }
 
   request ({uri, topic, showHandler}) {
-    (this.isOnMobile ? mobileShowHandler : showHandler || this.showHandler)(uri)
+    this.isOnMobile
+      ? mobileShowHandler(uri)
+      : (showHandler || this.showHandler)(uri)
     return topic
   }
 
   // TODO support contract.new (maybe?)
-  contract(abi) {
+  contract (abi) {
     return new ContractFactory(abi, this.txObjectHandler.bind(this))
   }
 
-  sendTransaction(txobj, showHandler = null) {
+  sendTransaction (txobj, showHandler = null) {
     return this.txObjectHandler(txobj, showHandler)
   }
 
-  txObjectHandler(methodTxObject, showHandler = null) {
+  txObjectHandler (methodTxObject, showHandler = null) {
     let uri = txParamsToUri(methodTxObject)
-    const topic = this.newTopic('tx')
+    const topic = this.topicFactory('tx')
     uri += '&callback_url=' + topic.url
 
     return this.request({uri, topic, showHandler})

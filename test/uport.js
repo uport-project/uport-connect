@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import Web3 from 'web3'
-import { Uport } from './uport'
+import { Uport } from '../src/uport'
 import Autosigner from '../utils/autosigner'
 import ProviderEngine from 'web3-provider-engine'
 import Web3Subprovider from 'web3-provider-engine/subproviders/web3'
@@ -21,7 +21,7 @@ describe('uport-connect integration tests', function () {
   before((done) => {
     global.navigator = {}
 
-    let testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
+    const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
     vanillaWeb3 = new Web3(testrpcProv)
     // Create Autosigner
     Autosigner.load(testrpcProv, (err, as) => {
@@ -46,7 +46,7 @@ describe('uport-connect integration tests', function () {
           let uport = new Uport('Integration Tests', {
             // ipfsProvider: {host: '127.0.0.1', port: 5001, protocol: 'http'},
             rpcUrl: 'http://localhost:8545',
-            qrDisplay: autosigner
+            showHandler: autosigner.openQr.bind(autosigner)
           })
           web3 = uport.getWeb3()
           done()
