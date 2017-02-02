@@ -3,11 +3,11 @@ import qs from 'qs'
 import randomString from './util/randomString'
 const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
 
-function TopicFactory (isOnMobile, chasquiUrl = CHASQUI_URL, pollingInterval = 2000) {
+function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_URL) {
   function waitForHashChange (topicName, cb) {
     window.onhashchange = function () {
       if (window.location.hash) {
-        let params = qs.parse(window.location.hash.slice(1))
+        const params = qs.parse(window.location.hash.slice(1))
         if (params[topicName]) {
           window.onhashchange = function () {}
           window.location.hash = ''
