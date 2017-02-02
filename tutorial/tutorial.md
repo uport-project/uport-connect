@@ -38,7 +38,7 @@ To begin with we add the necessary code to set up the `web3` object with the uPo
 ```
 const Uport = window.uportlib.Uport
 const appName = 'FriendWallet'
-const uport = new Uport(appName)
+const uport = new Connect(appName)
 const web3 = uport.getWeb3()
 ```
 

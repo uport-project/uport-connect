@@ -1,5 +1,5 @@
 import { expect, assert } from 'chai'
-import { Uport } from '../src/uport'
+import Connect from '../src/connect'
 import { openQr, closeQr } from '../src/util/qrdisplay'
 
 const JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
@@ -19,10 +19,10 @@ const errorTopic = () => {
   return topic
 }
 
-describe('Uport', ()=> {
+describe('Connect', ()=> {
   describe('config', () => {
     it('defaults', () => {
-      const uport = new Uport('test app')
+      const uport = new Connect('test app')
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
       expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
@@ -32,7 +32,7 @@ describe('Uport', ()=> {
 
     it('does not have a closeUriHandler if not using built in openQr', () => {
       const noop = (uri) => null
-      const uport = new Uport('test', {uriHandler: noop})
+      const uport = new Connect('test', {uriHandler: noop})
       expect(uport.uriHandler).to.equal(noop)
       expect(uport.closeUriHandler).to.be.undefined
     })
@@ -43,7 +43,7 @@ describe('Uport', ()=> {
 
     it('defaults to the preset uriHandler', (done) => {
       let opened, closed
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         uriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
@@ -63,7 +63,7 @@ describe('Uport', ()=> {
 
     it('works fine without a closeUriHandler', (done) => {
       let opened
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         uriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
@@ -81,7 +81,7 @@ describe('Uport', ()=> {
 
     it('can be overriden by a passed in uriHandler', (done) => {
       let opened, closed
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         uriHandler: (_uri) => {
           assert.fail()
           done()
@@ -108,7 +108,7 @@ describe('Uport', ()=> {
 
     it('uses the preset mobileUriHandler', (done) => {
       let opened, closed
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         isMobile: true,
         mobileUriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
@@ -132,7 +132,7 @@ describe('Uport', ()=> {
 
     it('uses the preset mobileUriHandler even if there is a local override', (done) => {
       let opened, closed
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         isMobile: true,
         mobileUriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
@@ -160,7 +160,7 @@ describe('Uport', ()=> {
 
     it('remembers to close if there is an error on the topic', (done) => {
       let opened, closed
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         uriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
@@ -182,7 +182,7 @@ describe('Uport', ()=> {
 
   describe('connect', () => {
     it('returns address', (done) => {
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('access_token')
@@ -202,7 +202,7 @@ describe('Uport', ()=> {
 
   describe('sendTransaction', () => {
     it('shows simple value url', (done) => {
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('tx')
@@ -220,7 +220,7 @@ describe('Uport', ()=> {
     })
 
     it('shows simple url with function', (done) => {
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('tx')
@@ -246,7 +246,7 @@ describe('Uport', ()=> {
     })
 
     it('shows simple url with data', (done) => {
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('tx')
@@ -270,7 +270,7 @@ describe('Uport', ()=> {
     })
 
     it('throws an error for contract transactions', () => {
-      const uport = new Uport('UportTests', {
+      const uport = new Connect('UportTests', {
         uriHandler: (uri) => null,
         closeUriHandler: () => null
       })

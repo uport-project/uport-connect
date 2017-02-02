@@ -1,15 +1,9 @@
 import TopicFactory from './topicFactory'
-import UportJs from 'uport'
-// import UportLite from 'uport-lite'
+import { Credentials } from 'uport'
 import MobileDetect from 'mobile-detect'
 import ContractFactory from './contract'
 import UportWeb3 from './uportWeb3'
 import { openQr, closeQr } from './util/qrdisplay'
-// TODO Only our default now (maybe), not customizable, or minimally
-
-import { decodeToken } from 'jsontokens'
-
-// these are consensysnet constants, replace with mainnet before release!
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 
 // TODO Add simple QR wrapper for the orginal default flow, just means wrapping open/close functionality
@@ -28,7 +22,7 @@ function isMobile () {
 /**
  * This class is the main entry point for interaction with uport.
  */
-class Uport {
+class Connect {
 
   /**
    * Creates a new uport object.
@@ -38,7 +32,7 @@ class Uport {
    * @param       {String}            appName                the name of your app
    * @param       {Object}            opts                    optional parameters
    * @param       {String}            opts.clientId           a uport id for your application
-   * @param       {Function}          opts.uportJs            configured uportJs object. Configure this is you need to create signed requests
+   * @param       {Object}            opts.credentials        configured Credentials object from http://github.com/uport-project/uport-js object. Configure this is you need to create signed requests
    * @param       {String}            opts.rpcUrl             a JSON rpc url (defaults to https://ropsten.infura.io)
    * @param       {String}            opts.infuraApiKey       Infura API Key (register here http://infura.io/register.html)
    * @param       {Function}          opts.topicFactory       A function creating a topic
@@ -60,11 +54,8 @@ class Uport {
     this.uriHandler = opts.uriHandler || openQr
     this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
-
-    // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
-    // registrySettings.web3prov = this.provider
-    // this.registry = UportLite({rpcUrl: this.rpcUrl, registryAddress: registrySettings.registryAddress})
-    this.uportJs = opts.uportJs || new UportJs.Uport()
+    this.credentials = opts.credentials || new Credentials()
+    this.canSign = !!this.credentials.settings.signer
   }
 
   getWeb3 () {
@@ -75,17 +66,15 @@ class Uport {
     })
   }
 
-  connect (uriHandler = null) {
+  fetchCredentials (request = {}, uriHandler = null) {
+    const self = this
     const topic = this.topicFactory('access_token')
     const uri = paramsToUri(this.addAppParameters({to: 'me'}, topic.url))
+    return this.request({uri, topic, uriHandler}).then(self.credentials.receive)
+  }
 
-    return this.request({uri, topic, uriHandler})
-                  .then((token) => {
-                    // TODO add token verification
-                    let decoded = decodeToken(token)
-                    let address = decoded.payload.iss
-                    return address
-                  })
+  connect (uriHandler = null) {
+    return this.fetchCredentials({}, uriHandler).then((profile) => profile.address)
   }
 
   request ({uri, topic, uriHandler}) {
@@ -157,4 +146,5 @@ const paramsToUri = (txParams) => {
   return `${uri}?${params.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
-export { Uport }
+export default Connect
+

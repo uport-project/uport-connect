@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import Web3 from 'web3'
-import { Uport } from '../src/uport'
+import Connect from '../src/Connect'
 import Autosigner from '../utils/autosigner'
 import testData from './testData.json'
 
@@ -36,7 +36,7 @@ describe('uportWeb3 integration tests', function () {
           // Change provider
           // Autosigner is a qrDisplay
           // that automatically signs transactions
-          const uport = new Uport('Integration Tests', {
+          const uport = new Connect('Integration Tests', {
             // ipfsProvider: {host: '127.0.0.1', port: 5001, protocol: 'http'},
             rpcUrl: 'http://localhost:8545',
             uriHandler: autosigner.openQr.bind(autosigner)

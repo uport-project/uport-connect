@@ -45,9 +45,9 @@ In order to make this flow easy for developers, `uport-connect` provides a custo
 First we will instantiate the Uport object.
 
 ```javascript
-import { Uport } from 'uport-connect'
+import { Connect } from 'uport-connect'
 
-const uport = new Uport('MyDApp')
+const uport = new Connect('MyDApp')
 ```
 
 To ask the user for their credentials use `requestCredentials()`:
@@ -95,7 +95,7 @@ However, you might want to display the QR-code in a different way.
 You can provide your own `uriHandler` function which can be used to handle it your self using your own frontend library.
 
 ```js
-const uport = new Uport('MyDApp', { 
+const uport = new Connect('MyDApp', { 
   uriHandler: (uri) => {
     // show URI handler or button to send user to mobile app
   }
