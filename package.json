@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "lint": "./node_modules/.bin/standard --verbose | ./node_modules/.bin/snazzy",
-    "build": "yarn build-es5 && yarn build-dist && yarn build-dist-prod",
+    "build": "npm run build-es5 && npm run build-dist && npm run build-dist-prod",
+    "build:yarn": "yarn build-es5 && yarn build-dist && yarn build-dist-prod",
     "build-es5": "./node_modules/.bin/babel src -d lib",
     "build-dist": "./node_modules/.bin/webpack --config webpack.config.js",
     "build-dist-prod": "./node_modules/.bin/webpack --config webpack.prod-config.js",
