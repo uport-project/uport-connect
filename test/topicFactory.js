@@ -11,7 +11,7 @@ describe('TopicFactory', function () {
 
   describe('On desktop', function () {
 
-    before(function () { topicFactory = TopicFactory(chasquiUrl, false, 500) })
+    before(function () { topicFactory = TopicFactory(false, chasquiUrl, 500) })
 
     it('Correctly polls for data', (done) => {
       let data = '0x123456789'
@@ -62,7 +62,7 @@ describe('TopicFactory', function () {
 
   describe('On Mobile', () => {
     before(function () {
-      topicFactory = new TopicFactory(chasquiUrl, true)
+      topicFactory = new TopicFactory(true)
     })
 
     it('Correctly waits for data', (done) => {

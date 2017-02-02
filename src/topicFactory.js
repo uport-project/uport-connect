@@ -1,9 +1,9 @@
 import nets from 'nets'
 import qs from 'qs'
 import randomString from './util/randomString'
+const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
 
-function TopicFactory (chasquiUrl, isOnMobile, pollingInterval = 2000) {
-
+function TopicFactory (isOnMobile, chasquiUrl = CHASQUI_URL, pollingInterval = 2000) {
   function waitForHashChange (topicName, cb) {
     window.onhashchange = function () {
       if (window.location.hash) {
@@ -21,7 +21,7 @@ function TopicFactory (chasquiUrl, isOnMobile, pollingInterval = 2000) {
     }
   }
 
-  function pollForResult (topicName, url, pollingInterval, cb) {
+  function pollForResult (topicName, url, cb) {
     let interval = setInterval(
       () => {
         nets({
@@ -79,7 +79,7 @@ function TopicFactory (chasquiUrl, isOnMobile, pollingInterval = 2000) {
       if (isOnMobile) {
         waitForHashChange(topicName, cb)
       } else {
-        pollForResult(topicName, url, pollingInterval, cb)
+        pollForResult(topicName, url, cb)
       }
     })
     topic.url = url
