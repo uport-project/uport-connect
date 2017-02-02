@@ -4,6 +4,7 @@ import { openQr, closeQr } from '../src/util/qrdisplay'
 
 const JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
 const UPORT_ID = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
+const FAKETX = '0x21893aaa10bb28b5893bcec44b33930c659edcd2f3f08ad9f3e69d8997bef238'
 
 const mockTopic = (response = UPORT_ID) => {
   const topic = new Promise((resolve, reject) => resolve(response))
@@ -202,7 +203,7 @@ describe('Uport', ()=> {
       const uport = new Uport('UportTests', {
         topicFactory: (name) => {
           expect(name).to.equal('tx')
-          return mockTopic('FAKETX')
+          return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
           expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
@@ -210,7 +211,7 @@ describe('Uport', ()=> {
         closeUriHandler: () => null
       })
       uport.sendTransaction({to: UPORT_ID, value: '0xff'}).then(txhash => {
-        expect(txhash).to.equal('FAKETX')
+        expect(txhash).to.equal(FAKETX)
         done()
       })
     })
@@ -219,7 +220,7 @@ describe('Uport', ()=> {
       const uport = new Uport('UportTests', {
         topicFactory: (name) => {
           expect(name).to.equal('tx')
-          return mockTopic('FAKETX')
+          return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
           // Note it intentionally leaves out data as function overrides it
@@ -235,7 +236,7 @@ describe('Uport', ()=> {
         gas: '0x4444',
         function: `transfer(address ${UPORT_ID},uint 12312)`
       }).then(txhash => {
-        expect(txhash).to.equal('FAKETX')
+        expect(txhash).to.equal(FAKETX)
         done()
       })
     })

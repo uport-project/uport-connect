@@ -9,7 +9,7 @@ const globalsPlugin = new webpack.DefinePlugin({
   'process.env': { 'NODE_ENV': JSON.stringify('development') }
 })
 
-let libraryName = 'uport-connect'
+let libraryName = 'uportconnect'
 let outputFile = libraryName + '.js'
 
 // Final Config
