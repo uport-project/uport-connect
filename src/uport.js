@@ -40,6 +40,9 @@ class Uport {
    * @param       {String}            opts.rpcUrl             a JSON rpc url (defaults to https://ropsten.infura.io)
    * @param       {String}            opts.infuraApiKey       Infura API Key (register here http://infura.io/register.html)
    * @param       {Function}          opts.topicFactory       A function creating a topic
+   * @param       {Function}          opts.showHandler        Function to present QR code or other UX to approve request
+   * @param       {Function}          opts.mobileShowHandler  Function to request in mobile browsers
+   * @param       {Function}          opts.closeHandler       Function to hide UX created with showHandler after request is done
    * @return      {Object}            self
    */
 
@@ -49,10 +52,11 @@ class Uport {
     this.infuraApiKey = opts.infuraApiKey || this.dappName.replace(/\W/g, '')
 
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)    
-    this.isOnMobile = isMobile()
+    this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
     this.showHandler = opts.showHandler || QRUtil.openQr
-    this.closeHandler = QRUtil.closeQr
+    this.mobileShowHandler = opts.mobileShowHandler || mobileShowHandler
+    this.closeHandler = opts.closeHandler || QRUtil.closeQr
 
     // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider
@@ -83,9 +87,19 @@ class Uport {
 
   request ({uri, topic, showHandler}) {
     this.isOnMobile
-      ? mobileShowHandler(uri)
+      ? this.mobileShowHandler(uri)
       : (showHandler || this.showHandler)(uri)
-    return topic
+    if (this.closeHandler) {
+      return new Promise((resolve, reject) => {
+        topic.then(res => {
+          this.closeHandler()
+          resolve(res)
+        }, error => {
+          this.closeHandler()
+          reject(error)
+        })
+      })
+    } else return topic
   }
 
   // TODO support contract.new (maybe?)
