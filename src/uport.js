@@ -4,7 +4,7 @@ import TopicFactory from './topicFactory'
 import MobileDetect from 'mobile-detect'
 import ContractFactory from './contract'
 import UportWeb3 from './uportWeb3'
-
+import { QRUtil } from './util/qrdisplay'
 // TODO Only our default now (maybe), not customizable, or minimally
 
 import { decodeToken } from 'jsontokens'
@@ -16,8 +16,8 @@ const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // TODO add cancel back in, should be really simple now
 // TODO extend this uport to uport with web3 so we can eventually have sepearte distributions.
 
-function noopShowHandler (uri) {
-  console.log(`Your gui should show ${uri}`)
+function mobileShowHandler (uri) {
+  window.location.assign(uri)
 }
 /**
  * This class is the main entry point for interaction with uport.
@@ -46,7 +46,8 @@ class Uport {
     const md = new MobileDetect(navigator.userAgent)
     this.isOnMobile = (md.mobile() !== null)
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.showHandler = opts.showHandler || noopShowHandler
+    this.showHandler = opts.showHandler || QRUtil.openQr
+    this.closeHandler = QRUtil.closeQr
 
     // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider
@@ -54,16 +55,8 @@ class Uport {
     // this.backend = new UportJs.default.Uport({registry: this.registry})
   }
 
-  // optional qr display arg
-  getWeb3 (showHandler = null) {
-    const opts = {
-      infuraApiKey: this.infuraApiKey,
-      showHandler: showHandler || this.showHandler,
-      rpcUrl: this.rpcUrl,
-      topicFactory: this.topicFactory,
-      connect: this.connect.bind(this)
-    }
-    return UportWeb3(this.dappName, opts)
+  getWeb3 () {
+    return UportWeb3(this)
   }
 
   connect (showHandler = null) {
@@ -80,7 +73,7 @@ class Uport {
   }
 
   request ({uri, topic, showHandler}) {
-    (showHandler || this.showHandler)(uri)
+    (this.isOnMobile ? mobileShowHandler : showHandler || this.showHandler)(uri)
     return topic
   }
 
