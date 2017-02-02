@@ -65,12 +65,12 @@ const getUportQRDisplay = () => {
   }
 
 
-const QRUtil = { getUportQRDisplay: getUportQRDisplay,
-                 resetQRCancellation: resetQRCancellation,
-                 isQRCancelled: isQRCancelled,
-                 closeQr: closeQr,
-                 openQr: openQr,
-                 getQRDataURI: getQRDataURI
-               }
+export { 
+  getUportQRDisplay,
+  resetQRCancellation,
+  isQRCancelled,
+  closeQr,
+  openQr,
+  getQRDataURI
+}
 
-export { QRUtil }

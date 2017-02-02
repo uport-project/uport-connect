@@ -6,6 +6,7 @@ module.exports = function (config) {
     browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
     files: [
+      '../node_modules/es6-promise/dist/es6-promise.auto.js',
       '../node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
       '*.js'
     ],

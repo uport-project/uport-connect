@@ -92,11 +92,11 @@ Check out the examples folder too for how to integrate **uport** in your DApp
 `uport-connect` features a default QR-code display function, which injects a `<div>` containing the QR-code into the DOM.
 However, you might want to display the QR-code in a different way.
 
-You can provide your own `showHandler` function which can be used to handle it your self using your own frontend library.
+You can provide your own `uriHandler` function which can be used to handle it your self using your own frontend library.
 
 ```js
 const uport = new Uport('MyDApp', { 
-  showHandler: (uri) => {
+  uriHandler: (uri) => {
     // show URI handler or button to send user to mobile app
   }
 })

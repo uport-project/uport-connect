@@ -8,8 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="icon" type="image/png" sizes="16x16" href="https://uport.me/library/img/icons/favicon-16x16.png">
-    <script type="text/javascript" src="../dist/uportlib.js"></script>
-    <script type="text/javascript" src="../node_modules/web3/dist/web3.js"></script>
+    <script type="text/javascript" src="../dist/uportconnect.js"></script>
     <style>
       main { padding: 10px 30px; }
       header { background: #EEE; }
@@ -90,38 +89,13 @@
       ////////////////////////////////////////////////
 
       // App Steup
-      let rpcUrl = "https://consensysnet.infura.io:8545";
-      let Uport = window.uportlib.Uport;
-      let uportlib = window.uportlib
-      // let web3 = new Web3();
-      let web3 = new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/uport-registry-lib'))
-
-
-      // App options
-      let options = {
-        ipfsProvider: {
-          host: 'ipfs.infura.io',
-          port: '5001',
-          protocol: 'https',
-          root: ''
-        }
-      }
-
-      let myuport = new Uport(appName, options)
+      let Uport = window.uportconnect.Uport
+     
+      let myuport = new Uport(appName)
+      let web3 = myuport.getWeb3()
 
       const loginBtnClick = function () {
-
-        const connectResponse = myuport.connect()
-
-        uportlib.openQR(connectResponse.uri)
-
-        connectResponse.listen.then((address) => {
-          console.log(address)
-          uportlib.closeQR()
-        })
-
-
-
+        const connectResponse = myuport.connect().then(console.log, console.err)
       }
 
 
@@ -168,18 +142,12 @@
             }
           ]
         )
-        let status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93")
+        let status = statusContract.at("0xB42E70a3c6dd57003f4bFe7B06E370d21CDA8087")
         let statusMsg = $("#sts").value
 
-        const txnResponse = status.updateStatus(statusMsg)
-
-        uportlib.openQR(txnResponse.uri)
-
-        txnResponse.listen.then((tx) => {
+        status.updateStatus(statusMsg).then(tx => {
           console.log(tx)
-          uportlib.closeQR()
         })
-
 
         }
 

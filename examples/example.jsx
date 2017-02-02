@@ -16,10 +16,10 @@ class App extends Component {
         console.log('address: ' + address)
         web3.eth.defaultAccount = address
 
-        uport.getUserPersona().then((userPersona) => {
-          let profile = userPersona.profile
-          console.log(profile)
-        })
+        // uport.fetchCredentials().then((profile) => {
+        //   let profile = userPersona.profile
+        //   console.log(profile)
+        // })
       })
     }
   }

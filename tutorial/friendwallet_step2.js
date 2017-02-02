@@ -2,7 +2,7 @@
 
 // Setup
 
-const Uport = window.uportlib.Uport
+const Uport = window.uportconnect.Uport
 const appName = 'FriendWallet'
 const uport = new Uport(appName)
 const web3 = uport.getWeb3()
