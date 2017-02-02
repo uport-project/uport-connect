@@ -4,7 +4,7 @@ import TopicFactory from './topicFactory'
 import MobileDetect from 'mobile-detect'
 import ContractFactory from './contract'
 import UportWeb3 from './uportWeb3'
-import { QRUtil } from './util/qrdisplay'
+import { openQr, closeQr } from './util/qrdisplay'
 // TODO Only our default now (maybe), not customizable, or minimally
 
 import { decodeToken } from 'jsontokens'
@@ -35,7 +35,7 @@ class Uport {
    *
    * @memberof    Uport
    * @method      constructor
-   * @param       {String}            dappName                the name of your dapp
+   * @param       {String}            appName                the name of your app
    * @param       {Object}            opts                    optional parameters
    * @param       {String}            opts.rpcUrl             a JSON rpc url (defaults to https://ropsten.infura.io)
    * @param       {String}            opts.infuraApiKey       Infura API Key (register here http://infura.io/register.html)
@@ -47,16 +47,16 @@ class Uport {
    */
 
   //  TODO do we need registry settings
-  constructor (dappName, opts = {}) {
-    this.dappName = dappName || 'uport-connect-app'
-    this.infuraApiKey = opts.infuraApiKey || this.dappName.replace(/\W/g, '')
+  constructor (appName, opts = {}) {
+    this.appName = appName || 'uport-connect-app'
+    this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
 
-    this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)    
+    this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
     this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.uriHandler = opts.uriHandler || QRUtil.openQr
+    this.uriHandler = opts.uriHandler || openQr
     this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
-    this.closeUriHandler = opts.closeUriHandler || QRUtil.closeQr
+    this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
 
     // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider

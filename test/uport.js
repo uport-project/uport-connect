@@ -1,5 +1,6 @@
 import { expect, assert } from 'chai'
 import { Uport } from '../src/uport'
+import { openQr, closeQr } from '../src/util/qrdisplay'
 
 const JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
 const UPORT_ID = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
@@ -16,10 +17,28 @@ const errorTopic = () => {
   return topic
 }
 
-describe('Uport', () => {
+describe('Uport', ()=> {
+  describe('config', () => {
+    it('defaults', () => {
+      const uport = new Uport('test app')
+      expect(uport.appName).to.equal('test app')
+      expect(uport.infuraApiKey).to.equal('test-app')
+      expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
+      expect(uport.uriHandler).to.equal(openQr)
+      expect(uport.closeUriHandler).to.equal(closeQr)
+    })
+
+    it('does not have a closeUriHandler if not using built in openQr', () => {
+      const noop = (uri) => null
+      const uport = new Uport('test', {uriHandler: noop})
+      expect(uport.uriHandler).to.equal(noop)
+      expect(uport.closeUriHandler).to.be.undefined
+    })
+  })
+
   describe('request', () => {
     const uri = 'me.uport:me'
-    
+
     it('defaults to the preset uriHandler', (done) => {
       let opened, closed
       const uport = new Uport('UportTests', {
@@ -35,7 +54,25 @@ describe('Uport', () => {
         expect(closed).to.equal(true)
         done()
       }, error => {
-        console.log(error)
+        assert.fail()
+        done()
+      })
+    })
+
+    it('works fine without a closeUriHandler', (done) => {
+      let opened
+      const uport = new Uport('UportTests', {
+        uriHandler: (_uri) => {
+          expect(_uri).to.equal(uri)
+          opened = true
+        }
+      })
+      uport.request({topic: mockTopic(), uri}).then(response => {
+        expect(response).to.equal(UPORT_ID)
+        expect(opened).to.equal(true)
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
@@ -62,7 +99,7 @@ describe('Uport', () => {
         expect(closed).to.equal(true)
         done()
       }, error => {
-        console.log(error)
+        assert.fail()
         done()
       })
     })
@@ -86,7 +123,7 @@ describe('Uport', () => {
         expect(closed).to.equal(true)
         done()
       }, error => {
-        console.log(error)
+        assert.fail()
         done()
       })
     })
@@ -114,7 +151,7 @@ describe('Uport', () => {
         expect(closed).to.equal(true)
         done()
       }, error => {
-        console.log(error)
+        assert.fail()
         done()
       })
     })
