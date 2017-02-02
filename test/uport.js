@@ -20,14 +20,14 @@ describe('Uport', () => {
   describe('request', () => {
     const uri = 'me.uport:me'
     
-    it('defaults to the preset showHandler', (done) => {
+    it('defaults to the preset uriHandler', (done) => {
       let opened, closed
       const uport = new Uport('UportTests', {
-        showHandler: (_uri) => {
+        uriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
         },
-        closeHandler: () => { closed = true }
+        closeUriHandler: () => { closed = true }
       })
       uport.request({topic: mockTopic(), uri}).then(response => {
         expect(response).to.equal(UPORT_ID)
@@ -40,19 +40,19 @@ describe('Uport', () => {
       })
     })
 
-    it('can be overriden by a passed in showHandler', (done) => {
+    it('can be overriden by a passed in uriHandler', (done) => {
       let opened, closed
       const uport = new Uport('UportTests', {
-        showHandler: (_uri) => {
+        uriHandler: (_uri) => {
           assert.fail()
           done()
         },
-        closeHandler: () => { closed = true }
+        closeUriHandler: () => { closed = true }
       })
       uport.request({
         uri,
         topic: mockTopic(),
-        showHandler: (_uri) => {
+        uriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
         }
@@ -67,15 +67,15 @@ describe('Uport', () => {
       })
     })
 
-    it('uses the preset mobileShowHandler', (done) => {
+    it('uses the preset mobileUriHandler', (done) => {
       let opened, closed
       const uport = new Uport('UportTests', {
         isMobile: true,
-        mobileShowHandler: (_uri) => {
+        mobileUriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
         },
-        closeHandler: () => { closed = true }
+        closeUriHandler: () => { closed = true }
       })
       uport.request({
         uri,
@@ -91,20 +91,20 @@ describe('Uport', () => {
       })
     })
 
-    it('uses the preset mobileShowHandler even if there is a local override', (done) => {
+    it('uses the preset mobileUriHandler even if there is a local override', (done) => {
       let opened, closed
       const uport = new Uport('UportTests', {
         isMobile: true,
-        mobileShowHandler: (_uri) => {
+        mobileUriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
         },
-        closeHandler: () => { closed = true }
+        closeUriHandler: () => { closed = true }
       })
       uport.request({
         uri,
         topic: mockTopic(),
-        showHandler: (_uri) => { 
+        uriHandler: (_uri) => { 
           assert.fail()
           done()
         }
@@ -122,11 +122,11 @@ describe('Uport', () => {
     it('remembers to close if there is an error on the topic', (done) => {
       let opened, closed
       const uport = new Uport('UportTests', {
-        showHandler: (_uri) => {
+        uriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
         },
-        closeHandler: () => { closed = true }
+        closeUriHandler: () => { closed = true }
       })
       uport.request({topic: errorTopic(), uri}).then(response => {
         assert.fail()
@@ -148,10 +148,10 @@ describe('Uport', () => {
           expect(name).to.equal('access_token')
           return mockTopic(JWT)
         },
-        showHandler: (uri) => {
+        uriHandler: (uri) => {
           expect(uri).to.equal('me.uport:me?callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
         },
-        closeHandler: () => null
+        closeUriHandler: () => null
       })
       uport.connect().then(address => {
         expect(address).to.equal(UPORT_ID)
@@ -167,10 +167,10 @@ describe('Uport', () => {
           expect(name).to.equal('tx')
           return mockTopic('FAKETX')
         },
-        showHandler: (uri) => {
+        uriHandler: (uri) => {
           expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
         },
-        closeHandler: () => null
+        closeUriHandler: () => null
       })
       uport.sendTransaction({to: UPORT_ID, value: '0xff'}).then(txhash => {
         expect(txhash).to.equal('FAKETX')
@@ -184,12 +184,12 @@ describe('Uport', () => {
           expect(name).to.equal('tx')
           return mockTopic('FAKETX')
         },
-        showHandler: (uri) => {
+        uriHandler: (uri) => {
           // Note it intentionally leaves out data as function overrides it
           // gas is not included in uri
           expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&function=transfer(address%200x819320ce2f72768054ac01248734c7d4f9929f6c%2Cuint%2012312)&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
         },
-        closeHandler: () => null
+        closeUriHandler: () => null
       })
       uport.sendTransaction({
         to: UPORT_ID,
@@ -209,11 +209,11 @@ describe('Uport', () => {
           expect(name).to.equal('tx')
           return mockTopic('FAKETX')
         },
-        showHandler: (uri) => {
+        uriHandler: (uri) => {
           // gas is not included in uri
           expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&bytecode=abcdef01&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
         },
-        closeHandler: () => null
+        closeUriHandler: () => null
       })
       uport.sendTransaction({
         to: UPORT_ID,
@@ -228,8 +228,8 @@ describe('Uport', () => {
 
     it('throws an error for contract transactions', (done) => {
       const uport = new Uport('UportTests', {
-        showHandler: (uri) => null,
-        closeHandler: () => null
+        uriHandler: (uri) => null,
+        closeUriHandler: () => null
       })
       expect(
         () => uport.sendTransaction({

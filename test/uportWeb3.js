@@ -39,7 +39,7 @@ describe('uportWeb3 integration tests', function () {
           const uport = new Uport('Integration Tests', {
             // ipfsProvider: {host: '127.0.0.1', port: 5001, protocol: 'http'},
             rpcUrl: 'http://localhost:8545',
-            showHandler: autosigner.openQr.bind(autosigner)
+            uriHandler: autosigner.openQr.bind(autosigner)
           })
           web3 = uport.getWeb3()
           done()

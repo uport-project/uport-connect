@@ -16,7 +16,7 @@ const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // TODO add cancel back in, should be really simple now
 // TODO extend this uport to uport with web3 so we can eventually have sepearte distributions.
 
-function mobileShowHandler (uri) {
+function mobileUriHandler (uri) {
   window.location.assign(uri)
 }
 
@@ -40,9 +40,9 @@ class Uport {
    * @param       {String}            opts.rpcUrl             a JSON rpc url (defaults to https://ropsten.infura.io)
    * @param       {String}            opts.infuraApiKey       Infura API Key (register here http://infura.io/register.html)
    * @param       {Function}          opts.topicFactory       A function creating a topic
-   * @param       {Function}          opts.showHandler        Function to present QR code or other UX to approve request
-   * @param       {Function}          opts.mobileShowHandler  Function to request in mobile browsers
-   * @param       {Function}          opts.closeHandler       Function to hide UX created with showHandler after request is done
+   * @param       {Function}          opts.uriHandler        Function to present QR code or other UX to approve request
+   * @param       {Function}          opts.mobileUriHandler  Function to request in mobile browsers
+   * @param       {Function}          opts.closeUriHandler       Function to hide UX created with uriHandler after request is done
    * @return      {Object}            self
    */
 
@@ -54,9 +54,9 @@ class Uport {
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)    
     this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.showHandler = opts.showHandler || QRUtil.openQr
-    this.mobileShowHandler = opts.mobileShowHandler || mobileShowHandler
-    this.closeHandler = opts.closeHandler || QRUtil.closeQr
+    this.uriHandler = opts.uriHandler || QRUtil.openQr
+    this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
+    this.closeUriHandler = opts.closeUriHandler || QRUtil.closeQr
 
     // Bundle the registry stuff, right now it uses web3, so sort of  circ reference here, but will be removed
     // registrySettings.web3prov = this.provider
@@ -72,11 +72,11 @@ class Uport {
     })
   }
 
-  connect (showHandler = null) {
+  connect (uriHandler = null) {
     const topic = this.topicFactory('access_token')
     const uri = 'me.uport:me?callback_url=' + encodeURIComponent(topic.url)
 
-    return this.request({uri, topic, showHandler})
+    return this.request({uri, topic, uriHandler})
                   .then((token) => {
                     // TODO add token verification
                     let decoded = decodeToken(token)
@@ -85,17 +85,17 @@ class Uport {
                   })
   }
 
-  request ({uri, topic, showHandler}) {
+  request ({uri, topic, uriHandler}) {
     this.isOnMobile
-      ? this.mobileShowHandler(uri)
-      : (showHandler || this.showHandler)(uri)
-    if (this.closeHandler) {
+      ? this.mobileUriHandler(uri)
+      : (uriHandler || this.uriHandler)(uri)
+    if (this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
-          this.closeHandler()
+          this.closeUriHandler()
           resolve(res)
         }, error => {
-          this.closeHandler()
+          this.closeUriHandler()
           reject(error)
         })
       })
@@ -107,16 +107,16 @@ class Uport {
     return new ContractFactory(abi, this.txObjectHandler.bind(this))
   }
 
-  sendTransaction (txobj, showHandler = null) {
-    return this.txObjectHandler(txobj, showHandler)
+  sendTransaction (txobj, uriHandler = null) {
+    return this.txObjectHandler(txobj, uriHandler)
   }
 
-  txObjectHandler (methodTxObject, showHandler = null) {
+  txObjectHandler (methodTxObject, uriHandler = null) {
     let uri = txParamsToUri(methodTxObject)
     const topic = this.topicFactory('tx')
     uri += '&callback_url=' + encodeURIComponent(topic.url)
 
-    return this.request({uri, topic, showHandler})
+    return this.request({uri, topic, uriHandler})
   }
 }
 
