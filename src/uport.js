@@ -122,26 +122,20 @@ class Uport {
 
 
   // TODO support contract.new (maybe?)
-  contract(abi, showHandler) {
-    return new ContractFactory(abi, this.txObjectHandler(showHandler))
+  contract(abi) {
+    return new ContractFactory(abi, this.txObjectHandler.bind(this))
   }
 
   sendTransaction(txobj, showHandler) {
-    return this.txObjectHandler(showHandler)(txobj)
+    return this.txObjectHandler(txobj, showHandler)
   }
 
-  txObjectHandler(showHandler) {
-    return (methodTxObject) => {
+  txObjectHandler(methodTxObject, showHandler) {
       let uri = txParamsToUri(methodTxObject)
       const topic = this.msgServer.newTopic('tx')
       uri += '&callback_url=' + topic.url
 
       return this.request({uri, topic, showHandler})
-                  .then((txHash) => {
-                    if (err) reject(err)
-                    resolve(txHash)
-                  })
-    }
   }
 }
 

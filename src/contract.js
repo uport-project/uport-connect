@@ -36,6 +36,14 @@ function ContractFactory(contractABI, extend) {
 
           self[methodObject.name] = function contractMethod() {
 
+            if (methodObject.constant === true) {
+              throw new Error('A call does not return the txobject, no transaction necessary.')
+            }
+
+            if (methodObject.type === event) {
+              throw new Error('An event does not return the txobject, events not supported')
+            }
+
             var providedTxObject = {};
             const methodArgs = [].slice.call(arguments);
 
@@ -49,16 +57,11 @@ function ContractFactory(contractABI, extend) {
 
                 methodTxObject.data = encodeMethodReadable(methodObject, methodArgs)
 
-                if (methodObject.constant === false) {
-                  // TODO if true throw error
-                  // queryMethod = 'sendTransaction';
-                }
-
                 if (!extend) return methodTxObject
 
-                return extend(methodTxObject)
+                const extendArgs = methodArgs.slice(methodObject.inputs.length)
+                return extend(methodTxObject, ...extendArgs)
             }
-            // if filter throw error
           };
         });
       }
