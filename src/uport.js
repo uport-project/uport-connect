@@ -74,7 +74,7 @@ class Uport {
 
   connect (showHandler = null) {
     const topic = this.topicFactory('access_token')
-    const uri = 'me.uport:me?callback_url=' + topic.url
+    const uri = 'me.uport:me?callback_url=' + encodeURIComponent(topic.url)
 
     return this.request({uri, topic, showHandler})
                   .then((token) => {
@@ -114,36 +114,31 @@ class Uport {
   txObjectHandler (methodTxObject, showHandler = null) {
     let uri = txParamsToUri(methodTxObject)
     const topic = this.topicFactory('tx')
-    uri += '&callback_url=' + topic.url
+    uri += '&callback_url=' + encodeURIComponent(topic.url)
 
     return this.request({uri, topic, showHandler})
   }
 }
 
-// TODO clean this up
 const txParamsToUri = (txParams) => {
-  let uri = 'me.uport:' + txParams.to
-  let symbol
   if (!txParams.to) {
     throw new Error('Contract creation is not supported by uportProvider')
   }
+  let uri = `me.uport:${txParams.to}`
+  const params = []
   if (txParams.value) {
-    uri += '?value=' + parseInt(txParams.value, 16)
+    params.push(['value', parseInt(txParams.value, 16)])
   }
   if (txParams.data) {
-    symbol = txParams.value ? '&' : '?'
-    const hexRE = /[0-9A-Fa-f]{6}/g
-    if (hexRE.test(txParams.data)) {
-      uri += `${symbol}bytecode=${txParams.data}`
-    } else {
-      uri += `${symbol}function=${txParams.data}`
-    }
+    params.push(['bytecode', txParams.data])
+  }
+  if (txParams.function) {
+    params.push(['function', txParams.function])
   }
   if (txParams.gas) {
-    symbol = txParams.value || txParams.data ? '&' : '?'
-    uri += symbol + 'gas=' + parseInt(txParams.gas, 16)
+    params.push(['gas', parseInt(txParams.gas, 16)])
   }
-  return uri
+  return `${uri}?${params.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
 export { Uport }

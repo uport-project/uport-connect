@@ -55,7 +55,7 @@ function ContractFactory(contractABI, extend) {
                     to: self.address,
                   });
 
-                methodTxObject.data = encodeMethodReadable(methodObject, methodArgs)
+                methodTxObject.function = encodeMethodReadable(methodObject, methodArgs)
 
                 if (!extend) return methodTxObject
 

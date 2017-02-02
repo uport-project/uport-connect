@@ -122,7 +122,7 @@ describe('Uport', () => {
           return mockTopic(JWT)
         },
         showHandler: (uri) => {
-          expect(uri).to.equal('me.uport:me?callback_url=https://chasqui.uport.me/api/v1/topic/123')
+          expect(uri).to.equal('me.uport:me?callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
         },
         closeHandler: () => null
       })
@@ -132,4 +132,46 @@ describe('Uport', () => {
       })
     })
   })
+
+  describe('sendTransaction', () => {
+    it('shows simple value url', (done) => {
+      const uport = new Uport('UportTests', {
+        topicFactory: (name) => {
+          expect(name).to.equal('tx')
+          return mockTopic('FAKETX')
+        },
+        showHandler: (uri) => {
+          expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
+        },
+        closeHandler: () => null
+      })
+      uport.sendTransaction({to: UPORT_ID, value: '0xff'}).then(txhash => {
+        expect(txhash).to.equal('FAKETX')
+        done()
+      })
+    })
+
+    it('shows simple url with function', (done) => {
+      const uport = new Uport('UportTests', {
+        topicFactory: (name) => {
+          expect(name).to.equal('tx')
+          return mockTopic('FAKETX')
+        },
+        showHandler: (uri) => {
+          expect(uri).to.equal('me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&function=transfer(address%200x819320ce2f72768054ac01248734c7d4f9929f6c%2Cuint%2012312)&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123')
+        },
+        closeHandler: () => null
+      })
+      uport.sendTransaction({
+        to: UPORT_ID,
+        value: '0xff',
+        function: `transfer(address ${UPORT_ID},uint 12312)`
+      }).then(txhash => {
+        expect(txhash).to.equal('FAKETX')
+        done()
+      })
+    })
+
+  })
+
 })
