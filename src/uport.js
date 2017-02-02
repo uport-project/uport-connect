@@ -19,6 +19,12 @@ const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 function mobileShowHandler (uri) {
   window.location.assign(uri)
 }
+
+function isMobile () {
+  if (typeof navigator !== 'undefined') {
+    return !!(new MobileDetect(navigator.userAgent).mobile())
+  } else return false
+}
 /**
  * This class is the main entry point for interaction with uport.
  */
@@ -42,9 +48,8 @@ class Uport {
     this.dappName = dappName || 'uport-connect-app'
     this.infuraApiKey = opts.infuraApiKey || this.dappName.replace(/\W/g, '')
 
-    this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
-    const md = new MobileDetect(navigator.userAgent)
-    this.isOnMobile = (md.mobile() !== null)
+    this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)    
+    this.isOnMobile = isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
     this.showHandler = opts.showHandler || QRUtil.openQr
     this.closeHandler = QRUtil.closeQr
