@@ -49,7 +49,6 @@ describe('TopicFactory', function () {
       topic.then((res) => {
         setTimeout(
           () => postData(topic.url, 'access_token', '0x234', (e, r, b) => {
-            console.log(b)
             assert.equal(b.data.id, 'not found')
             done()
           }),
@@ -71,7 +70,6 @@ describe('TopicFactory', function () {
       let data = '0x123456789'
       const topic = topicFactory('access_token')
       topic.then(res => {
-        console.log('waited for data from hash change')
         assert.equal(res, data, 'Should get correct data.')
         done()
       })
