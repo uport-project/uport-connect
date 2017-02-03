@@ -2,12 +2,12 @@
 
 // Setup
 
-const Uport = window.uportconnect.Uport
+const Connect = window.uportconnect.Connect
 const appName = 'FriendWallet'
-const uport = new Uport(appName)
-const web3 = uport.getWeb3()
-// uPort connect
+const connect = new Connect(appName)
+const web3 = connect.getWeb3()
 
+// uPort connect
 const uportConnect = function () {
   web3.eth.getCoinbase((error, address) => {
     if (error) { throw error }

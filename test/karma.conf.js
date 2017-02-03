@@ -58,6 +58,7 @@ module.exports = function (config) {
   },
   port: 9876,
   logLevel: config.LOG_INFO,
+  browserNoActivityTimeout: 60000,
   autoWatch: true,
   // override to true for CI
   singleRun: false,

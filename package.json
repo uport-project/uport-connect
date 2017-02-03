@@ -14,7 +14,7 @@
     "testrpc": "./node_modules/.bin/testrpc",
     "test": "./node_modules/.bin/mocha && npm run karma",
     "autotest": "./node_modules/.bin/supervisor -q -n exit -x ./node_modules/.bin/mocha -- --reporter spec",
-    "karma-watch": "./node_modules/.bin/karma start test/karma.conf.js--browsers PhantomJS",
+    "karma-watch": "node karmawrapper start test/karma.conf.js --browsers PhantomJS",
     "karma": "node karmawrapper start test/karma.conf.js --single-run --browsers PhantomJS",
     "karma-CI": "node karmawrapper start test/karma.conf.js --single-run --browsers PhantomJS",
     "karma-CI-integration": "cd integration-test && ./setup && cd .. && node karmawrapper start integration-test/karma.conf.js --single-run --browsers PhantomJS",
@@ -100,7 +100,7 @@
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport": "^0.1.3",
+    "uport": "^0.2.1",
     "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {

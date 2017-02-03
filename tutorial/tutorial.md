@@ -36,10 +36,10 @@ We will create a file `friendwallet_step1.js` that will contain the JavaScript i
 To begin with we add the necessary code to set up the `web3` object with the uPort provider:
 
 ```
-const Uport = window.uportlib.Uport
+const Connect = window.uportconnect.Connect
 const appName = 'FriendWallet'
-const uport = new Uport(appName)
-const web3 = uport.getWeb3()
+const connect = new Connect(appName)
+const web3 = connect.getWeb3()
 ```
 
 The uPort library sets up the web3 object using a web3 provider. This is the mechanism that interprets calls to web3 functions and this is what will trigger the QR codes for connecting your uPort and signing transactions.
@@ -108,27 +108,22 @@ You can check [here](https://test.ether.camp/account/b65e3a3027fa941eec63411471d
 
 Congratulations! You have successfully been able to connect your uPort and to sign a transaction!
 
-## Step 2 - Getting profile data with `uport-persona`
+## Step 2 - Getting profile data with `requestCredentials`
 
 In this section we'll demonstrate how to fetch public profile data from your uPort, and the uPort of others. The profile data is stored in IPFS and cryptographically linked to your uPort via a registry on Ethereum.
 
 For this section we will use the HTML file `friendwallet_step2.html`, and the javascript file `friendwallet_step2.js`.
 
-We will enhance the `uportConnect()` function by fetching your name and profile picture to display it in the UI, using the `uport-persona` library:
+We will enhance the `uportConnect()` function by fetching your name and profile picture to display it in the UI:
 
 ```
 const uportConnect = () => {
-  web3.eth.getCoinbase((error, address) => {
-    if (error) { throw error }
-    globalState.uportId = address    
-    uport.getUserPersona(address).then((persona)=> {
-      console.log(persona)
-      const profile = persona.profile
-      console.log(profile)
-      globalState.name = profile.name
-      render()
-    })
-  })
+  connect.requestCredentials().then((credentials) => {
+    console.log(credentials)
+    globalState.uportId = credentials.address
+    globalState.name = credentials.name
+    render()
+  }, console.err)
 }
 ```
 

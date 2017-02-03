@@ -30,3 +30,11 @@ dist
 
 .DS_Store
 
+
+integration-test/Connect.js
+
+integration-test/karma.conf.js
+
+integration-test/testData.json
+
+*.tgz

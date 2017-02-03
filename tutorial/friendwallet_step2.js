@@ -2,29 +2,21 @@
 
 // Setup
 
-const Uport = window.uportconnect.Uport
+const Connect = window.uportconnect.Connect
 const appName = 'FriendWallet'
-const uport = new Uport(appName)
-const web3 = uport.getWeb3()
+const connect = new Connect(appName)
+const web3 = connect.getWeb3()
 
 // uPort connect
 
 const uportConnect = () => {
-  web3.eth.getCoinbase((error, address) => {
-    console.log(error)
-    if (error) { throw error }
-    globalState.uportId = address
-    uport.getUserPersona(address).then((persona)=> {
-      console.log('Test')
-      console.log(persona)
-      const profile = persona.profile
-      console.log(profile)
-      globalState.name = profile.name
-      render()
-    }).catch((e) => {console.log(e)})
-  })
+  connect.requestCredentials().then((credentials) => {
+    console.log(credentials)
+    globalState.uportId = credentials.address
+    globalState.name = credentials.name
+    render()
+  }, console.err)
 }
-
 
 // Send ether
 const sendEther = () => {

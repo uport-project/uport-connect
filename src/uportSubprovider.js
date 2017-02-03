@@ -8,12 +8,12 @@ import Subprovider from 'web3-provider-engine/subproviders/subprovider'
 // TODO support contract.new
 
 export default class UportSubprovider extends Subprovider {
-  constructor ({connect, sendTransaction}) {
+  constructor ({requestAddress, sendTransaction}) {
     super()
     const self = this
     this.getAddress = (cb) => {
       if (self.address) return cb(null, self.address)
-      connect().then(address => {
+      requestAddress().then(address => {
         self.address = address
         cb(null, address)
       }).catch(error => cb(error))
