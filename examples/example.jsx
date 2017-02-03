@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Uport } from 'uport-lib'
+import { Uport } from 'uport-connect'
 import Web3 from 'web3'
 import logo from './logo.svg'
 import './App.css'
@@ -7,7 +7,7 @@ import './App.css'
 class App extends Component {
 
   componentWillMount () {
-    let uport = new Uport('TEST92184091284091284')
+    let uport = new Connect('TEST92184091284091284')
     let web3 = uport.getWeb3()
 
     this.getCoinbase = function () {
@@ -16,10 +16,10 @@ class App extends Component {
         console.log('address: ' + address)
         web3.eth.defaultAccount = address
 
-        uport.getUserPersona().then((userPersona) => {
-          let profile = userPersona.profile
-          console.log(profile)
-        })
+        // uport.fetchCredentials().then((profile) => {
+        //   let profile = userPersona.profile
+        //   console.log(profile)
+        // })
       })
     }
   }

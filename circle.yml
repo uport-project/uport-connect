@@ -1,6 +1,6 @@
 machine:
   node:
-    version: 6.4.0
+    version: v7.3.0
 test:
   override:
     - npm run karma-CI
@@ -8,4 +8,3 @@ test:
   post:
     -  bash <(curl -s https://codecov.io/bash)
     -  npm run build-dist && npm run build-dist-prod
-    -  npm run semantic-release || true

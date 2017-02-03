@@ -6,6 +6,7 @@ module.exports = function (config) {
     browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
     files: [
+      '../node_modules/es6-promise/dist/es6-promise.auto.js',
       '../node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
       '*.js'
     ],
@@ -57,6 +58,7 @@ module.exports = function (config) {
   },
   port: 9876,
   logLevel: config.LOG_INFO,
+  browserNoActivityTimeout: 60000,
   autoWatch: true,
   // override to true for CI
   singleRun: false,

@@ -8,8 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="icon" type="image/png" sizes="16x16" href="https://uport.me/library/img/icons/favicon-16x16.png">
-    <script type="text/javascript" src="../dist/uportlib.js"></script>
-    <script type="text/javascript" src="../node_modules/web3/dist/web3.js"></script>
+    <script type="text/javascript" src="../dist/uportconnect.js"></script>
     <style>
       main { padding: 10px 30px; }
       header { background: #EEE; }
@@ -19,7 +18,7 @@
   </head>
   <body>
     <main>
-      <header><h1 id="appName">Uport Test</h1></header>
+      <header><h1 id="dappName">Uport Test</h1></header>
       <hr/>
       <section>
         <h2>Connect uPort</h2>
@@ -84,46 +83,23 @@
       let $ = (selector) => document.querySelector(selector)
 
       // App Name reading for this example
-      let appName = $('title').textContent;
-      $('#appName').textContent = appName;
+      // let dappName = $('title').textContent;
+      // $('#dappName').textContent = dappName;
 
       ////////////////////////////////////////////////
 
-      // App Steup
-      let rpcUrl = "https://consensysnet.infura.io:8545";
-      let Uport = window.uportlib.Uport;
-      let web3 = new Web3();
+      // App Steup     
+      let connect = new uportconnect.Connect('Uport Example')
+      let web3 = connect.getWeb3()
 
-      // App options
-      let options = {
-        ipfsProvider: {
-          host: 'ipfs.infura.io',
-          port: '5001',
-          protocol: 'https',
-          root: ''
-        }
+      function loginBtnClick () {
+        const connectResponse = connect.requestCredentials().then(credentials => {
+          console.log(credentials)
+          $('#addr').textContent = credentials.address
+          $('#name').textContent = credentials.name
+        }, console.err)
       }
 
-      let uport = new Uport(appName, options)
-      let uportProvider = uport.getUportProvider(rpcUrl)
-      web3.setProvider(uportProvider)
-
-      ////////////////////////////////////////////////
-
-      const loginBtnClick = function () {
-        web3.eth.getCoinbase((error, address) => {
-          if (error) { throw error }
-          web3.eth.defaultAccount = address
-          $('#addr').innerHTML = address
-
-          uport.getUserPersona().then((userPersona) => {
-            let profile = userPersona.getProfile()
-            $('#name').innerHTML = profile.name
-            console.log(profile)
-          })
-          $('#connectUportBtn').style.display = 'none'
-        })
-      }
 
       ////////////////////////////////////////////////
 
@@ -131,8 +107,11 @@
       // Generating contract ABI's is out of scope of this document
       // See Truffle for help with contract compiling
       // https://truffle.readthedocs.io/en/latest/
+
+
+
       const updateStatus = () => {
-        let statusContract = web3.eth.contract(
+        let statusContract = connect.contract(
           [
             {
               "constant": false,
@@ -165,38 +144,37 @@
             }
           ]
         )
-        let status = statusContract.at("0x60dd15dec1732d6c8a6125b21f77d039821e5b93")
+        let status = statusContract.at("0xB42E70a3c6dd57003f4bFe7B06E370d21CDA8087")
         let statusMsg = $("#sts").value
 
-        status.updateStatus(statusMsg, (error, response) => {
-          if (error) { throw error }
-          $("#txHashStatus").innerHTML = "Tx hash: " + response
-          $("#status").innerHTML = statusMsg
+        status.updateStatus(statusMsg).then(tx => {
+          console.log(tx)
         })
-      }
+
+        }
 
       ////////////////////////////////////////////////
 
       // Send ether to a friend with Web3
-      const sendEther = () => {
-        let toAddr = $('#sendTo').value
-        let value = parseFloat($('#amount').value) * 1.0e18
-        let gasPrice = 100000000000
-        let gas = 500000
-
-        web3.eth.sendTransaction(
-          {
-            to: toAddr,
-            value: value,
-            gasPrice: gasPrice,
-            gas: gas
-          },
-          (error, txhash) => {
-            if (error) { throw error }
-            $('#txHashSentEth').innerHTML = txhash
-          }
-        )
-      }
+      // const sendEther = () => {
+      //   let toAddr = $('#sendTo').value
+      //   let value = parseFloat($('#amount').value) * 1.0e18
+      //   let gasPrice = 100000000000
+      //   let gas = 500000
+      //
+      //   web3.eth.sendTransaction(
+      //     {
+      //       to: toAddr,
+      //       value: value,
+      //       gasPrice: gasPrice,
+      //       gas: gas
+      //     },
+      //     (error, txhash) => {
+      //       if (error) { throw error }
+      //       $('#txHashSentEth').innerHTML = txhash
+      //     }
+      //   )
+      // }
     </script>
   </body>
 </html>

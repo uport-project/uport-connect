@@ -1,3 +1,4 @@
-import Uport from './uport'
-import { Registry, PublicPersona } from 'uport-persona'
-export { Uport, PublicPersona, Registry }
+import Connect from './Connect'
+import QRUtil from './util/qrdisplay'
+import { SimpleSigner, Credentials } from 'uport'
+export { Connect, QRUtil, SimpleSigner, Credentials }

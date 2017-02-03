@@ -3,13 +3,13 @@
 // Webpack
 const webpack = require('webpack')
 
-let libraryName = 'uportlib'
+let libraryName = 'uportconnect'
 let outputFile = libraryName + '.min.js'
 
 // Final Config
 module.exports = {
   entry: './src/index.js',
-  devtool: 'cheap-source-map',
+  devtool: 'source-map',
   output: {
     path: 'dist',
     filename: outputFile,
@@ -22,7 +22,7 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
-        loader: 'babel'
+        loader: 'babel-loader'
       },
       {
         test: /\.json$/,
@@ -41,13 +41,6 @@ module.exports = {
     extensions: ['.js', '.json']
   },
   plugins: [
-    new webpack.SourceMapDevToolPlugin({
-      filename: outputFile + '.map',
-      append: false,
-      module: true,
-      columns: true,
-      lineToLine: true
-    }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false

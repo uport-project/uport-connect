@@ -9,7 +9,7 @@ const globalsPlugin = new webpack.DefinePlugin({
   'process.env': { 'NODE_ENV': JSON.stringify('development') }
 })
 
-let libraryName = 'uportlib'
+let libraryName = 'uportconnect'
 let outputFile = libraryName + '.js'
 
 // Final Config
@@ -20,16 +20,15 @@ module.exports = {
     filename: outputFile,
     library: libraryName,
     libraryTarget: 'umd',
-    umdNamedDefine: true,
-    sourceMapFilename: outputFile
+    umdNamedDefine: true
   },
-  devtool: 'cheap-module-source-map',
+  devtool: 'source-map',
   module: {
     loaders: [
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
-        loader: 'babel'
+        loader: 'babel-loader'
       },
       {
         test: /\.json$/,
@@ -49,13 +48,13 @@ module.exports = {
   },
   plugins: [
     globalsPlugin,
-    new webpack.SourceMapDevToolPlugin({
-      filename: outputFile + '.map',
-      append: false,
-      module: true,
-      columns: true,
-      lineToLine: true
-    })
+    // new webpack.SourceMapDevToolPlugin({
+    //   filename: outputFile + '.map',
+    //   append: false,
+    //   module: true,
+    //   columns: true,
+    //   lineToLine: true
+    // })
 
   ]
 }

@@ -1,19 +1,18 @@
 import { assert } from 'chai'
 import Web3 from 'web3'
-import { Uport } from './uport-config'
+import { Connect } from './uport-connect'
 import Autosigner from '../utils/autosigner'
-import ProviderEngine from 'web3-provider-engine'
-import Web3Subprovider from 'web3-provider-engine/subproviders/web3'
-
 import testData from './testData.json'
 
-// create random address
-const chars = '0123456789abcdef'
-let addr1 = '0x'
+const addr1 = '0x9d00733ae37f34cdebe443e5cda8e9721fffa092'
 
-for (let i = 40; i > 0; --i) addr1 += chars[Math.floor(Math.random() * chars.length)]
-
-describe('uport-lib integration tests', function () {
+function mockCredentials (receive) {
+  return {
+    settings: {},
+    receive
+  }
+}
+describe('uportWeb3 integration tests', function () {
   this.timeout(30000)
 
   let autosigner, status, vanillaWeb3, web3
@@ -21,13 +20,12 @@ describe('uport-lib integration tests', function () {
   before((done) => {
     global.navigator = {}
 
-    let testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
+    const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
     vanillaWeb3 = new Web3(testrpcProv)
     // Create Autosigner
     Autosigner.load(testrpcProv, (err, as) => {
       if (err) { throw err }
       autosigner = as
-      console.log(autosigner.address)
       vanillaWeb3.eth.getAccounts((err, accounts) => {
         if (err) { throw err }
 
@@ -43,10 +41,10 @@ describe('uport-lib integration tests', function () {
           // Change provider
           // Autosigner is a qrDisplay
           // that automatically signs transactions
-          let uport = new Uport('Integration Tests', {
-            // ipfsProvider: {host: '127.0.0.1', port: 5001, protocol: 'http'},
+          const uport = new Connect('Integration Tests', {
+            credentials: mockCredentials(() => ({ address: autosigner.address })),
             rpcUrl: 'http://localhost:8545',
-            qrDisplay: autosigner
+            uriHandler: autosigner.openQr.bind(autosigner)
           })
           web3 = uport.getWeb3()
           done()
@@ -95,8 +93,4 @@ describe('uport-lib integration tests', function () {
   //     })
   //   })
   // })
-
-  after((done) => {
-    done()
-  })
 })

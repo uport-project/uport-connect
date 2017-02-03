@@ -3,43 +3,43 @@
 
 ## Introduction
 
-This tutorial will show you how to add support for uPort in your application. Using the `uport-lib` library, we will create a simple application, FriendWallet, where you can connect your uPort and send Ether transactions. Later on you will be able to send Ether to the contacts in your uPort contact list.
+This tutorial will show you how to add support for uPort in your application. Using the `uport-connect` library, we will create a simple application, FriendWallet, where you can connect your uPort and send Ether transactions. Later on you will be able to send Ether to the contacts in your uPort contact list.
 
 We will create this app in two steps:
 
-1. Using `uport-lib` we will enable you to connect your uPort and sign transactions using the built-in QR code system.
+1. Using `uport-connect` we will enable you to connect your uPort and sign transactions using the built-in QR code system.
 2. Using the "Persona" tools we will show you how to fetch profile data like your name and populate this in the UI.
 
 *Note: The examples provided inline here and in the example files use ES6. Although our library is also written in ES6, it is transpiled to ES5, thus is perfectly compatible if you choose to use ES5 instead. These examples are simple to change to ES5 if your needs require.*
 
 ## Getting started
 
-Clone the `uport-lib` repository locally, and build it:
+Clone the `uport-connect` repository locally, and build it:
 
 ```
-git clone https://github.com/ConsenSys/uport-lib
-cd uport-lib
+git clone https://github.com/uport-project/uport-connect
+cd uport-connect
 npm install
 npm run build-dist
 ```
 
-We will be working in the directory `uport-lib/tutorial`.
+We will be working in the directory `uport-connect/tutorial`.
 
 Make sure you have the uPort application installed on your mobile device. An iOS beta developer version of the app is currently available through TestFlight. To receive instructions on how to acquire the app please enter your details at the following url <https://uport.me/signup> with the access code "devcon2".
 
 ## Step 1 - Connect and sign transactions
 
-We've created a simple HTML file `friendwallet_step1.html` that you can find [here](https://github.com/ConsenSys/uport-lib/blob/develop/tutorial/friendwallet_step1.html). It contains a section for connecting your uPort, and another section for a transfer of Ether from your uPort address to another address.
+We've created a simple HTML file `friendwallet_step1.html` that you can find [here](https://github.com/uport-project/uport-connect/blob/develop/tutorial/friendwallet_step1.html). It contains a section for connecting your uPort, and another section for a transfer of Ether from your uPort address to another address.
 
 We will create a file `friendwallet_step1.js` that will contain the JavaScript integration code.
 
 To begin with we add the necessary code to set up the `web3` object with the uPort provider:
 
 ```
-const Uport = window.uportlib.Uport
+const Connect = window.uportconnect.Connect
 const appName = 'FriendWallet'
-const uport = new Uport(appName)
-const web3 = uport.getWeb3()
+const connect = new Connect(appName)
+const web3 = connect.getWeb3()
 ```
 
 The uPort library sets up the web3 object using a web3 provider. This is the mechanism that interprets calls to web3 functions and this is what will trigger the QR codes for connecting your uPort and signing transactions.
@@ -108,27 +108,22 @@ You can check [here](https://test.ether.camp/account/b65e3a3027fa941eec63411471d
 
 Congratulations! You have successfully been able to connect your uPort and to sign a transaction!
 
-## Step 2 - Getting profile data with `uport-persona`
+## Step 2 - Getting profile data with `requestCredentials`
 
 In this section we'll demonstrate how to fetch public profile data from your uPort, and the uPort of others. The profile data is stored in IPFS and cryptographically linked to your uPort via a registry on Ethereum.
 
 For this section we will use the HTML file `friendwallet_step2.html`, and the javascript file `friendwallet_step2.js`.
 
-We will enhance the `uportConnect()` function by fetching your name and profile picture to display it in the UI, using the `uport-persona` library:
+We will enhance the `uportConnect()` function by fetching your name and profile picture to display it in the UI:
 
 ```
 const uportConnect = () => {
-  web3.eth.getCoinbase((error, address) => {
-    if (error) { throw error }
-    globalState.uportId = address    
-    uport.getUserPersona(address).then((persona)=> {
-      console.log(persona)
-      const profile = persona.profile
-      console.log(profile)
-      globalState.name = profile.name
-      render()
-    })
-  })
+  connect.requestCredentials().then((credentials) => {
+    console.log(credentials)
+    globalState.uportId = credentials.address
+    globalState.name = credentials.name
+    render()
+  }, console.err)
 }
 ```
 
