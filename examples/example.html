@@ -95,7 +95,7 @@
       let web3 = myuport.getWeb3()
 
       const loginBtnClick = function () {
-        const connectResponse = myuport.connect().then(console.log, console.err)
+        const connectResponse = myuport.requestAddress().then(console.log, console.err)
       }
 
 

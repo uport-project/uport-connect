@@ -60,21 +60,21 @@ class Connect {
 
   getWeb3 () {
     return UportWeb3({
-      connect: this.connect.bind(this),
+      requestAddress: this.requestAddress.bind(this),
       sendTransaction: this.sendTransaction.bind(this),
       rpcUrl: this.rpcUrl
     })
   }
 
-  fetchCredentials (request = {}, uriHandler = null) {
+  requestCredentials (request = {}, uriHandler = null) {
     const self = this
     const topic = this.topicFactory('access_token')
     const uri = paramsToUri(this.addAppParameters({to: 'me'}, topic.url))
     return this.request({uri, topic, uriHandler}).then(self.credentials.receive)
   }
 
-  connect (uriHandler = null) {
-    return this.fetchCredentials({}, uriHandler).then((profile) => profile.address)
+  requestAddress (uriHandler = null) {
+    return this.requestCredentials({}, uriHandler).then((profile) => profile.address)
   }
 
   request ({uri, topic, uriHandler}) {

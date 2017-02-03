@@ -6,6 +6,12 @@ import testData from './testData.json'
 
 const addr1 = '0x9d00733ae37f34cdebe443e5cda8e9721fffa092'
 
+function mockCredentials (receive) {
+  return {
+    settings: {},
+    receive
+  }
+}
 describe('uportWeb3 integration tests', function () {
   this.timeout(30000)
 
@@ -20,7 +26,6 @@ describe('uportWeb3 integration tests', function () {
     Autosigner.load(testrpcProv, (err, as) => {
       if (err) { throw err }
       autosigner = as
-      console.log(autosigner.address)
       vanillaWeb3.eth.getAccounts((err, accounts) => {
         if (err) { throw err }
 
@@ -37,7 +42,7 @@ describe('uportWeb3 integration tests', function () {
           // Autosigner is a qrDisplay
           // that automatically signs transactions
           const uport = new Connect('Integration Tests', {
-            // ipfsProvider: {host: '127.0.0.1', port: 5001, protocol: 'http'},
+            credentials: mockCredentials(() => { address: autosigner.address }),
             rpcUrl: 'http://localhost:8545',
             uriHandler: autosigner.openQr.bind(autosigner)
           })

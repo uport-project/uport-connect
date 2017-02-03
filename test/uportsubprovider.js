@@ -4,13 +4,13 @@ import UportSubprovider from '../src/uportSubprovider.js'
 const MSG_DATA = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
 const UPORT_ID = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
 
-const mockConnect = () => {
+const mockFetchAddress = () => {
   return new Promise((resolve, reject) => {
     resolve(UPORT_ID)
   })
 }
 
-const failingConnect = () => {
+const failingFetchAddress = () => {
   return new Promise((resolve, reject) => {
     reject(Error('Polling error'))
   })
@@ -35,7 +35,7 @@ const failingSendTransaction = (txparams) => {
 describe('UportSubprovider', () => {
   describe('getAddress', () => {
     it('Use connect to get address first time', (done) => {
-      const subprovider = new UportSubprovider({connect: mockConnect})
+      const subprovider = new UportSubprovider({requestAddress: mockFetchAddress})
       subprovider.getAddress((err, address) => {
         assert.isNull(err)
         assert.equal(address, UPORT_ID)
@@ -45,7 +45,7 @@ describe('UportSubprovider', () => {
     })
 
     it('Should return address directly if present', (done) => {
-      const subprovider = new UportSubprovider({connect: dontConnect})
+      const subprovider = new UportSubprovider({requestAddress: dontConnect})
       subprovider.address = UPORT_ID
       subprovider.getAddress((err, address) => {
         assert.isNull(err)
@@ -55,7 +55,7 @@ describe('UportSubprovider', () => {
     })
 
     it('Error should propagate from connect', (done) => {
-      const subprovider = new UportSubprovider({connect: failingConnect})
+      const subprovider = new UportSubprovider({requestAddress: failingFetchAddress})
       subprovider.getAddress((err, address) => {
         assert.isUndefined(address)
         assert.equal(err.message, 'Polling error')
@@ -86,7 +86,7 @@ describe('UportSubprovider', () => {
 
   describe('handleRequest', () => {
     const subprovider = new UportSubprovider({
-      connect: mockConnect,
+      requestAddress: mockFetchAddress,
       sendTransaction: mockSendTransaction
     })
     let payload = {}
