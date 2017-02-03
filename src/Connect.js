@@ -124,26 +124,26 @@ class Connect {
   }
 }
 
-const paramsToUri = (txParams) => {
-  if (!txParams.to) {
+const paramsToUri = (params) => {
+  if (!params.to) {
     throw new Error('Contract creation is not supported by uportProvider')
   }
-  let uri = `me.uport:${txParams.to}`
-  const params = []
-  if (txParams.value) {
-    params.push(['value', parseInt(txParams.value, 16)])
+  let uri = `me.uport:${params.to}`
+  const pairs = []
+  if (params.value) {
+    pairs.push(['value', parseInt(params.value, 16)])
   }
-  if (txParams.function) {
-    params.push(['function', txParams.function])
-  } else if (txParams.data) {
-    params.push(['bytecode', txParams.data])
+  if (params.function) {
+    pairs.push(['function', params.function])
+  } else if (params.data) {
+    pairs.push(['bytecode', params.data])
   }
   ['label', 'callback_url', 'client_id'].map(param => {
-    if (txParams[param]) {
-      params.push([param, txParams[param]])
+    if (params[param]) {
+      pairs.push([param, params[param]])
     }
   })
-  return `${uri}?${params.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
+  return `${uri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
 export default Connect
