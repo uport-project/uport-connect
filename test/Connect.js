@@ -222,7 +222,7 @@ describe('Connect', ()=> {
     })
   })
 
-  describe('connect', () => {
+  describe('requestAddress', () => {
     it('returns address', (done) => {
       const uport = new Connect('UportTests', {
         clientId: CLIENT_ID,

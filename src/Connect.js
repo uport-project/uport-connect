@@ -67,10 +67,10 @@ class Connect {
   }
 
   requestCredentials (request = {}, uriHandler = null) {
-    const self = this
+    const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
     const uri = paramsToUri(this.addAppParameters({to: 'me'}, topic.url))
-    return this.request({uri, topic, uriHandler}).then(self.credentials.receive)
+    return this.request({uri, topic, uriHandler}).then(jwt => receive(jwt, topic.url))
   }
 
   requestAddress (uriHandler = null) {

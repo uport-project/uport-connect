@@ -6359,9 +6359,9 @@ uport-lite@^0.1.1:
     base-x "^2.0.3"
     xmlhttprequest "^1.8.0"
 
-uport@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/uport/-/uport-0.2.0.tgz#7697b4c346a619503952a278f8c93e09936ac818"
+uport@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/uport/-/uport-0.2.1.tgz#34b6c293e7ece2083505635463e2997ffd80152e"
   dependencies:
     jsontokens "^0.6.5"
     uport-lite "^0.1.1"
