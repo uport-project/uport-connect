@@ -42,7 +42,7 @@ describe('uportWeb3 integration tests', function () {
           // Autosigner is a qrDisplay
           // that automatically signs transactions
           const uport = new Connect('Integration Tests', {
-            credentials: mockCredentials(() => { address: autosigner.address }),
+            credentials: mockCredentials(() => ({ address: autosigner.address })),
             rpcUrl: 'http://localhost:8545',
             uriHandler: autosigner.openQr.bind(autosigner)
           })
