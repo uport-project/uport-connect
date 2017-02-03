@@ -19,6 +19,14 @@ function mockCredentials (receive) {
     receive
   }
 }
+
+function mockAttestingCredentials (mockfn) {
+  return {
+    settings: {},
+    attest: (payload) => new Promise((resolve, reject) => resolve(mockfn(payload)))
+  }
+}
+
 // const registry = (address) => new Promise((resolve, reject) => { console.log(`registry: ${address}`); resolve(address === '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c' ? profileA : null) })
 // const credentials = new Credentials({signer, address: '0xa19320ce2f72768054ac01248734c7d4f9929f6d', registry})
 
@@ -192,7 +200,6 @@ describe('Connect', ()=> {
         done()
       })
     })
-
   })
 
   describe('requestCredentials', () => {
@@ -241,6 +248,32 @@ describe('Connect', ()=> {
       })
       uport.requestAddress().then(address => {
         expect(address).to.equal(UPORT_ID)
+        done()
+      }, error => {
+        console.err(error)
+        done()
+      })
+    })
+  })
+
+  describe('attestCredentials', () => {
+    const ATTESTATION = 'ATTESTATION'
+    const PAYLOAD = {sub: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', claim: { name: 'Bob' }, exp: 123123123}
+    it('provides attestation to user', (done) => {
+      let opened
+      const uport = new Connect('UportTests', {
+        uriHandler: (uri) => {
+          opened = true
+          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
+        },
+        credentials: mockAttestingCredentials((payload) => {
+          expect(payload).to.deep.equal(PAYLOAD)
+          return ATTESTATION
+        })
+      })
+      uport.attestCredentials(PAYLOAD).then((result) => {
+        expect(result).to.be.true
+        expect(opened).to.be.true
         done()
       }, error => {
         console.err(error)
