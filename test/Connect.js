@@ -41,8 +41,8 @@ describe('Connect', ()=> {
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
       expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
-      expect(uport.uriHandler).to.equal(openQr)
-      expect(uport.closeUriHandler).to.equal(closeQr)
+      expect(uport.uriHandler.name).to.equal('openQr')
+      expect(uport.closeUriHandler.name).to.equal('closeQr')
     })
 
     it('does not have a closeUriHandler if not using built in openQr', () => {
