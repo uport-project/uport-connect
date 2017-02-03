@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import Web3 from 'web3'
-import Connect from '../src/Connect'
+import { Connect } from './uport-connect'
 import Autosigner from '../utils/autosigner'
 import testData from './testData.json'
 

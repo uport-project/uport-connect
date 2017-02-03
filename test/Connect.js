@@ -1,5 +1,5 @@
 import { expect, assert } from 'chai'
-import Connect from '../src/Connect'
+import { Connect } from './uport-connect'
 // import { Credentials, SimpleSigner } from 'uport'
 import { openQr, closeQr } from '../src/util/qrdisplay'
 // import MockDate from 'mockdate'
@@ -158,7 +158,7 @@ describe('Connect', ()=> {
       uport.request({
         uri,
         topic: mockTopic(),
-        uriHandler: (_uri) => { 
+        uriHandler: (_uri) => {
           assert.fail()
           done()
         }
@@ -188,7 +188,7 @@ describe('Connect', ()=> {
       }, error => {
         expect(error.message).to.equal('It broke')
         expect(opened).to.equal(true)
-        expect(closed).to.equal(true)        
+        expect(closed).to.equal(true)
         done()
       })
     })
@@ -216,7 +216,7 @@ describe('Connect', ()=> {
         expect(profile).to.equal(PROFILE)
         done()
       }, error => {
-        console.err(error)        
+        console.err(error)
         done()
       })
     })
@@ -243,7 +243,7 @@ describe('Connect', ()=> {
         expect(address).to.equal(UPORT_ID)
         done()
       }, error => {
-        console.err(error)        
+        console.err(error)
         done()
       })
     })
