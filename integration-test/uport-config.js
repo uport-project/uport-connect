@@ -1,2 +1,2 @@
-import { Uport, QRUtil, UportQRDisplay } from 'uport-connect'
-export { Uport, QRUtil, UportQRDisplay }
+import { Connect, QRUtil, SimpleSigner, Credentials } from 'uport-connect'
+export { Connect, QRUtil, SimpleSigner, Credentials }
