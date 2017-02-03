@@ -15,7 +15,7 @@ describe('TopicFactory', function () {
     it('Correctly polls for data', (done) => {
       let data = '0x123456789'
       const topic = topicFactory('access_token')
-      topic.then((res) => {
+      topic.listen().then((res) => {
         assert.equal(res, data, 'Should get correct data from server.')
         done()
       }).catch(err => {
@@ -31,7 +31,7 @@ describe('TopicFactory', function () {
     it('Gives error if polling yields error', (done) => {
       const data = 'some weird error'
       const topic = topicFactory('tx')
-      topic.then(res => {
+      topic.listen().then(res => {
         assert.equal(res, null, 'Should not have data')
         done()
       }).catch(err => {
@@ -46,7 +46,7 @@ describe('TopicFactory', function () {
 
     it('Has cleared topic', (done) => {
       const topic = topicFactory('access_token')
-      topic.then((res) => {
+      topic.listen().then((res) => {
         setTimeout(
           () => postData(topic.url, 'access_token', '0x234', (e, r, b) => {
             assert.equal(b.data.id, 'not found')
@@ -69,7 +69,7 @@ describe('TopicFactory', function () {
     it('Correctly waits for data', (done) => {
       let data = '0x123456789'
       const topic = topicFactory('access_token')
-      topic.then(res => {
+      topic.listen().then(res => {
         assert.equal(res, data, 'Should get correct data.')
         done()
       })
@@ -80,7 +80,7 @@ describe('TopicFactory', function () {
     it('Gives error if error posted', (done) => {
       let data = 'some weird error'
       const topic = topicFactory('access_token')
-      topic.catch(err => {
+      topic.listen().catch(err => {
         assert.equal(err, data)
         done()
       })

@@ -23,15 +23,19 @@ function mockCredentials (receive) {
 // const credentials = new Credentials({signer, address: '0xa19320ce2f72768054ac01248734c7d4f9929f6d', registry})
 
 const mockTopic = (response = UPORT_ID) => {
-  const topic = new Promise((resolve, reject) => resolve(response))
-  topic.url = 'https://chasqui.uport.me/api/v1/topic/123'
-  return topic
+  return {
+    stop: () => {},
+    listen: () => (new Promise((resolve, reject) => resolve(response))),
+    url: 'https://chasqui.uport.me/api/v1/topic/123'
+  }
 }
 
 const errorTopic = () => {
-  const topic = new Promise((resolve, reject) => reject(new Error('It broke')))
-  topic.url = 'https://chasqui.uport.me/api/v1/topic/123'
-  return topic
+  return {
+    stop: () => {},
+    listen: () => (new Promise((resolve, reject) => reject(new Error('It broke')))),
+    url: 'https://chasqui.uport.me/api/v1/topic/123'
+  }
 }
 
 describe('Connect', ()=> {
