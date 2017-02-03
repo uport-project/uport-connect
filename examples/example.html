@@ -18,7 +18,7 @@
   </head>
   <body>
     <main>
-      <header><h1 id="appName">Uport Test</h1></header>
+      <header><h1 id="dappName">Uport Test</h1></header>
       <hr/>
       <section>
         <h2>Connect uPort</h2>
@@ -83,19 +83,21 @@
       let $ = (selector) => document.querySelector(selector)
 
       // App Name reading for this example
-      let appName = $('title').textContent;
-      $('#appName').textContent = appName;
+      // let dappName = $('title').textContent;
+      // $('#dappName').textContent = dappName;
 
       ////////////////////////////////////////////////
 
-      // App Steup
-      let Connect = window.uportconnect.Connect
-     
-      let myuport = new Connect(appName)
-      let web3 = myuport.getWeb3()
+      // App Steup     
+      let connect = new uportconnect.Connect('Uport Example')
+      let web3 = connect.getWeb3()
 
-      const loginBtnClick = function () {
-        const connectResponse = myuport.requestAddress().then(console.log, console.err)
+      function loginBtnClick () {
+        const connectResponse = connect.requestCredentials().then(credentials => {
+          console.log(credentials)
+          $('#addr').textContent = credentials.address
+          $('#name').textContent = credentials.name
+        }, console.err)
       }
 
 
@@ -109,7 +111,7 @@
 
 
       const updateStatus = () => {
-        let statusContract = myuport.contract(
+        let statusContract = connect.contract(
           [
             {
               "constant": false,
