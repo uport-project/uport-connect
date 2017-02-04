@@ -4,7 +4,8 @@ import { Credentials } from 'uport'
 import { openQr, closeQr } from '../src/util/qrdisplay'
 // import MockDate from 'mockdate'
 // MockDate.set(1485321133996)
-const JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJyZXF1ZXN0ZWQiOlsibmFtZSIsInBob25lIl0sImlzcyI6IjB4MDAxMTIyIiwiaWF0IjoxNDg1MzIxMTMzOTk2fQ.zxGLQKo2WjgefrxEQWfwm_oago8Qr4YctBJoqNAm2XKE-48bADjolSo2T_tED9LnSikxqFIM9gNGpNgcY8JPdg'
+const CREDENTIALS_JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJyZXF1ZXN0ZWQiOlsibmFtZSIsInBob25lIl0sImlzcyI6IjB4MDAxMTIyIiwiaWF0IjoxNDg1MzIxMTMzOTk2fQ.zxGLQKo2WjgefrxEQWfwm_oago8Qr4YctBJoqNAm2XKE-48bADjolSo2T_tED9LnSikxqFIM9gNGpNgcY8JPdg'
+const REQUEST_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.fyJyZXF1ZXN0ZWQiOlsibmFtZSIsInBob25lIl0sImlzcyI6IjB4MDAxMTIyIiwiaWF0IjoxNDg1MzIxMTMzOTk2fQ.zxGLQKo2WjgefrxEQWfwm_oago8Qr4YctBJoqNAm2XKE-48bADjolSo2T_tED9LnSikxqFIM9gNGpNgcY8JPdg'
 const CONTRACT = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
 const UPORT_ID = '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c'
 const CLIENT_ID = '0xa19320ce2f72768054ac01248734c7d4f9929f6d'
@@ -13,10 +14,18 @@ const FAKETX = '0x21893aaa10bb28b5893bcec44b33930c659edcd2f3f08ad9f3e69d8997bef2
 const publicKey = '03fdd57adec3d438ea237fe46b33ee1e016eda6b585c3e27ea66686c2ea5358479'
 const PROFILE = {publicKey, name: 'David Chaum', address: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c'}
 
-function mockCredentials (receive) {
+function mockVerifyingCredentials (receive) {
   return {
     settings: {},
-    receive
+    receive: (jwt) => new Promise((resolve) => resolve(receive(jwt)))
+  }
+}
+
+function mockSigningCredentials ({createRequest, receive}) {
+  return {
+    settings: {signer: (data, cb) => cb(null, 'SIGNATURE'), address: CLIENT_ID},
+    createRequest: (payload) => new Promise((resolve, reject) => resolve(createRequest(payload))),
+    receive: (jwt) => new Promise((resolve) => resolve(receive(jwt)))
   }
 }
 
@@ -42,7 +51,7 @@ const errorTopic = () => {
   return topic
 }
 
-describe('Connect', ()=> {
+describe('Connect', () => {
   describe('config', () => {
     it('defaults', () => {
       const uport = new Connect('test app')
@@ -52,6 +61,7 @@ describe('Connect', ()=> {
       expect(uport.uriHandler.name).to.equal('openQr')
       expect(uport.closeUriHandler.name).to.equal('closeQr')
       expect(uport.credentials).to.be.an.instanceof(Credentials)
+      expect(uport.canSign).to.be.false
     })
 
     it('does not have a closeUriHandler if not using built in openQr', () => {
@@ -68,6 +78,7 @@ describe('Connect', ()=> {
       expect(uport.clientId).to.equal(CLIENT_ID)
       expect(uport.credentials.settings.address).to.equal(CLIENT_ID)
       expect(uport.credentials.settings.signer).to.equal(signer)
+      expect(uport.canSign).to.be.true
     })
   })
 
@@ -213,27 +224,123 @@ describe('Connect', ()=> {
   })
 
   describe('requestCredentials', () => {
-    it('returns profile', (done) => {
+    describe('without signer', () => {
+      it('requests public profile', (done) => {
+        const uport = new Connect('UportTests', {
+          clientId: CLIENT_ID,
+          topicFactory: (name) => {
+            expect(name).to.equal('access_token')
+            return mockTopic(CREDENTIALS_JWT)
+          },
+          uriHandler: (uri) => {
+            expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          },
+          credentials: mockVerifyingCredentials((jwt) => {
+            expect(jwt).to.equal(CREDENTIALS_JWT)
+            return PROFILE
+          })
+        })
+        expect(uport.canSign).to.be.false
+        uport.requestCredentials().then(profile => {
+          expect(profile).to.equal(PROFILE)
+          done()
+        }, error => {
+          console.log(error)
+          done()
+        })
+      })
+
+      it('throws error when requesting specific credentials', (done) => {
+        const uport = new Connect('UportTests')
+        expect(uport.canSign).to.be.false
+        uport.requestCredentials({requested: ['phone']}).then(profile => {
+          assert.fail()
+          done()
+        }, error => {
+          expect(error.message).to.equal('Specific data can not be requested without a signer configured')
+          done()
+        })
+      })
+
+      it('throws error when requesting notifications', (done) => {
+        const uport = new Connect('UportTests')
+        expect(uport.canSign).to.be.false
+        uport.requestCredentials({ notifications: true }).then(profile => {
+          assert.fail()
+          done()
+        }, error => {
+          expect(error.message).to.equal('Notifications rights can not currently be requested without a signer configured')
+          done()
+        })
+      })
+    })
+
+    describe('with signer', () => {
+      it('requests public profile', (done) => {
+        const uport = new Connect('UportTests', {
+          clientId: CLIENT_ID,
+          topicFactory: (name) => {
+            expect(name).to.equal('access_token')
+            return mockTopic(CREDENTIALS_JWT)
+          },
+          uriHandler: (uri) => {
+            expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
+          },
+          credentials: mockSigningCredentials(
+            {
+              receive: (jwt) => {
+                expect(jwt).to.equal(CREDENTIALS_JWT)
+                return PROFILE
+              },
+              createRequest: (payload) => {
+                expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123' })
+                return REQUEST_TOKEN
+              }
+            })
+        })
+        expect(uport.canSign).to.be.true
+        uport.requestCredentials().then(profile => {
+          expect(profile).to.equal(PROFILE)
+          done()
+        }, error => {
+          console.log(error)
+          done()
+        })
+      })
+    })
+
+    it('requests specific credentials', (done) => {
       const uport = new Connect('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('access_token')
-          return mockTopic(JWT)
+          return mockTopic(CREDENTIALS_JWT)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
         },
-        credentials: mockCredentials((jwt) => {
-          expect(JWT).to.equal(JWT)
-          return PROFILE
-        }),
-        closeUriHandler: () => null
+        credentials: mockSigningCredentials(
+          {
+            receive: (jwt) => {
+              expect(jwt).to.equal(CREDENTIALS_JWT)
+              return PROFILE
+            },
+            createRequest: (payload) => {
+              expect(payload).to.be.deep.equal({
+                requested: ['phone'],
+                notifications: true,
+                callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123'
+              })
+              return REQUEST_TOKEN
+            }
+          })
       })
-      uport.requestCredentials().then(profile => {
+      expect(uport.canSign).to.be.true
+      uport.requestCredentials({requested: ['phone'], notifications: true}).then(profile => {
         expect(profile).to.equal(PROFILE)
         done()
       }, error => {
-        console.err(error)
+        console.log(error)
         done()
       })
     })
@@ -245,22 +352,21 @@ describe('Connect', ()=> {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('access_token')
-          return mockTopic(JWT)
+          return mockTopic(CREDENTIALS_JWT)
         },
         uriHandler: (uri) => {
           expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
-        credentials: mockCredentials((jwt) => {
-          expect(JWT).to.equal(JWT)
+        credentials: mockVerifyingCredentials(jwt => {
+          expect(jwt).to.equal(CREDENTIALS_JWT)
           return PROFILE
-        }),
-        closeUriHandler: () => null
+        })
       })
       uport.requestAddress().then(address => {
         expect(address).to.equal(UPORT_ID)
         done()
       }, error => {
-        console.err(error)
+        console.log(error)
         done()
       })
     })
@@ -359,7 +465,6 @@ describe('Connect', ()=> {
         done()
       })
     })
-
   })
 
   describe('sendTransaction', () => {

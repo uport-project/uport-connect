@@ -56,7 +56,7 @@ class Connect {
     this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
     this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
-    this.canSign = !!this.credentials.settings.signer
+    this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
   }
 
   getWeb3 () {
@@ -70,8 +70,21 @@ class Connect {
   requestCredentials (request = {}, uriHandler = null) {
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
-    const uri = paramsToUri(this.addAppParameters({to: 'me'}, topic.url))
-    return this.request({uri, topic, uriHandler}).then(jwt => receive(jwt, topic.url))
+    return new Promise((resolve, reject) => {
+      if (this.canSign) {
+        this.credentials.createRequest({...request, callbackUrl: topic.url}).then(requestToken =>
+          resolve(`me.uport:me?requestToken=${encodeURIComponent(requestToken)}`)
+        )
+      } else {
+        if (request.requested && request.requested.length > 0) {
+          return reject(new Error('Specific data can not be requested without a signer configured'))
+        }
+        if (request.notifications) {
+          return reject(new Error('Notifications rights can not currently be requested without a signer configured'))
+        }
+        resolve(paramsToUri(this.addAppParameters({ to: 'me' }, topic.url)))
+      }
+    }).then(uri => this.request({uri, topic, uriHandler})).then(jwt => receive(jwt, topic.url))
   }
 
   requestAddress (uriHandler = null) {
