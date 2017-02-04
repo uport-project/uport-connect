@@ -76,6 +76,12 @@ class Connect {
           resolve(`me.uport:me?requestToken=${encodeURIComponent(requestToken)}`)
         )
       } else {
+        if (request.requested && request.requested.length > 0) {
+          return reject(new Error('Specific data can not be requested without a signer configured'))
+        }
+        if (request.notifications) {
+          return reject(new Error('Notifications rights can not currently be requested without a signer configured'))
+        }
         resolve(paramsToUri(this.addAppParameters({ to: 'me' }, topic.url)))
       }
     }).then(uri => this.request({uri, topic, uriHandler})).then(jwt => receive(jwt, topic.url))

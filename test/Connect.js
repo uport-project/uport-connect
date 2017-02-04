@@ -225,7 +225,7 @@ describe('Connect', () => {
 
   describe('requestCredentials', () => {
     describe('without signer', () => {
-      it('returns profile', (done) => {
+      it('requests public profile', (done) => {
         const uport = new Connect('UportTests', {
           clientId: CLIENT_ID,
           topicFactory: (name) => {
@@ -249,10 +249,34 @@ describe('Connect', () => {
           done()
         })
       })
+
+      it('throws error when requesting specific credentials', (done) => {
+        const uport = new Connect('UportTests')
+        expect(uport.canSign).to.be.false
+        uport.requestCredentials({requested: ['phone']}).then(profile => {
+          assert.fail()
+          done()
+        }, error => {
+          expect(error.message).to.equal('Specific data can not be requested without a signer configured')
+          done()
+        })
+      })
+
+      it('throws error when requesting notifications', (done) => {
+        const uport = new Connect('UportTests')
+        expect(uport.canSign).to.be.false
+        uport.requestCredentials({ notifications: true }).then(profile => {
+          assert.fail()
+          done()
+        }, error => {
+          expect(error.message).to.equal('Notifications rights can not currently be requested without a signer configured')
+          done()
+        })
+      })
     })
 
     describe('with signer', () => {
-      it('returns profile', (done) => {
+      it('requests public profile', (done) => {
         const uport = new Connect('UportTests', {
           clientId: CLIENT_ID,
           topicFactory: (name) => {
@@ -269,9 +293,10 @@ describe('Connect', () => {
                 return PROFILE
               },
               createRequest: (payload) => {
+                expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123' })
                 return REQUEST_TOKEN
               }
-          })
+            })
         })
         expect(uport.canSign).to.be.true
         uport.requestCredentials().then(profile => {
@@ -281,6 +306,42 @@ describe('Connect', () => {
           console.log(error)
           done()
         })
+      })
+    })
+
+    it('requests specific credentials', (done) => {
+      const uport = new Connect('UportTests', {
+        clientId: CLIENT_ID,
+        topicFactory: (name) => {
+          expect(name).to.equal('access_token')
+          return mockTopic(CREDENTIALS_JWT)
+        },
+        uriHandler: (uri) => {
+          expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
+        },
+        credentials: mockSigningCredentials(
+          {
+            receive: (jwt) => {
+              expect(jwt).to.equal(CREDENTIALS_JWT)
+              return PROFILE
+            },
+            createRequest: (payload) => {
+              expect(payload).to.be.deep.equal({
+                requested: ['phone'],
+                notifications: true,
+                callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123'
+              })
+              return REQUEST_TOKEN
+            }
+          })
+      })
+      expect(uport.canSign).to.be.true
+      uport.requestCredentials({requested: ['phone'], notifications: true}).then(profile => {
+        expect(profile).to.equal(PROFILE)
+        done()
+      }, error => {
+        console.log(error)
+        done()
       })
     })
   })
