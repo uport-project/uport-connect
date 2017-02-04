@@ -296,8 +296,8 @@ describe('Connect', () => {
         uriHandler: (uri) => {
           expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
-        credentials: mockVerifyingCredentials((CREDENTIALS_JWT) => {
-          expect(CREDENTIALS_JWT).to.equal(CREDENTIALS_JWT)
+        credentials: mockVerifyingCredentials(jwt => {
+          expect(jwt).to.equal(CREDENTIALS_JWT)
           return PROFILE
         })
       })
