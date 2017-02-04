@@ -1,6 +1,6 @@
 import { expect, assert } from 'chai'
 import { Connect } from './uport-connect'
-// import { Credentials, SimpleSigner } from 'uport'
+import { Credentials } from 'uport'
 import { openQr, closeQr } from '../src/util/qrdisplay'
 // import MockDate from 'mockdate'
 // MockDate.set(1485321133996)
@@ -19,6 +19,14 @@ function mockCredentials (receive) {
     receive
   }
 }
+
+function mockAttestingCredentials (mockfn) {
+  return {
+    settings: {},
+    attest: (payload) => new Promise((resolve, reject) => resolve(mockfn(payload)))
+  }
+}
+
 // const registry = (address) => new Promise((resolve, reject) => { console.log(`registry: ${address}`); resolve(address === '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c' ? profileA : null) })
 // const credentials = new Credentials({signer, address: '0xa19320ce2f72768054ac01248734c7d4f9929f6d', registry})
 
@@ -43,6 +51,7 @@ describe('Connect', ()=> {
       expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
       expect(uport.uriHandler.name).to.equal('openQr')
       expect(uport.closeUriHandler.name).to.equal('closeQr')
+      expect(uport.credentials).to.be.an.instanceof(Credentials)
     })
 
     it('does not have a closeUriHandler if not using built in openQr', () => {
@@ -50,6 +59,15 @@ describe('Connect', ()=> {
       const uport = new Connect('test', {uriHandler: noop})
       expect(uport.uriHandler).to.equal(noop)
       expect(uport.closeUriHandler).to.be.undefined
+    })
+
+    it('configures credentials correctly', () => {
+      const signer = () => null
+      const uport = new Connect('test app', {clientId: CLIENT_ID, signer})
+      expect(uport.credentials).to.be.an.instanceof(Credentials)
+      expect(uport.clientId).to.equal(CLIENT_ID)
+      expect(uport.credentials.settings.address).to.equal(CLIENT_ID)
+      expect(uport.credentials.settings.signer).to.equal(signer)
     })
   })
 
@@ -192,7 +210,6 @@ describe('Connect', ()=> {
         done()
       })
     })
-
   })
 
   describe('requestCredentials', () => {
@@ -247,6 +264,102 @@ describe('Connect', ()=> {
         done()
       })
     })
+  })
+
+  describe('attestCredentials', () => {
+    const ATTESTATION = 'ATTESTATION'
+    const PAYLOAD = {sub: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', claim: { name: 'Bob' }, exp: 123123123}
+    it('provides attestation to user using default uriHandler', (done) => {
+      let opened
+      const uport = new Connect('UportTests', {
+        uriHandler: (uri) => {
+          opened = true
+          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
+        },
+        credentials: mockAttestingCredentials((payload) => {
+          expect(payload).to.deep.equal(PAYLOAD)
+          return ATTESTATION
+        })
+      })
+      uport.attestCredentials(PAYLOAD).then((result) => {
+        expect(result).to.be.true
+        expect(opened).to.be.true
+        done()
+      }, error => {
+        console.err(error)
+        done()
+      })
+    })
+
+    it('provides attestation to user using mobileUriHandler', (done) => {
+      let opened
+      const uport = new Connect('UportTests', {
+        isMobile: true,
+        mobileUriHandler: (uri) => {
+          opened = true
+          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
+        },
+        credentials: mockAttestingCredentials((payload) => {
+          expect(payload).to.deep.equal(PAYLOAD)
+          return ATTESTATION
+        })
+      })
+      uport.attestCredentials(PAYLOAD).then((result) => {
+        expect(result).to.be.true
+        expect(opened).to.be.true
+        done()
+      }, error => {
+        console.err(error)
+        done()
+      })
+    })
+
+    it('provides attestation to user using overriden uriHandler', (done) => {
+      let opened
+      const uport = new Connect('UportTests', {
+        credentials: mockAttestingCredentials((payload) => {
+          expect(payload).to.deep.equal(PAYLOAD)
+          return ATTESTATION
+        })
+      })
+      uport.attestCredentials(PAYLOAD, (uri) => {
+        opened = true
+        expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
+      }).then((result) => {
+        expect(result).to.be.true
+        expect(opened).to.be.true
+        done()
+      }, error => {
+        console.err(error)
+        done()
+      })
+    })
+
+    it('provides attestation to user using mobileUriHandler even if there is an overridden uriHandler', (done) => {
+      let opened
+      const uport = new Connect('UportTests', {
+        isMobile: true,
+        mobileUriHandler: (uri) => {
+          opened = true
+          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
+        },
+        credentials: mockAttestingCredentials((payload) => {
+          expect(payload).to.deep.equal(PAYLOAD)
+          return ATTESTATION
+        })
+      })
+      uport.attestCredentials(PAYLOAD, (uri) => {
+        assert.fail()
+      }).then((result) => {
+        expect(result).to.be.true
+        expect(opened).to.be.true
+        done()
+      }, error => {
+        console.err(error)
+        done()
+      })
+    })
+
   })
 
   describe('sendTransaction', () => {

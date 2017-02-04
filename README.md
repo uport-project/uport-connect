@@ -58,7 +58,7 @@ uport.requestCredentials().then((credentials) => {
 })
 ```
 
-If all we want is the address of the connected user we can use `connect()`:
+If all we want is the address of the connected user we can use `requestAddress()`:
 
 ```javascript
 uport.requestAddress().then((address) => {
