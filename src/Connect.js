@@ -30,15 +30,16 @@ class Connect {
    * @memberof    Uport
    * @method      constructor
    * @param       {String}            appName                the name of your app
-   * @param       {Object}            opts                    optional parameters
-   * @param       {String}            opts.clientId           a uport id for your application
-   * @param       {Object}            opts.credentials        configured Credentials object from http://github.com/uport-project/uport-js object. Configure this is you need to create signed requests
-   * @param       {String}            opts.rpcUrl             a JSON rpc url (defaults to https://ropsten.infura.io)
-   * @param       {String}            opts.infuraApiKey       Infura API Key (register here http://infura.io/register.html)
-   * @param       {Function}          opts.topicFactory       A function creating a topic
+   * @param       {Object}            opts                   optional parameters
+   * @param       {Object}            opts.credentials       pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this is you need to create signed requests
+   * @param       {Function}          opts.signer            signing function which will be used to sign JWT's in the credentials object
+   * @param       {String}            opts.clientId          a uport id for your application this will be used in the default credentials object
+   * @param       {String}            opts.rpcUrl            a JSON rpc url (defaults to https://ropsten.infura.io)
+   * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
+   * @param       {Function}          opts.topicFactory      A function creating a topic
    * @param       {Function}          opts.uriHandler        Function to present QR code or other UX to approve request
    * @param       {Function}          opts.mobileUriHandler  Function to request in mobile browsers
-   * @param       {Function}          opts.closeUriHandler       Function to hide UX created with uriHandler after request is done
+   * @param       {Function}          opts.closeUriHandler   Function to hide UX created with uriHandler after request is done
    * @return      {Object}            self
    */
 
@@ -54,7 +55,7 @@ class Connect {
     this.uriHandler = opts.uriHandler || openQr
     this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
-    this.credentials = opts.credentials || new Credentials()
+    this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
     this.canSign = !!this.credentials.settings.signer
   }
 

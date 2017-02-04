@@ -1,6 +1,6 @@
 import { expect, assert } from 'chai'
 import { Connect } from './uport-connect'
-// import { Credentials, SimpleSigner } from 'uport'
+import { Credentials } from 'uport'
 import { openQr, closeQr } from '../src/util/qrdisplay'
 // import MockDate from 'mockdate'
 // MockDate.set(1485321133996)
@@ -51,6 +51,7 @@ describe('Connect', ()=> {
       expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
       expect(uport.uriHandler.name).to.equal('openQr')
       expect(uport.closeUriHandler.name).to.equal('closeQr')
+      expect(uport.credentials).to.be.an.instanceof(Credentials)
     })
 
     it('does not have a closeUriHandler if not using built in openQr', () => {
@@ -58,6 +59,15 @@ describe('Connect', ()=> {
       const uport = new Connect('test', {uriHandler: noop})
       expect(uport.uriHandler).to.equal(noop)
       expect(uport.closeUriHandler).to.be.undefined
+    })
+
+    it('configures credentials correctly', () => {
+      const signer = () => null
+      const uport = new Connect('test app', {clientId: CLIENT_ID, signer})
+      expect(uport.credentials).to.be.an.instanceof(Credentials)
+      expect(uport.clientId).to.equal(CLIENT_ID)
+      expect(uport.credentials.settings.address).to.equal(CLIENT_ID)
+      expect(uport.credentials.settings.signer).to.equal(signer)
     })
   })
 
