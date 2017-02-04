@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -100,7 +100,7 @@
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport": "^0.2.1",
+    "uport": "^0.2.2",
     "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {
@@ -109,11 +109,12 @@
     "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.10",
     "babel-plugin-external-helpers": "^6.18.0",
+    "babel-plugin-syntax-object-rest-spread": "^6.13.0",
     "babel-plugin-transform-es2015-modules-umd": "^6.18.0",
     "babel-plugin-transform-es2015-template-literals": "^6.8.0",
     "babel-plugin-transform-es3-member-expression-literals": "^6.8.0",
     "babel-plugin-transform-es3-property-literals": "^6.8.0",
-    "babel-plugin-transform-object-rest-spread": "^6.20.2",
+    "babel-plugin-transform-object-rest-spread": "^6.22.0",
     "babel-preset-es2015": "^6.18.0",
     "babel-register": "^6.18.0",
     "chai": "^3.5.0",
