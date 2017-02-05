@@ -6495,7 +6495,7 @@ watchpack@^1.0.0:
     chokidar "^1.4.3"
     graceful-fs "^4.1.2"
 
-web3-provider-engine@^8.0.8, web3-provider-engine@~8.1.0:
+web3-provider-engine@~8.1.0:
   version "8.1.17"
   resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-8.1.17.tgz#ddadb6f50fc80c2e5f5d4bb2df7adf1c2e2a5a15"
   dependencies:
