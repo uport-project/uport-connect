@@ -106,10 +106,10 @@ class Connect {
   request ({uri, topic, uriHandler}) {
     this.isOnMobile
       ? this.mobileUriHandler(uri)
-      : (uriHandler || this.uriHandler)(uri)
+      : (uriHandler || this.uriHandler)(uri, topic.stop)
     if (this.closeUriHandler) {
       return new Promise((resolve, reject) => {
-        topic.then(res => {
+        topic.listen().then(res => {
           this.closeUriHandler()
           resolve(res)
         }, error => {
@@ -117,7 +117,7 @@ class Connect {
           reject(error)
         })
       })
-    } else return topic
+    } else return topic.listen()
   }
 
   // TODO support contract.new (maybe?)

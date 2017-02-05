@@ -88,7 +88,7 @@
 
       ////////////////////////////////////////////////
 
-      // App Steup     
+      // App Steup
       let connect = new uportconnect.Connect('Uport Example')
       let web3 = connect.getWeb3()
 
@@ -149,6 +149,8 @@
 
         status.updateStatus(statusMsg).then(tx => {
           console.log(tx)
+        }).catch(err => {
+          console.log(err)
         })
 
         }
