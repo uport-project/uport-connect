@@ -14,10 +14,10 @@
     "testrpc": "./node_modules/.bin/testrpc",
     "test": "./node_modules/.bin/mocha && npm run karma",
     "autotest": "./node_modules/.bin/supervisor -q -n exit -x ./node_modules/.bin/mocha -- --reporter spec",
-    "karma-watch": "./node_modules/.bin/karma start test/karma.conf.js --browsers PhantomJS",
-    "karma": "./node_modules/.bin/karma start test/karma.conf.js --single-run --browsers PhantomJS",
-    "karma-CI": "./node_modules/.bin/karma start test/karma.conf.js --single-run --browsers PhantomJS",
-    "karma-CI-integration": "cd integration-test && ./setup && cd .. && ./node_modules/.bin/karma start integration-test/karma.conf.js --single-run --browsers PhantomJS",
+    "karma-watch": "node karmawrapper start test/karma.conf.js --browsers PhantomJS",
+    "karma": "node karmawrapper start test/karma.conf.js --single-run --browsers PhantomJS",
+    "karma-CI": "node karmawrapper start test/karma.conf.js --single-run --browsers PhantomJS",
+    "karma-CI-integration": "cd integration-test && ./setup && cd .. && node karmawrapper start integration-test/karma.conf.js --single-run --browsers PhantomJS",
     "prepublish": "npm run build-es5",
     "post-release": "node prwrapper",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post && npm run post-release",
@@ -101,7 +101,8 @@
     "qs": "^6.2.1",
     "request": "^2.75.0",
     "uport": "^0.2.2",
-    "web3": "^0.18.2"
+    "web3": "^0.18.2",
+    "web3-provider-engine": "^8.0.8"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",

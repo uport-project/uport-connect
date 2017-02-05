@@ -3,7 +3,7 @@ import Web3 from 'web3'
 import { Connect } from './uport-connect'
 import Autosigner from '../utils/autosigner'
 import testData from './testData.json'
-import TestRPC from 'ethereumjs-testrpc'
+// import TestRPC from 'ethereumjs-testrpc'
 
 const addr1 = '0x9d00733ae37f34cdebe443e5cda8e9721fffa092'
 
@@ -21,8 +21,8 @@ describe('uportWeb3 integration tests', function () {
   before(done => {
     global.navigator = {}
 
-    const testrpcProv = TestRPC.provider()
-    // const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
+    // const testrpcProv = TestRPC.provider()
+    const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
     vanillaWeb3 = new Web3(testrpcProv)
     // Create Autosigner
     Autosigner.load(testrpcProv, (err, as) => {
