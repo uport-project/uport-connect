@@ -101,7 +101,7 @@
     "qs": "^6.2.1",
     "request": "^2.75.0",
     "uport": "^0.2.2",
-    "web3-provider-engine": "^8.0.8"
+    "web3": "^0.18.2"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
