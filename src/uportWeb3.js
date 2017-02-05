@@ -1,23 +1,13 @@
 import Web3 from 'web3'
-import ProviderEngine from 'web3-provider-engine'
-import RpcSubprovider from 'web3-provider-engine/subproviders/rpc'
 import UportSubprovider from './uportSubprovider'
 
-const createUportProvider = (uport) => {
-  const subprovider = new UportSubprovider(uport)
-  const web3Provider = new ProviderEngine()
-  web3Provider.addProvider(subprovider)
-  // data source
-  const rpcSubprovider = new RpcSubprovider({
-    rpcUrl: uport.rpcUrl
+const createUportProvider = ({requestAddress, sendTransaction, provider, rpcUrl}) =>
+  new UportSubprovider({
+    requestAddress,
+    sendTransaction,
+    provider: provider || new Web3.providers.HttpProvider(rpcUrl)
   })
-  web3Provider.addProvider(rpcSubprovider)
 
-  // start polling
-  web3Provider.start()
-  web3Provider.stop()
-  return web3Provider
-}
 
 // TODO write new docs here
   /**

@@ -1,8 +1,9 @@
-import { assert } from 'chai'
+import { expect } from 'chai'
 import Web3 from 'web3'
 import { Connect } from './uport-connect'
 import Autosigner from '../utils/autosigner'
 import testData from './testData.json'
+import TestRPC from 'ethereumjs-testrpc'
 
 const addr1 = '0x9d00733ae37f34cdebe443e5cda8e9721fffa092'
 
@@ -17,37 +18,58 @@ describe('uportWeb3 integration tests', function () {
 
   let autosigner, status, vanillaWeb3, web3
 
-  before((done) => {
+  before(done => {
     global.navigator = {}
 
-    const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
+    const testrpcProv = TestRPC.provider()
+    // const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
     vanillaWeb3 = new Web3(testrpcProv)
     // Create Autosigner
     Autosigner.load(testrpcProv, (err, as) => {
-      if (err) { throw err }
+      if (err) {
+        console.log('error loading autosigner')
+        console.log(err)
+        return done()
+      }
       autosigner = as
-      vanillaWeb3.eth.getAccounts((err, accounts) => {
-        if (err) { throw err }
-
+      vanillaWeb3.eth.getAccounts((err1, accounts) => {
+        if (err1) {
+          console.log(err1)
+          return done()
+        }
         // Create status contract
-        let statusContractABI = vanillaWeb3.eth.contract(testData.statusContractAbiData)
-        status = statusContractABI.new({
+        const statusContractABI = vanillaWeb3.eth.contract(testData.statusContractAbiData)
+        statusContractABI.new({
           data: testData.statusContractBin,
           from: accounts[0],
           gas: 3000000
-        })
-        // Send ether to Autosigner
-        vanillaWeb3.eth.sendTransaction({from: accounts[0], to: autosigner.address, value: vanillaWeb3.toWei(90)}, (e, r) => {
-          // Change provider
-          // Autosigner is a qrDisplay
-          // that automatically signs transactions
-          const uport = new Connect('Integration Tests', {
-            credentials: mockCredentials(() => ({ address: autosigner.address })),
-            rpcUrl: 'http://localhost:8545',
-            uriHandler: autosigner.openQr.bind(autosigner)
+        },
+        (err2, contract) => {
+          if (err2) {
+            console.log(err2)
+            return done()
+          }
+          if (!contract.address) return
+          // console.log(contract)
+          
+          // Send ether to Autosigner
+          vanillaWeb3.eth.sendTransaction({from: accounts[0], to: autosigner.address, value: vanillaWeb3.toWei(90)}, (err3, r) => {
+            if (err3) {
+              console.log(err3)
+              return done()
+            }
+            // Change provider
+            // Autosigner is a qrDisplay
+            // that automatically signs transactions
+            const uport = new Connect('Integration Tests', {
+              credentials: mockCredentials(() => ({ address: autosigner.address })),
+              provider: testrpcProv,
+              uriHandler: autosigner.openQr.bind(autosigner)
+            })
+            web3 = uport.getWeb3()
+            status = web3.eth.contract(testData.statusContractAbiData).at(contract.address)
+            done()
           })
-          web3 = uport.getWeb3()
-          done()
         })
       })
     })
@@ -55,42 +77,49 @@ describe('uportWeb3 integration tests', function () {
 
   it('getCoinbase', (done) => {
     web3.eth.getCoinbase((err, address) => {
-      if (err) { throw err }
-      assert.equal(address, autosigner.address)
-      web3.eth.defaultAccount = address
+      expect(err).to.be.null
+      expect(address).to.equal(autosigner.address)
       done()
     })
   })
 
   it('getAccounts', (done) => {
     web3.eth.getAccounts((err, addressList) => {
-      if (err) { throw err }
-      assert.equal(addressList.length, 1, 'there should be just one address')
-      assert.equal(addressList[0], autosigner.address)
+      expect(err).to.be.null
+      expect(addressList).to.deep.equal([autosigner.address])
       done()
     })
   })
 
   it('sendTransaction', (done) => {
     web3.eth.sendTransaction({value: web3.toWei(2), to: addr1}, (err, txHash) => {
-      if (err) { throw err }
+      expect(err).to.be.null
+      expect(txHash).to.be
       web3.eth.getBalance(addr1, (err, balance) => {
-        if (err) { throw err }
-        assert.equal(balance.toNumber(), web3.toWei(2))
+        expect(err).to.be.null
+        expect(balance.toString()).to.equal(web3.toWei(2))
         done()
       })
     })
   })
 
-  // it('use contract', (done) => {
-  //   let coolStatus = 'Writing some tests!'
-  //   status.updateStatus(coolStatus, (err, res) => {
-  //     assert.isNull(err)
-  //     status.getStatus.call(web3.eth.defaultAccount, (err, myStatus) => {
-  //       assert.isNull(err)
-  //       assert.equal(myStatus, coolStatus)
-  //       done()
-  //     })
-  //   })
-  // })
+  it('use contract', (done) => {
+    const coolStatus = 'Writing some tests!'
+    status.updateStatus(coolStatus, (err, res) => {
+      expect(err).to.be.null
+      if (err) {
+        console.log(err.message)
+        return done()
+      }
+      expect(res).to.be
+      web3.eth.getTransactionReceipt(res, (err, tx) => {
+        expect(tx.blockNumber).to.be
+        status.getStatus.call(autosigner.address, (err, myStatus) => {
+          expect(err).to.be.null
+          expect(myStatus).to.be.equal(coolStatus)
+          done()
+        })
+      })
+    })
+  })
 })

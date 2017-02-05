@@ -1,5 +1,3 @@
-import Subprovider from 'web3-provider-engine/subproviders/subprovider'
-
 // handles the following RPC methods:
 // eth_coinbase
 // eth_accounts
@@ -7,55 +5,60 @@ import Subprovider from 'web3-provider-engine/subproviders/subprovider'
 
 // TODO support contract.new
 
-export default class UportSubprovider extends Subprovider {
-  constructor ({requestAddress, sendTransaction}) {
-    super()
+export default class UportSubprovider {
+  constructor ({requestAddress, sendTransaction, provider}) {
     const self = this
+    this.provider = provider
     this.getAddress = (cb) => {
       if (self.address) return cb(null, self.address)
-      requestAddress().then(address => {
+      requestAddress().then(
+        address => {
         self.address = address
         cb(null, address)
-      }).catch(error => cb(error))
+      }, 
+      error => cb(error))
     }
 
     this.sendTransaction = (txobj, cb) => {
-      sendTransaction(txobj).then(address => cb(null, address)).catch(error => cb(error))
+      sendTransaction(txobj).then(
+        address => cb(null, address),
+        error => cb(error)
+      )
     }
   }
 
-  handleRequest (payload, next, end) {
+  sendAsync (payload, callback) {
     const self = this
-
+    const respond = (error, result) => {
+      if (error) {
+        callback({
+          id: payload.id,
+          jsonrpc: '2.0',
+          error: error.message
+        })
+      } else {
+        callback(null, {
+          id: payload.id,
+          jsonrpc: '2.0',
+          result
+        })
+      }
+    }
     switch (payload.method) {
-
       // TODO consider removing, not necessary for interaction with uport
       case 'eth_coinbase':
-        self.getAddress(function (err, address) {
-          end(err, address)
-        })
-        return
-
-      // TODO consider removing, not necessary for interaction with uport
+        return self.getAddress(respond)
       case 'eth_accounts':
-        self.getAddress(function (err, address) {
-        // the result should be a list of addresses
-          end(err, [address])
+        return self.getAddress((error, address) => {
+          respond(error, [address])
         })
-        return
-
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
-
-        self.sendTransaction(txParams, (err, tx) => {
-          end(err, tx)
+        return self.sendTransaction(txParams, (err, tx) => {
+          respond(err, tx)
         })
-        return
-
       default:
-        next()
-        return
-
+        return self.provider.sendAsync(payload, callback)
     }
   }
 }

@@ -1,4 +1,4 @@
-import { assert } from 'chai'
+import { assert, expect } from 'chai'
 import UportSubprovider from '../src/uportSubprovider.js'
 
 const MSG_DATA = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
@@ -54,7 +54,7 @@ describe('UportSubprovider', () => {
       })
     })
 
-    it('Error should propagate from connect', (done) => {
+    it('Error should propagate from requestAddress', (done) => {
       const subprovider = new UportSubprovider({requestAddress: failingFetchAddress})
       subprovider.getAddress((err, address) => {
         assert.isUndefined(address)
@@ -84,49 +84,53 @@ describe('UportSubprovider', () => {
     })
   })
 
-  describe('handleRequest', () => {
+  describe('sendAsync', () => {
     const subprovider = new UportSubprovider({
       requestAddress: mockFetchAddress,
-      sendTransaction: mockSendTransaction
+      sendTransaction: mockSendTransaction,
+      provider: { sendAsync: (payload, callback) => callback(null, payload) }
     })
-    let payload = {}
+    
     it('Should pass on request not handled', (done) => {
-      let nextCalled = false
-      let next = () => { nextCalled = true }
-      payload.method = 'eth_sendRawTransaction'
-      subprovider.handleRequest(payload, next)
-      assert.isTrue(nextCalled)
-      done()
+      const request = { method: 'eth_sendRawTransaction' }
+      subprovider.sendAsync(request, (err, payload) => {
+        expect(err).to.be.null
+        expect(payload).to.eq(request)
+        done()
+      })
     })
 
     it('eth_coinbase should return address', (done) => {
-      payload.method = 'eth_coinbase'
-      subprovider.handleRequest(payload, null, (err, address) => {
-        if (err) { throw err }
-        assert.equal(address, UPORT_ID)
+      const request = { method: 'eth_coinbase' }
+      subprovider.sendAsync(request, (err, {result}) => {
+        expect(err).to.be.null
+        expect(result).to.equal(UPORT_ID)
         done()
       })
     })
 
     it('eth_accounts should return list with one address', (done) => {
-      payload.method = 'eth_accounts'
-
-      subprovider.handleRequest(payload, null, (err, addressList) => {
-        if (err) { throw err }
-        assert.equal(addressList[0], UPORT_ID)
+      const request = {
+        method: 'eth_accounts'
+      }
+      subprovider.sendAsync(request, (err, {result}) => {
+        expect(err).to.be.null
+        expect(result).to.deep.equal([UPORT_ID])
         done()
       })
     })
 
     it('eth_sendTransaction should return txHash', (done) => {
-      payload.method = 'eth_sendTransaction'
-      payload.params = [{
-        to: '0x032f23',
-        value: '0x03fad4c3'
-      }]
-      subprovider.handleRequest(payload, null, (err, txHash) => {
-        if (err) { throw err }
-        assert.equal(txHash, MSG_DATA)
+      const request = {
+        method: 'eth_sendTransaction',
+        params: [{
+          to: '0x032f23',
+          value: '0x03fad4c3'
+        }]
+      }
+      subprovider.sendAsync(request, (err, {result}) => {
+        expect(err).to.be.null
+        expect(result).to.equal(MSG_DATA)
         done()
       })
     })
