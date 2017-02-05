@@ -50,6 +50,7 @@ class Connect {
     this.clientId = opts.clientId
 
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
+    this.provider = opts.provider
     this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
     this.uriHandler = opts.uriHandler || openQr
@@ -63,6 +64,7 @@ class Connect {
     return UportWeb3({
       requestAddress: this.requestAddress.bind(this),
       sendTransaction: this.sendTransaction.bind(this),
+      provider: this.provider,
       rpcUrl: this.rpcUrl
     })
   }
