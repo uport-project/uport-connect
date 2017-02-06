@@ -21,7 +21,7 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
     }
   }
 
-  function pollForResult (topicName, url, cb) {
+  function pollForResult (topicName, url, cb, cancelled) {
     let interval = setInterval(
       () => {
         nets({
@@ -31,6 +31,11 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
         },
         function (err, res, body) {
           if (err) return cb(err)
+
+          if (cancelled()) {
+            clearInterval(interval)
+            return cb(new Error('Request Cancelled'))
+          }
 
           // parse response into raw account
           let data
@@ -65,6 +70,9 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
   }
 
   function newTopic (topicName) {
+
+    let isCancelled = false;
+
     let url
     if (isOnMobile) {
       url = window.location.href
@@ -79,10 +87,11 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
       if (isOnMobile) {
         waitForHashChange(topicName, cb)
       } else {
-        pollForResult(topicName, url, cb)
+        pollForResult(topicName, url, cb, () => isCancelled)
       }
     })
     topic.url = url
+    topic.cancel = () => {isCancelled = true}
     return topic
   }
 
