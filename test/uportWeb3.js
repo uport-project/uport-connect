@@ -17,6 +17,7 @@ describe('uportWeb3 integration tests', function () {
   this.timeout(30000)
 
   let autosigner, status, vanillaWeb3, web3
+  const coolStatus = 'Writing some tests!'
 
   before(done => {
     global.navigator = {}
@@ -104,7 +105,6 @@ describe('uportWeb3 integration tests', function () {
   })
 
   it('use contract', (done) => {
-    const coolStatus = 'Writing some tests!'
     status.updateStatus(coolStatus, (err, res) => {
       expect(err).to.be.null
       if (err) {
@@ -121,5 +121,28 @@ describe('uportWeb3 integration tests', function () {
         })
       })
     })
+  })
+
+  it('handles batches', (done) => {
+    var batch = web3.createBatch()
+    batch.add(web3.eth.getBalance.request(autosigner.address, 'latest', (error, balance) => {
+      expect(error).to.be.null
+      expect(balance).to.be.greaterThan(0)
+    }))
+    batch.add(web3.eth.getBalance.request(autosigner.address, 'latest', (error, balance) => {
+      expect(error).to.be.null
+      expect(balance).to.be.greaterThan(0)
+    }))
+    batch.add(status.getStatus.request(autosigner.address, (error, myStatus) => {
+      expect(error).to.be.null
+      expect(myStatus).to.be.equal(coolStatus)
+    }))
+    batch.execute()
+    setTimeout(done, 1000)
+  })
+
+  it('does not handle sync calls', (done) => {
+    expect(() => web3.eth.getBalance(autosigner.address)).to.throw('Uport Web3 SubProvider does not support synchronous requests.');
+    done()
   })
 })

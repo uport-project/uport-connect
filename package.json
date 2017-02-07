@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -90,6 +90,7 @@
     ]
   },
   "dependencies": {
+    "async": "^2.1.4",
     "ethjs-abi": "^0.1.8",
     "ethjs-util": "^0.1.3",
     "ipfs-mini": "^1.0.1",

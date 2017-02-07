@@ -4,6 +4,7 @@
 // eth_sendTransaction
 
 // TODO support contract.new
+import async from 'async'
 
 export default class UportSubprovider {
   constructor ({requestAddress, sendTransaction, provider}) {
@@ -27,6 +28,10 @@ export default class UportSubprovider {
     }
   }
 
+  send (payload) {
+    throw new Error('Uport Web3 SubProvider does not support synchronous requests.')
+  }
+  
   sendAsync (payload, callback) {
     const self = this
     const respond = (error, result) => {
@@ -44,6 +49,10 @@ export default class UportSubprovider {
         })
       }
     }
+    if (Array.isArray(payload)) {
+      async.map(payload, self.sendAsync.bind(self), callback)
+      return
+    }
     switch (payload.method) {
       // TODO consider removing, not necessary for interaction with uport
       case 'eth_coinbase':
@@ -58,7 +67,7 @@ export default class UportSubprovider {
           respond(err, tx)
         })
       default:
-        return self.provider.sendAsync(payload, callback)
+        self.provider.sendAsync(payload, callback)
     }
   }
 }
