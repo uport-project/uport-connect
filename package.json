@@ -90,6 +90,7 @@
     ]
   },
   "dependencies": {
+    "async": "^2.1.4",
     "ethjs-abi": "^0.1.8",
     "ethjs-util": "^0.1.3",
     "ipfs-mini": "^1.0.1",
