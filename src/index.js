@@ -1,4 +1,5 @@
 import Connect from './Connect'
-import QRUtil from './util/qrdisplay'
+import { getQRDataURI, closeQr, openQr } from './util/qrdisplay'
+const QRUtil = { getQRDataURI, closeQr, openQr }
 import { SimpleSigner, Credentials } from 'uport'
 export { Connect, QRUtil, SimpleSigner, Credentials }

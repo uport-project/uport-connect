@@ -6,12 +6,14 @@ const getQRDataURI = (data) => {
   return 'data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64')
 }
 
-const openQr = (data) => {
+const openQr = (data, cancel) => {
     let uportQR = getUportQRDisplay()
     uportQR.style.display = 'block'
 
     let dataUri = getQRDataURI(data)
     let qrImg = uportQR.children[0].children[0]
+    let cancelButton = uportQR.children[0].children[2]
+    cancelButton.addEventListener('click', (event) => { cancel() })
     qrImg.setAttribute('src', dataUri)
   }
 
@@ -64,8 +66,7 @@ const getUportQRDisplay = () => {
     return bg
   }
 
-
-export { 
+export {
   getUportQRDisplay,
   resetQRCancellation,
   isQRCancelled,
@@ -73,4 +74,3 @@ export {
   openQr,
   getQRDataURI
 }
-

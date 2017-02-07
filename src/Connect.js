@@ -106,7 +106,7 @@ class Connect {
   request ({uri, topic, uriHandler}) {
     this.isOnMobile
       ? this.mobileUriHandler(uri)
-      : (uriHandler || this.uriHandler)(uri)
+      : (uriHandler || this.uriHandler)(uri, topic.cancel)
     if (this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
@@ -173,4 +173,3 @@ const paramsToUri = (params) => {
 }
 
 export default Connect
-
