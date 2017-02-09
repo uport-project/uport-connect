@@ -20,10 +20,7 @@ const openQr = (data, cancel) => {
 const closeQr = () => {
     let uportQR = getUportQRDisplay()
     uportQR.style.display = 'none'
-  }
-
-const isQRCancelled = () => {
-    return (document.getElementById('uport-qr-text').innerHTML === 'Cancelling')
+    resetQRCancellation()
   }
 
 const resetQRCancellation = () => {
@@ -69,7 +66,6 @@ const getUportQRDisplay = () => {
 export {
   getUportQRDisplay,
   resetQRCancellation,
-  isQRCancelled,
   closeQr,
   openQr,
   getQRDataURI
