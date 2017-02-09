@@ -1,7 +1,7 @@
 import TopicFactory from './topicFactory'
 import { Credentials } from 'uport'
 import MobileDetect from 'mobile-detect'
-import ContractFactory from './contract'
+import { ContractFactory } from 'uport'
 import UportWeb3 from './uportWeb3'
 import { openQr, closeQr } from './util/qrdisplay'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
@@ -122,7 +122,7 @@ class Connect {
 
   // TODO support contract.new (maybe?)
   contract (abi) {
-    return new ContractFactory(abi, this.txObjectHandler.bind(this))
+    return new ContractFactory(this.txObjectHandler.bind(this))(abi)
   }
 
   sendTransaction (txobj, uriHandler = null) {
