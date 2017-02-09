@@ -843,13 +843,13 @@ balanced-match@^0.4.1:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-0.4.2.tgz#cb3f3e3c732dc0f01ee70b403f302e61d7709838"
 
+base-x-bytearray@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/base-x-bytearray/-/base-x-bytearray-0.1.0.tgz#8c2c5052aeab25207b21d866e78c1b59ab65ec2a"
+
 base-x@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/base-x/-/base-x-1.1.0.tgz#42d3d717474f9ea02207f6d1aa1f426913eeb7ac"
-
-base-x@^2.0.3:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/base-x/-/base-x-2.0.4.tgz#bb028684f0545dd4a4e6359d1062613986fe83d5"
 
 base64-arraybuffer@0.1.2:
   version "0.1.2"
@@ -6339,19 +6339,20 @@ unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
 
-uport-lite@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/uport-lite/-/uport-lite-0.1.1.tgz#f45b5a5f5819fc019da0be600a3b13adf0f8e355"
+uport-lite@^0.2.0:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/uport-lite/-/uport-lite-0.2.1.tgz#f8d97c8f0ad9428f184e875616c0296b62ca3c7e"
   dependencies:
-    base-x "^2.0.3"
+    base-x-bytearray "^0.1.0"
     xmlhttprequest "^1.8.0"
 
-uport@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/uport/-/uport-0.2.2.tgz#0a3fe559006ab4fb1a13f6b0ea8b069cf18807c3"
+uport@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/uport/-/uport-0.3.0.tgz#1058687ffe382a668157b76e4b638f80f0a11f98"
   dependencies:
+    ethjs-util "^0.1.3"
     jsontokens "^0.6.5"
-    uport-lite "^0.1.1"
+    uport-lite "^0.2.0"
 
 url@^0.11.0:
   version "0.11.0"
