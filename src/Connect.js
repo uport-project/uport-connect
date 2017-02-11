@@ -121,8 +121,12 @@ class Connect {
   }
 
   // TODO support contract.new (maybe?)
-  contract (abi) {
-    return new ContractFactory(this.txObjectHandler.bind(this))(abi)
+  contract (abi, uriHandler = null) {
+    const self = this
+    const txObjectHandler = (methodTxObject) => {
+      self.txObjectHandler(methodTxObject, uriHandler)
+    }
+    return new ContractFactory(txObjectHandler)(abi)
   }
 
   sendTransaction (txobj, uriHandler = null) {

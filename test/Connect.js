@@ -550,4 +550,67 @@ describe('Connect', () => {
       ).to.throw('Contract creation is not supported by uportProvider')
     })
   })
+
+  describe('contract', () => {
+    const miniTokenABI = [{
+      'constant': false,
+      'inputs': [
+        {
+          'name': '_to',
+          'type': 'address'
+        },
+        {
+          'name': '_value',
+          'type': 'uint256'
+        }
+      ],
+      'name': 'transfer',
+      'outputs': [
+        {
+          'name': 'success',
+          'type': 'bool'
+        }
+      ],
+      'payable': false,
+      'type': 'function'
+    }]
+    it('shows correct uri to default uriHandler', (done) => {
+      const uport = new Connect('UportTests', {
+        clientId: CLIENT_ID,
+        topicFactory: (name) => {
+          expect(name).to.equal('tx')
+          return mockTopic(FAKETX)
+        },
+        uriHandler: (uri) => {
+          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+        },
+        closeUriHandler: () => null
+      })
+      const contract = uport.contract(miniTokenABI)
+      const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
+      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
+        expect(txhash).to.equal(FAKETX)
+        done()
+      })
+    })
+
+    it('shows correct uri to overridden uriHandler', (done) => {
+      const uport = new Connect('UportTests', {
+        clientId: CLIENT_ID,
+        topicFactory: (name) => {
+          expect(name).to.equal('tx')
+          return mockTopic(FAKETX)
+        },
+        closeUriHandler: () => null
+      })
+      const contract = uport.contract(miniTokenABI, (uri) => {
+        expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+      })
+      const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
+      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
+        expect(txhash).to.equal(FAKETX)
+        done()
+      })
+    })
+  })
 })
