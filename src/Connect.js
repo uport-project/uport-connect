@@ -123,9 +123,7 @@ class Connect {
   // TODO support contract.new (maybe?)
   contract (abi, uriHandler = null) {
     const self = this
-    const txObjectHandler = (methodTxObject) => {
-      self.txObjectHandler(methodTxObject, uriHandler)
-    }
+    const txObjectHandler = (methodTxObject) => self.txObjectHandler(methodTxObject, uriHandler)
     return new ContractFactory(txObjectHandler)(abi)
   }
 

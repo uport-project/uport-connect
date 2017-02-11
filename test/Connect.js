@@ -582,7 +582,7 @@ describe('Connect', () => {
           return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
         },
         closeUriHandler: () => null
       })
@@ -604,7 +604,7 @@ describe('Connect', () => {
         closeUriHandler: () => null
       })
       const contract = uport.contract(miniTokenABI, (uri) => {
-        expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+        expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
       })
       const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
       token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
