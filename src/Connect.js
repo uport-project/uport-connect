@@ -3,6 +3,8 @@ import { Credentials } from 'uport'
 import MobileDetect from 'mobile-detect'
 import { ContractFactory } from 'uport'
 import UportWeb3 from './uportWeb3'
+import UportSubprovider from './uportSubprovider'
+import Web3 from 'web3'
 import { openQr, closeQr } from './util/qrdisplay'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 
@@ -66,6 +68,14 @@ class Connect {
       sendTransaction: this.sendTransaction.bind(this),
       provider: this.provider,
       rpcUrl: this.rpcUrl
+    })
+  }
+
+  getProvider () {
+    return new UportSubprovider({
+      requestAddress: this.requestAddress.bind(this),
+      sendTransaction: this.sendTransaction.bind(this),
+      provider: this.provider || new Web3.providers.HttpProvider(this.rpcUrl)
     })
   }
 
