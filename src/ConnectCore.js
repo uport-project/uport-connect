@@ -4,7 +4,7 @@ import MobileDetect from 'mobile-detect'
 import { ContractFactory } from 'uport'
 import UportSubprovider from './uportSubprovider'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
-import HttpProvider from 'ethjs-provider-http'
+import HttpProvider from 'web3/lib/web3/httpprovider'
 import { openQr, closeQr } from './util/qrdisplay'
 
 // TODO Add simple QR wrapper for the orginal default flow, just means wrapping open/close functionality
