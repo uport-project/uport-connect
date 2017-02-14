@@ -31,20 +31,12 @@ class Connect extends ConnectCore {
   }
 
   getWeb3 () {
-    const provider = this.getProvider(uport)
+    const provider = this.getProvider()
     const web3 = new Web3()
     web3.setProvider(provider)
     // Work around to issue with web3 requiring a from parameter. This isn't actually used.
     web3.eth.defaultAccount = '0xB42E70a3c6dd57003f4bFe7B06E370d21CDA8087'
     return web3
-  }
-
-  getProvider () {
-    new UportSubprovider({
-      requestAddress: this.requestAddress.bind(this),
-      sendTransaction: this.sendTransaction.bind(this),
-      provider: this.provider || new Web3.providers.HttpProvider(this.rpcUrl)
-    })
   }
 }
 
