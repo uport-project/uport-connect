@@ -26,7 +26,9 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
       () => {
         nets({
           uri: url,
+          json: true,
           method: 'GET',
+          withCredentials: false,
           rejectUnauthorized: false
         },
         function (err, res, body) {
@@ -38,9 +40,8 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
           }
 
           // parse response into raw account
-          let data
+          const data = body.message
           try {
-            data = JSON.parse(body).message
             if (data.error) {
               clearInterval(interval)
               return cb(data.error)
@@ -65,6 +66,7 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
     nets({
       uri: url,
       method: 'DELETE',
+      withCredentials: false,
       rejectUnauthorized: false
     }, function (err) { if (err) { throw err } /* Errors withouth this cb */ })
   }
