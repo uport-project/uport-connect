@@ -94,11 +94,12 @@ class Connect {
   }
 
   attestCredentials ({sub, claim, exp}, uriHandler = null) {
+    const self = this
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
       const uri = `me.uport:add?attestations=${encodeURIComponent(jwt)}`
-      this.isOnMobile
-        ? this.mobileUriHandler(uri)
-        : (uriHandler || this.uriHandler)(uri)
+      self.isOnMobile
+        ? self.mobileUriHandler(uri)
+        : (uriHandler || self.uriHandler)(uri)
       return true
     })
   }
