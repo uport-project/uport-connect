@@ -6,21 +6,17 @@ import UportSubprovider from './uportSubprovider'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
-import { openQr, closeQr } from './util/qrdisplay'
 
 // TODO Add simple QR wrapper for the orginal default flow, just means wrapping open/close functionality
 // TODO add cancel back in, should be really simple now
 // TODO extend this uport to uport with web3 so we can eventually have sepearte distributions.
-
-function mobileUriHandler (uri) {
-  window.location.assign(uri)
-}
 
 function isMobile () {
   if (typeof navigator !== 'undefined') {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
 }
+
 /**
  * This class is the main entry point for interaction with uport.
  */
@@ -55,9 +51,9 @@ class Connect {
     this.provider = opts.provider
     this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.uriHandler = opts.uriHandler || openQr
-    this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
-    this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
+    this.uriHandler = opts.uriHandler
+    this.mobileUriHandler = opts.mobileUriHandler
+    this.closeUriHandler = opts.closeUriHandler
     this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
   }
@@ -105,8 +101,11 @@ class Connect {
     })
   }
 
-  request ({uri, topic, uriHandler}) {
-    this.isOnMobile ? this.mobileUriHandler(uri) : uriHandler(uri, topic.cancel)
+  request ({uri, topic, uriHandler = this.uriHandler}) {
+    (this.isOnMobile && this.mobileUriHandler)
+      ? this.mobileUriHandler(uri)
+      : uriHandler(uri, topic.cancel)
+
     if (this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
