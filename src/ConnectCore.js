@@ -70,7 +70,7 @@ class Connect {
     })
   }
 
-  requestCredentials (request = {}, uriHandler = null) {
+  requestCredentials (request = {}, uriHandler = this.uriHandler) {
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
     return new Promise((resolve, reject) => {
@@ -90,27 +90,23 @@ class Connect {
     }).then(uri => this.request({uri, topic, uriHandler})).then(jwt => receive(jwt, topic.url))
   }
 
-  requestAddress (uriHandler = null) {
+  requestAddress (uriHandler = this.uriHandler) {
     return this.requestCredentials({}, uriHandler).then((profile) => profile.address)
   }
 
-  attestCredentials ({sub, claim, exp}, uriHandler = null) {
+  attestCredentials ({sub, claim, exp}, uriHandler = this.uriHandler) {
     const self = this
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
       const uri = `me.uport:add?attestations=${encodeURIComponent(jwt)}`
       //  Your uriHandler does not need a cancel function here, cancel is for canceling a request, passes default closeQR if using qr defaults.
       const cancel = this.closeUriHandler || function(){}
-      self.isOnMobile
-        ? self.mobileUriHandler(uri)
-        : (uriHandler || self.uriHandler)(uri, cancel)
+      self.isOnMobile ? self.mobileUriHandler(uri) : uriHandler(uri, cancel)
       return true
     })
   }
 
   request ({uri, topic, uriHandler}) {
-    this.isOnMobile
-      ? this.mobileUriHandler(uri)
-      : (uriHandler || this.uriHandler)(uri, topic.cancel)
+    this.isOnMobile ? this.mobileUriHandler(uri) : uriHandler(uri, topic.cancel)
     if (this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
@@ -125,13 +121,13 @@ class Connect {
   }
 
   // TODO support contract.new (maybe?)
-  contract (abi, uriHandler = null) {
+  contract (abi, uriHandler = this.uriHandler) {
     const self = this
     const txObjectHandler = (methodTxObject) => self.txObjectHandler(methodTxObject, uriHandler)
     return new ContractFactory(txObjectHandler)(abi)
   }
 
-  sendTransaction (txobj, uriHandler = null) {
+  sendTransaction (txobj, uriHandler = this.uriHandler) {
     return this.txObjectHandler(txobj, uriHandler)
   }
 
@@ -149,7 +145,7 @@ class Connect {
     return appTxObject
   }
 
-  txObjectHandler (methodTxObject, uriHandler = null) {
+  txObjectHandler (methodTxObject, uriHandler = this.uriHandler) {
     const topic = this.topicFactory('tx')
     let uri = paramsToUri(this.addAppParameters(methodTxObject, topic.url))
     return this.request({uri, topic, uriHandler})

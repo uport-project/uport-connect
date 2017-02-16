@@ -149,7 +149,7 @@
 
         status.updateStatus(statusMsg).then(tx => {
           console.log(tx)
-          $("#txHashStatus").innerHTML(tx)
+          $("#txHashStatus").textContent = tx
         })
 
       }
