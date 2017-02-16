@@ -6346,6 +6346,13 @@ uport-lite@^0.2.2:
     base-x-bytearray "^0.1.0"
     xmlhttprequest "^1.8.0"
 
+uport-lite@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/uport-lite/-/uport-lite-0.2.3.tgz#3657e92418a0863b56201ee401dc4dc103a2f19c"
+  dependencies:
+    base-x-bytearray "^0.1.0"
+    xmlhttprequest "^1.8.0"
+
 uport@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/uport/-/uport-0.3.1.tgz#74440be21ef4e29e6b1c9363fef44d74ed8ae1b2"

@@ -97,9 +97,11 @@ class Connect {
     const self = this
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
       const uri = `me.uport:add?attestations=${encodeURIComponent(jwt)}`
+      //  Your uriHandler does not need a cancel function here, cancel is for canceling a request, passes default closeQR if using qr defaults.
+      const cancel = this.closeUriHandler || function(){}
       self.isOnMobile
         ? self.mobileUriHandler(uri)
-        : (uriHandler || self.uriHandler)(uri)
+        : (uriHandler || self.uriHandler)(uri, cancel)
       return true
     })
   }
