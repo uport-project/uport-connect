@@ -1,6 +1,6 @@
 import ConnectCore from './ConnectCore'
 import Web3 from 'web3'
-import UportSubprovider from './uportSubprovider'
+
 /**
  * This class is the main entry point for interaction with uport.
  */

@@ -4,6 +4,7 @@ import MobileDetect from 'mobile-detect'
 import { ContractFactory } from 'uport'
 import UportSubprovider from './uportSubprovider'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
+// Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { openQr, closeQr } from './util/qrdisplay'
 
