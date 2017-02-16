@@ -1,5 +1,12 @@
 import ConnectCore from './ConnectCore'
 import Web3 from 'web3'
+import { openQr, closeQr } from './util/qrdisplay'
+
+// TODO may want to make available for ConnectCore, given a developer is less
+// likely to need custom functinality on mobile, but can't assume they won't.
+function mobileUriHandler (uri) {
+  window.location.assign(uri)
+}
 
 /**
  * This class is the main entry point for interaction with uport.
@@ -28,6 +35,9 @@ class Connect extends ConnectCore {
   //  TODO do we need registry settings
   constructor (appName, opts = {}) {
     super(appName, opts)
+    this.uriHandler = opts.uriHandler || openQr
+    this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
+    this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
   }
 
   getWeb3 () {
