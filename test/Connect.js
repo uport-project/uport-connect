@@ -2,6 +2,8 @@ import { expect, assert } from 'chai'
 import { Connect } from './uport-connect'
 import { Credentials } from 'uport'
 import { openQr, closeQr } from '../src/util/qrdisplay'
+const sinon = require('sinon')
+
 // import MockDate from 'mockdate'
 // MockDate.set(1485321133996)
 const CREDENTIALS_JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJyZXF1ZXN0ZWQiOlsibmFtZSIsInBob25lIl0sImlzcyI6IjB4MDAxMTIyIiwiaWF0IjoxNDg1MzIxMTMzOTk2fQ.zxGLQKo2WjgefrxEQWfwm_oago8Qr4YctBJoqNAm2XKE-48bADjolSo2T_tED9LnSikxqFIM9gNGpNgcY8JPdg'
@@ -221,6 +223,36 @@ describe('Connect', () => {
         done()
       })
     })
+
+    it('sends a push notification if push token is available', (done) => {
+
+      const uport = new Connect('UportTests')
+      uport.pushToken = '12345'
+      const pushFunc = sinon.stub(uport.credentials, "push");
+
+      uport.request({topic: mockTopic(), uri}).then(response => {
+        expect(pushFunc.calledOnce).to.be.true
+        done()
+      }, error => {
+        assert.fail()
+        done()
+      })
+    })
+
+    it('does not call default uriHandler if push notification sent', (done) => {
+      const uport = new Connect('UportTests')
+      uport.pushToken = '12345'
+      const pushFunc = sinon.stub(uport.credentials, "push");
+      const uriHandlerFunc = sinon.stub(uport, 'uriHandler')
+
+      uport.request({topic: mockTopic(), uri}).then(response => {
+        expect(uriHandlerFunc.notCalled).to.be.true
+        done()
+      }, error => {
+        assert.fail()
+        done()
+      })
+    })
   })
 
   describe('requestCredentials', () => {
@@ -341,6 +373,25 @@ describe('Connect', () => {
         done()
       }, error => {
         console.log(error)
+        done()
+      })
+    })
+
+    it('it saves a push notification token if push token is included in response', (done) => {
+      const uport = new Connect('UportTests', {
+        topicFactory: (name) => {
+          return mockTopic(CREDENTIALS_JWT)
+        }
+      })
+      const pushToken = '12345'
+      const receive = sinon.stub().returns({pushToken})
+      const receiveStub = sinon.stub(uport.credentials, 'receive').callsFake(receive)
+
+      uport.requestCredentials().then(res => {
+        expect(uport.pushToken).to.equal(pushToken)
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
