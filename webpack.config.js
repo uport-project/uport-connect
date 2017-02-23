@@ -14,7 +14,9 @@ let libraryName = 'uportconnect'
 // Final Config
 module.exports = {
   entry: {'uport-connect': './src/index.js',
-          'uport-connect-core': './src/indexCore.js'},
+          'uport-connect-core': './src/indexCore.js',
+          'uport-connect-lite': './src/indexLite.js'
+         },
   output: {
     path: 'dist',
     filename: '[name].js',
