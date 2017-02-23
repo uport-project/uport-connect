@@ -1,5 +1,10 @@
-import ConnectLite from './ConnectLite'
-import { Credentials } from 'uport'
+import TopicFactory from './topicFactory'
+import MobileDetect from 'mobile-detect'
+import { ContractFactory } from 'uport/lib/Contract'
+import UportSubprovider from './uportSubprovider'
+const INFURA_ROPSTEN = 'https://ropsten.infura.io'
+// Can use http provider from ethjs in the future.
+import HttpProvider from 'web3/lib/web3/httpprovider'
 
 // TODO Add simple QR wrapper for the orginal default flow, just means wrapping open/close functionality
 // TODO add cancel back in, should be really simple now
@@ -14,7 +19,7 @@ function isMobile () {
 /**
  * This class is the main entry point for interaction with uport.
  */
-class ConnectCore extends ConnectLite {
+class ConnectLite {
 
   /**
    * Creates a new uport object.
@@ -37,22 +42,34 @@ class ConnectCore extends ConnectLite {
 
   //  TODO do we need registry settings
   constructor (appName, opts = {}) {
-    super(appName, opts)
-    this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
-    this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
-    this.pushToken = null
+    this.appName = appName || 'uport-connect-app'
+    this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
+    this.clientId = opts.clientId
+
+    this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
+    this.provider = opts.provider
+    this.isOnMobile = opts.isMobile || isMobile()
+    this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
+    this.uriHandler = opts.uriHandler
+    this.mobileUriHandler = opts.mobileUriHandler
+    this.closeUriHandler = opts.closeUriHandler
   }
 
+  getProvider () {
+    return new UportSubprovider({
+      requestAddress: this.requestAddress.bind(this),
+      sendTransaction: this.sendTransaction.bind(this),
+      provider: this.provider || new HttpProvider(this.rpcUrl)
+    })
+  }
+
+  // TODO create request without signing it, receive response and parse without verifying it.
   requestCredentials (request = {}, uriHandler = this.uriHandler) {
     const self = this
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
     return new Promise((resolve, reject) => {
-      if (this.canSign) {
-        this.credentials.createRequest({...request, callbackUrl: topic.url}).then(requestToken =>
-          resolve(`me.uport:me?requestToken=${encodeURIComponent(requestToken)}`)
-        )
-      } else {
+
         if (request.requested && request.requested.length > 0) {
           return reject(new Error('Specific data can not be requested without a signer configured'))
         }
@@ -61,26 +78,77 @@ class ConnectCore extends ConnectLite {
           return reject(new Error('Notifications rights can not currently be requested without a signer configured'))
         }
         resolve(paramsToUri(this.addAppParameters({ to: 'me' }, topic.url)))
-      }
+
     }).then(uri => (
         this.request({uri, topic, uriHandler})
       ))
-      .then(jwt => {
-        const res = receive(jwt, topic.url)
-        if (res.pushToken) self.pushToken = res.pushToken
-        return res
-      })
+      // .then(jwt => {
+      //   // const res = receive(jwt, topic.url)
+      //   const res = jwt
+      //   if (res.pushToken) self.pushToken = res.pushToken
+      //   return res
+      // })
   }
 
-  attestCredentials ({sub, claim, exp}, uriHandler = this.uriHandler) {
+  requestAddress (uriHandler = this.uriHandler) {
+    return this.requestCredentials({}, uriHandler).then((profile) => profile.address)
+  }
+
+  request ({uri, topic, uriHandler = this.uriHandler}) {
+    if (this.pushToken) {
+      this.credentials.push(this.pushToken, {url: uri})
+      return topic
+    }
+
+    // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button.
+    // TODO ^ different default uri handlers ? this doesn't matter on mobile
+    // TODO if !this.uriHandler && this.pushToken  ^^, should dev use uriHandler if using push notifications?
+    (this.isOnMobile && this.mobileUriHandler)
+      ? this.mobileUriHandler(uri)
+      : uriHandler(uri, topic.cancel)
+
+    if (this.closeUriHandler) {
+      return new Promise((resolve, reject) => {
+        topic.then(res => {
+          this.closeUriHandler()
+          resolve(res)
+        }, error => {
+          this.closeUriHandler()
+          reject(error)
+        })
+      })
+    } else return topic
+  }
+
+  // TODO support contract.new (maybe?)
+  contract (abi, uriHandler = this.uriHandler) {
     const self = this
-    return this.credentials.attest({ sub, claim, exp }).then(jwt => {
-      const uri = `me.uport:add?attestations=${encodeURIComponent(jwt)}`
-      //  Your uriHandler does not need a cancel function here, cancel is for canceling a request, passes default closeQR if using qr defaults.
-      const cancel = this.closeUriHandler || function(){}
-      self.isOnMobile ? self.mobileUriHandler(uri) : uriHandler(uri, cancel)
-      return true
-    })
+    const txObjectHandler = (methodTxObject) => self.txObjectHandler(methodTxObject, uriHandler)
+    return new ContractFactory(txObjectHandler)(abi)
+  }
+
+  sendTransaction (txobj, uriHandler = this.uriHandler) {
+    return this.txObjectHandler(txobj, uriHandler)
+  }
+
+  addAppParameters (txObject, callbackUrl) {
+    const appTxObject = Object.assign({}, txObject)
+    if (callbackUrl) {
+      appTxObject.callback_url = callbackUrl
+    }
+    if (this.appName) {
+      appTxObject.label = this.appName
+    }
+    if (this.clientId) {
+      appTxObject.client_id = this.clientId
+    }
+    return appTxObject
+  }
+
+  txObjectHandler (methodTxObject, uriHandler = this.uriHandler) {
+    const topic = this.topicFactory('tx')
+    let uri = paramsToUri(this.addAppParameters(methodTxObject, topic.url))
+    return this.request({uri, topic, uriHandler})
   }
 }
 
@@ -106,4 +174,4 @@ const paramsToUri = (params) => {
   return `${uri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
-export default ConnectCore
+export default ConnectLite
