@@ -3,8 +3,9 @@ const notSupported = (obj) => {
 }
 
 class Connect { constructor(){ notSupported('Connect object') }}
+class ConnectCore { constructor(){ notSupported('Connect object') }}
 const QRUtil = { getQRDataURI: notSupported('getQRDataURI'), closeQr: notSupported('closeQr'), openQr: notSupported('openQr')}
-import ConnectCore from './ConnectCore'
+class SimpleSigner { constructor(){ notSupported('SimpleSigner object') }}
+class Credentials { constructor(){ notSupported('Credentials object') }}
 import ConnectLite from './ConnectLite'
-import { SimpleSigner, Credentials } from 'uport'
 export { Connect, ConnectCore, ConnectLite, QRUtil, SimpleSigner, Credentials }
