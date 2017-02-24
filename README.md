@@ -104,6 +104,16 @@ Also, the following calls will show a QR code for the user to scan:
 
 Check out the examples folder too for how to integrate **uport** in your DApp
 
+
+#### One line Integration to allow users to sign transactions with uPort.
+
+If you already have a dapp this is the quickest way to support uPort for your users. This will inject a uPort web3 object which will use our default transaction signing flows with QR codes and our mobile app.
+
+TODO: more details, works if dapps already support metamask, can not load anything regarding accounts, so maybe this implementation does not make sense.
+
+```html
+<button id="uport-activate"> Use uPort </button> <script async src="../dist/uport-connect.js" charset="utf-8"></script>
+```
 ---------------------------------------------
 
 ### Customizing QR code requests
