@@ -66,6 +66,25 @@ uport.requestAddress().then((address) => {
 })
 ```
 
+For use directly in the browser you can reference the uport-connect distribution files from a number of places. They can be found in our npm package in the 'dist' folder or you can build them locally from this repo.
+
+For a quick setup you may also request a remote copy from [unpkg CDN](https://unpkg.com/) as follows:
+
+```html
+<!-- The most recent version  -->
+<script src="https://unpkg.com/uport-connect/dist/uportconnect.js"></script>
+<!-- The most recent minified version  -->
+<script src="https://unpkg.com/uport-connect/dist/uportconnect.min.js"></script>
+<!-- You can also fetch specific versions by specifying the version -->
+<script src="https://unpkg.com/uport-connect@0.4.5/dist/uportconnect.js"></script>
+```
+Then to instantiate the uPort object from the browser window object:
+
+```js
+var uportconnect = window.uportconnect
+var uport = new uportconnect.Connect('MyDApp')
+```
+
 ### Using with web3
 
 We provide a convenience method to create a uPort enabled version of the web3 object:
@@ -95,7 +114,7 @@ However, you might want to display the QR-code in a different way.
 You can provide your own `uriHandler` function which can be used to handle it your self using your own frontend library.
 
 ```js
-const uport = new Connect('MyDApp', { 
+const uport = new Connect('MyDApp', {
   uriHandler: (uri) => {
     // show URI handler or button to send user to mobile app
   }
