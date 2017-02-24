@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="icon" type="image/png" sizes="16x16" href="https://uport.me/library/img/icons/favicon-16x16.png">
-    <script type="text/javascript" src="../dist/uportconnect.js"></script>
+    <script type="text/javascript" src="../dist/uport-connect.js"></script>
     <style>
       main { padding: 10px 30px; }
       header { background: #EEE; }
@@ -88,7 +88,7 @@
 
       ////////////////////////////////////////////////
 
-      // App Steup     
+      // App Setup
       let connect = new uportconnect.Connect('Uport Example')
       let web3 = connect.getWeb3()
 
@@ -149,9 +149,10 @@
 
         status.updateStatus(statusMsg).then(tx => {
           console.log(tx)
+          $("#txHashStatus").textContent = tx
         })
 
-        }
+      }
 
       ////////////////////////////////////////////////
 
