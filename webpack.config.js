@@ -10,14 +10,16 @@ const globalsPlugin = new webpack.DefinePlugin({
 })
 
 let libraryName = 'uportconnect'
-let outputFile = libraryName + '.js'
 
 // Final Config
 module.exports = {
-  entry: './src/index.js',
+  entry: {'uport-connect': './src/index.js',
+          'uport-connect-core': './src/indexCore.js',
+          'uport-connect-lite': './src/indexLite.js'
+         },
   output: {
     path: 'dist',
-    filename: outputFile,
+    filename: '[name].js',
     library: libraryName,
     libraryTarget: 'umd',
     umdNamedDefine: true
