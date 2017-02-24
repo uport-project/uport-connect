@@ -429,9 +429,13 @@ describe('Connect', () => {
     it('provides attestation to user using default uriHandler', (done) => {
       let opened
       const uport = new Connect('UportTests', {
+        topicFactory: (name) => {
+          expect(name).to.equal('status')
+          return mockTopic('ok')
+        },
         uriHandler: (uri) => {
           opened = true
-          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
+          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123`)
         },
         credentials: mockAttestingCredentials((payload) => {
           expect(payload).to.deep.equal(PAYLOAD)
@@ -439,76 +443,7 @@ describe('Connect', () => {
         })
       })
       uport.attestCredentials(PAYLOAD).then((result) => {
-        expect(result).to.be.true
-        expect(opened).to.be.true
-        done()
-      }, error => {
-        console.err(error)
-        done()
-      })
-    })
-
-    it('provides attestation to user using mobileUriHandler', (done) => {
-      let opened
-      const uport = new Connect('UportTests', {
-        isMobile: true,
-        mobileUriHandler: (uri) => {
-          opened = true
-          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
-        },
-        credentials: mockAttestingCredentials((payload) => {
-          expect(payload).to.deep.equal(PAYLOAD)
-          return ATTESTATION
-        })
-      })
-      uport.attestCredentials(PAYLOAD).then((result) => {
-        expect(result).to.be.true
-        expect(opened).to.be.true
-        done()
-      }, error => {
-        console.err(error)
-        done()
-      })
-    })
-
-    it('provides attestation to user using overriden uriHandler', (done) => {
-      let opened
-      const uport = new Connect('UportTests', {
-        credentials: mockAttestingCredentials((payload) => {
-          expect(payload).to.deep.equal(PAYLOAD)
-          return ATTESTATION
-        })
-      })
-      uport.attestCredentials(PAYLOAD, (uri) => {
-        opened = true
-        expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
-      }).then((result) => {
-        expect(result).to.be.true
-        expect(opened).to.be.true
-        done()
-      }, error => {
-        console.err(error)
-        done()
-      })
-    })
-
-    it('provides attestation to user using mobileUriHandler even if there is an overridden uriHandler', (done) => {
-      let opened
-      const uport = new Connect('UportTests', {
-        isMobile: true,
-        mobileUriHandler: (uri) => {
-          opened = true
-          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}`)
-        },
-        credentials: mockAttestingCredentials((payload) => {
-          expect(payload).to.deep.equal(PAYLOAD)
-          return ATTESTATION
-        })
-      })
-      uport.attestCredentials(PAYLOAD, (uri) => {
-        assert.fail()
-      }).then((result) => {
-        expect(result).to.be.true
+        expect(result).to.equal('ok')
         expect(opened).to.be.true
         done()
       }, error => {
