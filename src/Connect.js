@@ -58,6 +58,7 @@ class Connect {
     this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
     this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
+    this.pushToken = null
   }
 
   getWeb3 () {
@@ -70,6 +71,7 @@ class Connect {
   }
 
   requestCredentials (request = {}, uriHandler = null) {
+    const self = this
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
     return new Promise((resolve, reject) => {
@@ -81,12 +83,20 @@ class Connect {
         if (request.requested && request.requested.length > 0) {
           return reject(new Error('Specific data can not be requested without a signer configured'))
         }
+        // TODO remove once enabled in mobile app
         if (request.notifications) {
           return reject(new Error('Notifications rights can not currently be requested without a signer configured'))
         }
         resolve(paramsToUri(this.addAppParameters({ to: 'me' }, topic.url)))
       }
-    }).then(uri => this.request({uri, topic, uriHandler})).then(jwt => receive(jwt, topic.url))
+    }).then(uri => (
+        this.request({uri, topic, uriHandler})
+      ))
+      .then(jwt => {
+        const res = receive(jwt, topic.url)
+        if (res.pushToken) self.pushToken = res.pushToken
+        return res
+      })
   }
 
   requestAddress (uriHandler = null) {
@@ -107,9 +117,18 @@ class Connect {
   }
 
   request ({uri, topic, uriHandler}) {
+    if (this.pushToken) {
+      this.credentials.push(this.pushToken, {url: uri})
+      return topic
+    }
+
+    // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button.
+    // TODO ^ different default uri handlers ? this doesn't matter on mobile
+    // TODO if !this.uriHandler && this.pushToken  ^^, should dev use uriHandler if using push notifications?
     this.isOnMobile
-      ? this.mobileUriHandler(uri)
-      : (uriHandler || this.uriHandler)(uri, topic.cancel)
+        ? this.mobileUriHandler(uri)
+        : (uriHandler || this.uriHandler)(uri, topic.cancel)
+
     if (this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
