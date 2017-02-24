@@ -48,6 +48,8 @@ class Connect {
     this.appName = appName || 'uport-connect-app'
     this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
     this.clientId = opts.clientId
+    // TODO validate input, define strings and net supported
+    this.net = opts.net || 'ropsten'
 
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
     this.provider = opts.provider
@@ -164,6 +166,7 @@ class Connect {
     if (this.clientId) {
       appTxObject.client_id = this.clientId
     }
+    appTxObject.net = this.net
     return appTxObject
   }
 
@@ -174,11 +177,12 @@ class Connect {
   }
 }
 
+// transaction params wrapped with app parameters to uri which uport mobile understands
 const paramsToUri = (params) => {
   if (!params.to) {
     throw new Error('Contract creation is not supported by uportProvider')
   }
-  let uri = `me.uport:${params.to}`
+  let uri = params.net ? `me.uport:${params.net}/${params.to}` : `me.uport:${params.to}`
   const pairs = []
   if (params.value) {
     pairs.push(['value', parseInt(params.value, 16)])
