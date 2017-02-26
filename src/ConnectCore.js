@@ -89,9 +89,9 @@ class Connect {
     }).then(uri => (
         this.request({uri, topic, uriHandler})
       ))
-      .then(jwt => {
-        const res = receive(jwt, topic.url)
-        if (res.pushToken) self.pushToken = res.pushToken
+      .then(jwt => receive(jwt, topic.url))
+      .then(res => {
+        if (res && res.pushToken) self.pushToken = res.pushToken
         return res
       })
   }
