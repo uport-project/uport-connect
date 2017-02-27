@@ -1,2 +1,2 @@
-import { Connect, QRUtil, SimpleSigner, Credentials } from '../src/index'
-export { Connect, QRUtil, SimpleSigner, Credentials }
+import { Connect, ConnectCore, QRUtil, SimpleSigner, Credentials } from '../src/index'
+export { Connect, ConnectCore, QRUtil, SimpleSigner, Credentials }

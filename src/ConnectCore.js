@@ -1,7 +1,6 @@
 import TopicFactory from './topicFactory'
-import { Credentials } from 'uport'
+import { Credentials, ContractFactory } from 'uport'
 import MobileDetect from 'mobile-detect'
-import { ContractFactory } from 'uport'
 import UportSubprovider from './uportSubprovider'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // Can use http provider from ethjs in the future.
@@ -17,10 +16,13 @@ function isMobile () {
   } else return false
 }
 
+function defaultUrlHandler (url) {
+  throw new Error(`No Url handler set to handle ${url}`)
+}
 /**
  * This class is the main entry point for interaction with uport.
  */
-class Connect {
+class ConnectCore {
 
   /**
    * Creates a new uport object.
@@ -51,7 +53,7 @@ class Connect {
     this.provider = opts.provider
     this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.uriHandler = opts.uriHandler
+    this.uriHandler = opts.uriHandler || defaultUrlHandler
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
     this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
@@ -188,4 +190,4 @@ const paramsToUri = (params) => {
   return `${uri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
-export default Connect
+export default ConnectCore
