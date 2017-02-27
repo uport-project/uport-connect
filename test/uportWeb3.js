@@ -52,7 +52,7 @@ describe('uportWeb3 integration tests', function () {
           }
           if (!contract.address) return
           // console.log(contract)
-          
+
           // Send ether to Autosigner
           vanillaWeb3.eth.sendTransaction({from: accounts[0], to: autosigner.address, value: vanillaWeb3.toWei(90)}, (err3, r) => {
             if (err3) {
