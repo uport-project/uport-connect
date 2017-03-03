@@ -139,12 +139,14 @@ class ConnectCore {
   // TODO support contract.new (maybe?)
   contract (abi, uriHandler = this.uriHandler) {
     const self = this
-    const txObjectHandler = (methodTxObject) => self.txObjectHandler(methodTxObject, uriHandler)
+    const txObjectHandler = (methodTxObject) => self.sendTransaction(methodTxObject, uriHandler)
     return new ContractFactory(txObjectHandler)(abi)
   }
 
   sendTransaction (txobj, uriHandler = this.uriHandler) {
-    return this.txObjectHandler(txobj, uriHandler)
+    const topic = this.topicFactory('tx')
+    let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
+    return this.request({uri, topic, uriHandler})
   }
 
   addAppParameters (txObject, callbackUrl) {
@@ -159,12 +161,6 @@ class ConnectCore {
       appTxObject.client_id = this.clientId
     }
     return appTxObject
-  }
-
-  txObjectHandler (methodTxObject, uriHandler = this.uriHandler) {
-    const topic = this.topicFactory('tx')
-    let uri = paramsToUri(this.addAppParameters(methodTxObject, topic.url))
-    return this.request({uri, topic, uriHandler})
   }
 }
 
