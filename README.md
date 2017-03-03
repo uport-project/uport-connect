@@ -40,6 +40,8 @@ In order to make this flow easy for developers, `uport-connect` provides a custo
 
 ## Using uPort in your Application
 
+For additional documentation on all functionality [visit our docs](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md). For a quick start read below.
+
 ### Getting Started
 
 First we will instantiate the Uport object.
