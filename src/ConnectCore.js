@@ -137,9 +137,8 @@ class ConnectCore {
   }
 
   // TODO support contract.new (maybe?)
-  contract (abi, uriHandler = this.uriHandler) {
-    const self = this
-    const txObjectHandler = (methodTxObject) => self.sendTransaction(methodTxObject, uriHandler)
+  contract (abi) {
+    const txObjectHandler = (methodTxObject, uriHandler) => this.sendTransaction(methodTxObject, uriHandler)
     return new ContractFactory(txObjectHandler)(abi)
   }
 
