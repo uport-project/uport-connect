@@ -16,8 +16,8 @@ function isMobile () {
   } else return false
 }
 
-function defaultUrlHandler (url) {
-  throw new Error(`No Url handler set to handle ${url}`)
+function defaultUriHandler (uri) {
+  throw new Error(`No URI handler set to handle ${uri}`)
 }
 /**
  * This class is the main entry point for interaction with uport.
@@ -53,7 +53,7 @@ class ConnectCore {
     this.provider = opts.provider
     this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.uriHandler = opts.uriHandler || defaultUrlHandler
+    this.uriHandler = opts.uriHandler || defaultUriHandler
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
     this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
