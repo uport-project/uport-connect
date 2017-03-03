@@ -16,8 +16,8 @@ function isMobile () {
   } else return false
 }
 
-function defaultUrlHandler (url) {
-  throw new Error(`No Url handler set to handle ${url}`)
+function defaultUriHandler (uri) {
+  throw new Error(`No URI handler set to handle ${uri}`)
 }
 /**
  * This class is the main entry point for interaction with uport.
@@ -53,7 +53,7 @@ class ConnectCore {
     this.provider = opts.provider
     this.isOnMobile = opts.isMobile || isMobile()
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.uriHandler = opts.uriHandler || defaultUrlHandler
+    this.uriHandler = opts.uriHandler || defaultUriHandler
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
     this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
@@ -137,14 +137,15 @@ class ConnectCore {
   }
 
   // TODO support contract.new (maybe?)
-  contract (abi, uriHandler = this.uriHandler) {
-    const self = this
-    const txObjectHandler = (methodTxObject) => self.txObjectHandler(methodTxObject, uriHandler)
+  contract (abi) {
+    const txObjectHandler = (methodTxObject, uriHandler) => this.sendTransaction(methodTxObject, uriHandler)
     return new ContractFactory(txObjectHandler)(abi)
   }
 
   sendTransaction (txobj, uriHandler = this.uriHandler) {
-    return this.txObjectHandler(txobj, uriHandler)
+    const topic = this.topicFactory('tx')
+    let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
+    return this.request({uri, topic, uriHandler})
   }
 
   addAppParameters (txObject, callbackUrl) {
@@ -159,12 +160,6 @@ class ConnectCore {
       appTxObject.client_id = this.clientId
     }
     return appTxObject
-  }
-
-  txObjectHandler (methodTxObject, uriHandler = this.uriHandler) {
-    const topic = this.topicFactory('tx')
-    let uri = paramsToUri(this.addAppParameters(methodTxObject, topic.url))
-    return this.request({uri, topic, uriHandler})
   }
 }
 

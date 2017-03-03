@@ -60,7 +60,7 @@ describe('ConnectCore', () => {
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
       expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
-      expect(uport.uriHandler.name).to.equal('defaultUrlHandler')
+      expect(uport.uriHandler.name).to.equal('defaultUriHandler')
       expect(uport.closeUriHandler).to.equal(undefined)
       expect(uport.credentials).to.be.an.instanceof(Credentials)
       expect(uport.canSign).to.be.false
@@ -608,11 +608,13 @@ describe('ConnectCore', () => {
         },
         closeUriHandler: () => null
       })
-      const contract = uport.contract(miniTokenABI, (uri) => {
+
+      const overideUriHandler = (uri) => {
         expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
-      })
-      const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
+      }
+
+      const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
+      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
         expect(txhash).to.equal(FAKETX)
         done()
       })
