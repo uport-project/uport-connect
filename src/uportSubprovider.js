@@ -1,12 +1,20 @@
-// handles the following RPC methods:
-// eth_coinbase
-// eth_accounts
-// eth_sendTransaction
-
-// TODO support contract.new
 import async from 'async'
 
-export default class UportSubprovider {
+/**
+*  A web3 style provider which can easily be wrapped with uPort functionality.
+*  Builds on a base provider. Used in Connect to wrap a provider with uPort specific
+*  functionality.
+*/
+class UportSubprovider {
+  /**
+   * Instantiates a new wrapped provider
+   *
+   * @param       {Object}            args                   required arguments
+   * @param       {Function}          args.requestAddress    function to get the address of a uPort identity.
+   * @param       {Function}          args.sendTransaction   function to handle passing transaction information to a uPort application
+   * @param       {Object}            args.provider          a web3 sytle provider
+   * @return      {UportSubprovider}                         self
+   */
   constructor ({requestAddress, sendTransaction, provider}) {
     const self = this
     this.provider = provider
@@ -16,7 +24,7 @@ export default class UportSubprovider {
         address => {
         self.address = address
         cb(null, address)
-      }, 
+      },
       error => cb(error))
     }
 
@@ -28,10 +36,22 @@ export default class UportSubprovider {
     }
   }
 
+  /**
+   *  Synchronous functionality not supported
+   */
   send (payload) {
     throw new Error('Uport Web3 SubProvider does not support synchronous requests.')
   }
-  
+
+  /**
+   *  Overrides sendAsync to caputure the following RPC calls eth_coinbase, eth_accounts,
+   *  and eth_sendTransaction. All other calls are passed to the based provider.
+   *  eth_coinbase, eth_accounts will get a uPort identity address with getAddress.
+   *  While eth_sendTransaction with send transactions to a uPort app with sendTransaction
+   *
+   * @param       {Any}            payload           request payload
+   * @param       {Function}       callback          called with response or error
+   */
   sendAsync (payload, callback) {
     const self = this
     const respond = (error, result) => {
@@ -71,3 +91,5 @@ export default class UportSubprovider {
     }
   }
 }
+
+export default UportSubprovider
