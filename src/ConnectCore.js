@@ -44,7 +44,7 @@ class ConnectCore {
 
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
     this.provider = opts.provider
-    this.isOnMobile = opts.isMobile || isMobile()
+    this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
     this.uriHandler = opts.uriHandler || defaultUriHandler
     this.mobileUriHandler = opts.mobileUriHandler
