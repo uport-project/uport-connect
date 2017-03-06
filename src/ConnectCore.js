@@ -182,7 +182,7 @@ class ConnectCore {
       ? this.mobileUriHandler(uri)
       : uriHandler(uri, topic.cancel)
 
-    if (this.closeUriHandler) {
+    if (!this.isOnMobile && this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
           this.closeUriHandler()
