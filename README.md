@@ -1,28 +1,9 @@
-<!--
-[![uport][uport-image]][uport-url]
-[![uport chat][gitter-image]][gitter-url]
--->
-
-<!--npm-->
-<!--
-  [![NPM version][npm-image]][npm-url]
-  [![Downloads][downloads-image]][downloads-url]
-  [![NPM][nodei-image]][nodei-url]
--->
-
-<!--build-->
-<!--
-  [![Build Status][travis-image]][travis-url]
-  [![Appveyor Status][appveyor-image]][appveyor-url]
-  [![Coverage Status][coveralls-image]][coveralls-url]
--->
-
-<!--dependencies-->
-<!--
-  [![Dependency Status][david-image]][david-url]
-  [![devDependency Status][david-dev-image]][david-dev-url]
-  [![peerDependency Status][david-peer-image]][david-peer-url]
--->
+[![CircleCI](https://img.shields.io/circleci/project/github/uport-project/uport-connect.svg)](https://circleci.com/gh/uport-project/uport-connect)
+[![Join the chat at https://gitter.im/sahat/hackathon-starter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/uport-project/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![npm](https://img.shields.io/npm/dt/uport-connect.svg)](https://www.npmjs.com/package/uport-connect)
+[![npm](https://img.shields.io/npm/v/uport-connect.svg)](https://www.npmjs.com/package/uport-connect)
+[![Codecov](https://img.shields.io/codecov/c/github/uport-project/uport-connect.svg)](https://codecov.io/gh/uport-project/uport-connect)
+[![Twitter Follow](https://img.shields.io/twitter/follow/uport_me.svg?style=social&label=Follow)](https://twitter.com/uport_me)
 
 # Introduction
 
