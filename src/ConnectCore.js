@@ -6,44 +6,37 @@ const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 
-// TODO Add simple QR wrapper for the orginal default flow, just means wrapping open/close functionality
-// TODO add cancel back in, should be really simple now
-// TODO extend this uport to uport with web3 so we can eventually have sepearte distributions.
-
-function isMobile () {
-  if (typeof navigator !== 'undefined') {
-    return !!(new MobileDetect(navigator.userAgent).mobile())
-  } else return false
-}
-
-function defaultUrlHandler (url) {
-  throw new Error(`No Url handler set to handle ${url}`)
-}
 /**
- * This class is the main entry point for interaction with uport.
- */
+*  Primary object for frontend interactions with uPort. ConnectCore excludes
+*  some functionality found in Connect for a more customizable and lightweight integration.
+*  It does not provide any web3 functionality althought you can still use getProvider
+*  to get a provider to use with web3 or other libraries. It removes all default
+*  QR injection functionality. Your can choose how you want to handle the UX and/or
+*  QR generation and use any QR library you choose. For example, if used in a
+*  mobile native app QR generation is not even necessary.
+*
+*/
 class ConnectCore {
 
   /**
-   * Creates a new uport object.
+   * Instantiates a new uPort connectCore object.
    *
-   * @memberof    Uport
-   * @method      constructor
+   * @example
+   * import { ConnectCore } from 'uport-connect'
+   * const uPort = new ConnectCore('Mydapp')
    * @param       {String}            appName                the name of your app
-   * @param       {Object}            opts                   optional parameters
-   * @param       {Object}            opts.credentials       pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this is you need to create signed requests
+   * @param       {Object}            [opts]                 optional parameters
+   * @param       {Object}            opts.credentials       pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests
    * @param       {Function}          opts.signer            signing function which will be used to sign JWT's in the credentials object
-   * @param       {String}            opts.clientId          a uport id for your application this will be used in the default credentials object
-   * @param       {String}            opts.rpcUrl            a JSON rpc url (defaults to https://ropsten.infura.io)
+   * @param       {String}            opts.clientId          uport identifier for your application this will be used in the default credentials object
+   * @param       {String}            opts.rpcUrl            JSON rpc url (defaults to https://ropsten.infura.io)
    * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
-   * @param       {Function}          opts.topicFactory      A function creating a topic
-   * @param       {Function}          opts.uriHandler        Function to present QR code or other UX to approve request
-   * @param       {Function}          opts.mobileUriHandler  Function to request in mobile browsers
-   * @param       {Function}          opts.closeUriHandler   Function to hide UX created with uriHandler after request is done
-   * @return      {Object}            self
+   * @param       {Function}          opts.topicFactory      function which generates topics and deals with requests and response
+   * @param       {Function}          opts.uriHandler        default function to consume generated URIs for requests, can be used to display QR codes or other custom UX
+   * @param       {Function}          opts.mobileUriHandler  default function to consume generated URIs for requests on mobile
+   * @param       {Function}          opts.closeUriHandler   default function called after a request receives a response, can be to close QR codes or other custom UX
+   * @return      {Connect}                                  self
    */
-
-  //  TODO do we need registry settings
   constructor (appName, opts = {}) {
     this.appName = appName || 'uport-connect-app'
     this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
@@ -51,9 +44,9 @@ class ConnectCore {
 
     this.rpcUrl = opts.rpcUrl || (INFURA_ROPSTEN + '/' + this.infuraApiKey)
     this.provider = opts.provider
-    this.isOnMobile = opts.isMobile || isMobile()
+    this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.uriHandler = opts.uriHandler || defaultUrlHandler
+    this.uriHandler = opts.uriHandler || defaultUriHandler
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
     this.credentials = opts.credentials || new Credentials({address: opts.clientId, signer: opts.signer})
@@ -61,6 +54,15 @@ class ConnectCore {
     this.pushToken = null
   }
 
+  /**
+   *  Instantiates and returns a web3 styple provider wrapped with uPort functionality.
+   *  For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
+   *  to start a get address flow or to return an already received address. It also
+   *  overrides eth_sendTransaction to start the send transaction flow to pass the
+   *  transaction to the uPort app.
+   *
+   *  @return          {UportSubprovider}    A web3 style provider wrapped with uPort functionality
+   */
   getProvider () {
     return new UportSubprovider({
       requestAddress: this.requestAddress.bind(this),
@@ -69,6 +71,24 @@ class ConnectCore {
     })
   }
 
+  /**
+   *  Creates a request given a request object, will also always return the user's
+   *  uPort address. Calls given uriHandler with the uri. Returns a promise to
+   *  wait for the response.
+   *
+   *  @example
+   *  const req = {requested: ['name', 'country']}
+   *  connect.requestCredentials(req).then(credentials => {
+   *      const address = credentials.address
+   *      const name = credentials.name
+   *      ...
+   *  })
+   *
+   *  @param    {Object}                  [request={}]                    request object
+   *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
+   *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
+   */
+  //  TODO add more docs on request objects and response objects
   requestCredentials (request = {}, uriHandler = this.uriHandler) {
     const self = this
     const receive = this.credentials.receive.bind(this.credentials)
@@ -98,10 +118,40 @@ class ConnectCore {
       })
   }
 
+  /**
+   *  Creates a request for only the address of the uPort identity. Calls given
+   *  uriHandler with the uri. Returns a promise to wait for the response.
+   *
+   *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
+   *  @return   {Promise<String, Error>}                                  a promise which resolves with an address or rejects with an error.
+   */
   requestAddress (uriHandler = this.uriHandler) {
     return this.requestCredentials({}, uriHandler).then((profile) => profile.address)
   }
 
+  /**
+   *  Consumes a credential object and generates a signed JWT. Creates a request
+   *  URI with the JWT. Calls given uriHandler with the URI. Returns a promise to wait
+   *  for the response. Throws error if no signer and/or app identifier is set.
+   *  Will not always receive a response, response is only a status.
+   *
+   *  @example
+   *  const cred = {
+   *    sub: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347'
+   *    claim: {'email': 'hello@uport.me'}
+   *    exp: '1300819380'
+   *  }
+   *  connect.attestCredentials(cred).then(res => {
+   *    // response okay, received in uPort app
+   *  })
+   *
+   *  @param    {Object}            credential                      credential object
+   *  @param    {String}            credential.sub                  subject of this credential
+   *  @param    {Object}            credential.claim                statement(s) which this credential claims, contructed as {key: 'value', ...}
+   *  @param    {String}            credential.exp                  expiry time of this credential
+   *  @param    {Function}          [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
+   *  @return   {Promise<Object, Error>}                            a promise which resolves with a resonse object or rejects with an error.
+   */
   attestCredentials ({sub, claim, exp}, uriHandler = this.uriHandler) {
     const self = this
     const topic = this.topicFactory('status')
@@ -110,20 +160,29 @@ class ConnectCore {
     })
   }
 
+  /**
+   *  Create a request and returns a promise which resolves the response. This
+   *  function is primarly is used by more specified functions in this class, which
+   *  allow you to easily create the URIs and messaging server topics you need here.
+   *
+   *  @param    {Object}     request                                request object
+   *  @param    {String}     request.uri                            uPort URI
+   *  @param    {String}     request.topic                          messaging server topic object
+   *  @param    {String}     [request.uriHandler=this.uriHandler]   function to consume URI, can be used to display QR codes or other custom UX
+   *  @return   {Promise<Object, Error>}                            promise which resolves with a response object or rejects with an error.
+   */
   request ({uri, topic, uriHandler = this.uriHandler}) {
     if (this.pushToken) {
       this.credentials.push(this.pushToken, {url: uri})
       return topic
     }
 
-    // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button.
-    // TODO ^ different default uri handlers ? this doesn't matter on mobile
-    // TODO if !this.uriHandler && this.pushToken  ^^, should dev use uriHandler if using push notifications?
+    // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button. should dev use uriHandler if using push notifications?
     (this.isOnMobile && this.mobileUriHandler)
       ? this.mobileUriHandler(uri)
       : uriHandler(uri, topic.cancel)
 
-    if (this.closeUriHandler) {
+    if (!this.isOnMobile && this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
           this.closeUriHandler()
@@ -136,17 +195,56 @@ class ConnectCore {
     } else return topic
   }
 
-  // TODO support contract.new (maybe?)
-  contract (abi, uriHandler = this.uriHandler) {
-    const self = this
-    const txObjectHandler = (methodTxObject) => self.txObjectHandler(methodTxObject, uriHandler)
+  /**
+  *  Builds and returns a contract object which can be used to interact with
+  *  a given contract. Similar to web3.eth.contract but with promises. Once specifying .at(address)
+  *  you can call the contract functions with this object. It will create a request,
+  *  call the uirHandler with the URI, and return a promise which resolves with
+  *  a transtaction ID.
+  *
+  *  @param    {Object}       abi                                   contract ABI
+  *  @param    {Function}     [request.uriHandler=this.uriHandler]  function to consume uri, can be used to display QR codes or other custom UX
+  *  @return   {Object}                                             contract object
+  */
+  contract (abi) {
+    const txObjectHandler = (methodTxObject, uriHandler) => this.sendTransaction(methodTxObject, uriHandler)
     return new ContractFactory(txObjectHandler)(abi)
   }
 
+  /**
+   *  Given a transaction object, similarly defined as the web3 transaction object,
+   *  it creates a URI which is passes to the uirHandler. It will create request
+   *  and returns a promise which resolves with the transaction id.
+   *
+   *  @example
+   *  const txobject = {
+   *    to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
+   *    value: '0.1',
+   *    function: setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347'),
+   *    appName: 'MyDapp'
+   *  }
+   *  connect.sendTransaction(txobject).then(txID => {
+   *    ...
+   *  })
+   *
+   *  @param    {Object}     txobj                                  transaction object, can also be wrapped using addAppParameters
+   *  @param    {Function}   [request.uriHandler=this.uriHandler]   function to consume uri, can be used to display QR codes or other custom UX
+   *  @return   {Promise<Object, Error>}                            A promise which resolves with a resonse object or rejects with an error.
+   */
   sendTransaction (txobj, uriHandler = this.uriHandler) {
-    return this.txObjectHandler(txobj, uriHandler)
+    const topic = this.topicFactory('tx')
+    let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
+    return this.request({uri, topic, uriHandler})
   }
 
+  /**
+   *  Adds application specific data to a transaction object. Then uses this data
+   *  when requests are created.
+   *
+   *  @param    {Object}     txobj             transaction object
+   *  @param    {String}     callbackUrl       application callback url
+   *  @return   {Promise<Object, Error>}       A promise which resolves with a resonse object or rejects with an error.
+   */
   addAppParameters (txObject, callbackUrl) {
     const appTxObject = Object.assign({}, txObject)
     if (callbackUrl) {
@@ -160,14 +258,15 @@ class ConnectCore {
     }
     return appTxObject
   }
-
-  txObjectHandler (methodTxObject, uriHandler = this.uriHandler) {
-    const topic = this.topicFactory('tx')
-    let uri = paramsToUri(this.addAppParameters(methodTxObject, topic.url))
-    return this.request({uri, topic, uriHandler})
-  }
 }
 
+/**
+ *  Consumes a params object and creates URI for uPort mobile.
+ *
+ *  @param    {Object}     params    A object of params known to uPort
+ *  @return   {Strings}              A uPort mobile URI
+ *  @private
+ */
 const paramsToUri = (params) => {
   if (!params.to) {
     throw new Error('Contract creation is not supported by uportProvider')
@@ -188,6 +287,31 @@ const paramsToUri = (params) => {
     }
   })
   return `${uri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
+}
+
+/**
+ *  Detects if this library is called on a mobile device or tablet.
+ *
+ *  @param    {Object}     params    A object of params known to uPort
+ *  @return   {Boolean}              Returns true if on mobile or tablet, false otherwise.
+ *  @private
+ */
+function isMobile () {
+  if (typeof navigator !== 'undefined') {
+    return !!(new MobileDetect(navigator.userAgent).mobile())
+  } else return false
+}
+
+/**
+ *  ConnectCore has no default URI handler, one must be set
+ *
+ *  @param    {Object}     uri    A uPort URI
+ *  @return   {Error}             Throws Error
+ *  @private
+ */
+ // TODO change to URI
+function defaultUriHandler (uri) {
+  throw new Error(`No Url handler set to handle ${uri}`)
 }
 
 export default ConnectCore

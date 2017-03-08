@@ -28,6 +28,9 @@ coverage
 lib
 dist
 
+#Docs
+docs
+
 .DS_Store
 
 
