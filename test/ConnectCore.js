@@ -160,8 +160,7 @@ describe('ConnectCore', () => {
         mobileUriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
-        },
-        closeUriHandler: () => { closed = true }
+        }
       })
       uport.request({
         uri,
@@ -169,7 +168,6 @@ describe('ConnectCore', () => {
       }).then(response => {
         expect(response).to.equal(UPORT_ID)
         expect(opened).to.equal(true)
-        expect(closed).to.equal(true)
         done()
       }, error => {
         assert.fail()
@@ -184,8 +182,7 @@ describe('ConnectCore', () => {
         mobileUriHandler: (_uri) => {
           expect(_uri).to.equal(uri)
           opened = true
-        },
-        closeUriHandler: () => { closed = true }
+        }
       })
       uport.request({
         uri,
@@ -197,7 +194,6 @@ describe('ConnectCore', () => {
       }).then(response => {
         expect(response).to.equal(UPORT_ID)
         expect(opened).to.equal(true)
-        expect(closed).to.equal(true)
         done()
       }, error => {
         assert.fail()
