@@ -123,7 +123,11 @@ class ConnectCore {
    *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
+<<<<<<< HEAD
   requestCredentials (request = {}, uriHandler) {
+=======
+  requestCredentials (request = {}, uriHandler = this.uriHandler) {
+>>>>>>> feat: add multi-network support and configuration options
     const self = this
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
