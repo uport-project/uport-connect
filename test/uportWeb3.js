@@ -109,6 +109,7 @@ describe('uportWeb3 integration tests', function () {
       expect(err).to.be.null
       if (err) {
         console.log(err.message)
+        assert.fail()
         return done()
       }
       expect(res).to.be

@@ -3,6 +3,7 @@ var webpack = require('webpack');
 module.exports = function (config) {
   config.set({
     basePath: '',
+    logLevel: config.LOG_DEBUG,
     browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
     files: [

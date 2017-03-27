@@ -257,9 +257,11 @@ describe('ConnectCore', () => {
   describe('requestCredentials', () => {
     describe('without signer', () => {
       it('requests public profile', (done) => {
+        // TODO This tests fails
         const uport = new ConnectCore('UportTests', {
           clientId: CLIENT_ID,
           topicFactory: (name) => {
+            // TODO is called
             expect(name).to.equal('access_token')
             return mockTopic(CREDENTIALS_JWT)
           },
@@ -267,6 +269,7 @@ describe('ConnectCore', () => {
             expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
           },
           credentials: mockVerifyingCredentials((jwt) => {
+            // TODO is called, why is this one false not true (isCredential)
             expect(jwt).to.equal(CREDENTIALS_JWT)
             return PROFILE
           })
@@ -276,7 +279,7 @@ describe('ConnectCore', () => {
           expect(profile).to.equal(PROFILE)
           done()
         }, error => {
-          console.log(error)
+          assert.fail()
           done()
         })
       })
@@ -334,13 +337,14 @@ describe('ConnectCore', () => {
           expect(profile).to.equal(PROFILE)
           done()
         }, error => {
-          console.log(error)
+          assert.fail()
           done()
         })
       })
     })
 
     it('requests specific credentials', (done) => {
+      // TODO THIS tests fails
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
@@ -371,7 +375,8 @@ describe('ConnectCore', () => {
         expect(profile).to.equal(PROFILE)
         done()
       }, error => {
-        console.log(error)
+        expect(error.message).to.equal('Specific data can not be requested without a signer configured')
+        assert.fail()
         done()
       })
     })
@@ -414,6 +419,7 @@ describe('ConnectCore', () => {
 
   describe('requestAddress', () => {
     it('returns address', (done) => {
+      // TODO  THIS test fails
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
@@ -432,7 +438,7 @@ describe('ConnectCore', () => {
         expect(address).to.equal(UPORT_ID)
         done()
       }, error => {
-        console.log(error)
+        assert.fail()
         done()
       })
     })
@@ -462,7 +468,7 @@ describe('ConnectCore', () => {
         expect(opened).to.be.true
         done()
       }, error => {
-        console.err(error)
+        assert.fail()
         done()
       })
     })
@@ -483,6 +489,9 @@ describe('ConnectCore', () => {
       })
       uport.sendTransaction({to: CONTRACT, value: '0xff'}).then(txhash => {
         expect(txhash).to.equal(FAKETX)
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
@@ -510,6 +519,9 @@ describe('ConnectCore', () => {
       }).then(txhash => {
         expect(txhash).to.equal(FAKETX)
         done()
+      }, error => {
+        assert.fail()
+        done()
       })
     })
 
@@ -533,6 +545,9 @@ describe('ConnectCore', () => {
         gas: '0x4444'
       }).then(txhash => {
         expect(txhash).to.equal('FAKETX')
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
@@ -592,6 +607,9 @@ describe('ConnectCore', () => {
       token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
         expect(txhash).to.equal(FAKETX)
         done()
+      }, error => {
+        assert.fail()
+        done()
       })
     })
 
@@ -612,6 +630,9 @@ describe('ConnectCore', () => {
       const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
       token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
         expect(txhash).to.equal(FAKETX)
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
