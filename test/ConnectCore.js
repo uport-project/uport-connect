@@ -59,7 +59,7 @@ describe('ConnectCore', () => {
       const uport = new ConnectCore('test app')
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
-      expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
+      expect(uport.network.id).to.equal('0x2a')
       expect(uport.uriHandler.name).to.equal('defaultUriHandler')
       expect(uport.closeUriHandler).to.equal(undefined)
       expect(uport.credentials).to.be.an.instanceof(Credentials)
@@ -82,6 +82,24 @@ describe('ConnectCore', () => {
       expect(uport.credentials.settings.address).to.equal(CLIENT_ID)
       expect(uport.credentials.settings.signer).to.equal(signer)
       expect(uport.canSign).to.be.true
+    })
+
+    it('configures the network in connect and in credentials give a supported string', () => {
+       const uport = new ConnectCore('test app', {network: 'mainnet'})
+       expect(uport.network.id).to.equal('0x1')
+       expect('0x1' in uport.credentials.settings.networks).to.equal(true)
+    })
+
+    it('configures the network in connect and in credentials given a well formed network config object', () => {
+      const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
+      const uport = new ConnectCore('test app', {network: netConfig})
+      expect(uport.network.id).to.equal('0x5')
+       expect('0x5' in uport.credentials.settings.networks).to.equal(true)
+    })
+
+    it('throws error if the network config object is not well formed ', (done) => {
+       try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { done() }
+       assert.fail()
     })
   })
 
@@ -353,6 +371,8 @@ describe('ConnectCore', () => {
         },
         uriHandler: (uri) => {
           expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
+          // TODO does this fail
+          // expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}&network_id=0x2a`)
         },
         credentials: mockSigningCredentials(
           {
@@ -444,6 +464,15 @@ describe('ConnectCore', () => {
     })
   })
 
+  describe('getProvider', () => {
+     it('returns a provider with same network settings as connect', () => {
+       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
+       const uport = new ConnectCore('test app', {network: netConfig})
+       const provider = uport.getProvider()
+       expect(uport.network.rpcUrl).to.equal(provider.provider.host)
+     })
+  })
+
   describe('attestCredentials', () => {
     const ATTESTATION = 'ATTESTATION'
     const PAYLOAD = {sub: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', claim: { name: 'Bob' }, exp: 123123123}
@@ -483,7 +512,7 @@ describe('ConnectCore', () => {
           return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
         closeUriHandler: () => null
       })
@@ -506,7 +535,7 @@ describe('ConnectCore', () => {
         uriHandler: (uri) => {
           // Note it intentionally leaves out data as function overrides it
           // gas is not included in uri
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
         },
         closeUriHandler: () => null
       })
@@ -534,7 +563,7 @@ describe('ConnectCore', () => {
         },
         uriHandler: (uri) => {
           // gas is not included in uri
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
         closeUriHandler: () => null
       })
@@ -598,7 +627,7 @@ describe('ConnectCore', () => {
           return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
         },
         closeUriHandler: () => null
       })
@@ -624,7 +653,7 @@ describe('ConnectCore', () => {
       })
 
       const overideUriHandler = (uri) => {
-        expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+        expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
       }
 
       const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
@@ -636,5 +665,30 @@ describe('ConnectCore', () => {
         done()
       })
     })
+
+    it('MNID encodes contract addresses in requests', (done) => {
+     const uport = new ConnectCore('UportTests')
+     const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
+       expect(uri).to.match(/357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ/)
+       done()
+     });
+     const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
+     token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+   })
+
+   it('accepts contracts at both addresses and MNID encoded adresses', () => {
+     const uport = new ConnectCore('UportTests')
+     const uportMNID = new ConnectCore('UportTests')
+     const contractAddress = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
+     const stubFunc = ({uri}) => {
+       expect(uri).to.match(/357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ/)
+     }
+     const sendTransaction = sinon.stub(uport, 'request').callsFake(stubFunc);
+     const sendTransactionMNID = sinon.stub(uportMNID, 'request').callsFake(stubFunc);
+     const token = uport.contract(miniTokenABI).at(contractAddress)
+     token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+     const tokenMNID = uportMNID.contract(miniTokenABI).at(contractAddress)
+     tokenMNID.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+   })
   })
 })
