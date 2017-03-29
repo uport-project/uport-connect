@@ -58,6 +58,9 @@ module.exports = function (config) {
   },
   port: 9876,
   logLevel: config.LOG_INFO,
+  client: {
+    captureConsole: true
+  },
   browserNoActivityTimeout: 60000,
   autoWatch: true,
   // override to true for CI
