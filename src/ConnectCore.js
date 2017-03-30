@@ -88,8 +88,7 @@ class ConnectCore {
    *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
-  //  TODO add more docs on request objects and response objects
-  requestCredentials (request = {}, uriHandler = this.uriHandler) {
+  requestCredentials (request = {}, uriHandler) {
     const self = this
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
@@ -125,7 +124,7 @@ class ConnectCore {
    *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<String, Error>}                                  a promise which resolves with an address or rejects with an error.
    */
-  requestAddress (uriHandler = this.uriHandler) {
+  requestAddress (uriHandler) {
     return this.requestCredentials({}, uriHandler).then((profile) => profile.address)
   }
 
@@ -152,7 +151,7 @@ class ConnectCore {
    *  @param    {Function}          [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                            a promise which resolves with a resonse object or rejects with an error.
    */
-  attestCredentials ({sub, claim, exp}, uriHandler = this.uriHandler) {
+  attestCredentials ({sub, claim, exp}, uriHandler) {
     const self = this
     const topic = this.topicFactory('status')
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
@@ -171,7 +170,11 @@ class ConnectCore {
    *  @param    {String}     [request.uriHandler=this.uriHandler]   function to consume URI, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                            promise which resolves with a response object or rejects with an error.
    */
-  request ({uri, topic, uriHandler = this.uriHandler}) {
+  request ({uri, topic, uriHandler}) {
+    const defaultUriHandler = !uriHandler
+
+    if (defaultUriHandler) { uriHandler = this.uriHandler }
+
     if (this.pushToken) {
       this.credentials.push(this.pushToken, {url: uri})
       return topic
@@ -182,7 +185,7 @@ class ConnectCore {
       ? this.mobileUriHandler(uri)
       : uriHandler(uri, topic.cancel)
 
-    if (!this.isOnMobile && this.closeUriHandler) {
+    if (defaultUriHandler && !this.isOnMobile && this.closeUriHandler) {
       return new Promise((resolve, reject) => {
         topic.then(res => {
           this.closeUriHandler()
