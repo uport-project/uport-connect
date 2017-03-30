@@ -99,7 +99,7 @@ describe('ConnectCore', () => {
 
     it('throws error if the network config object is not well formed ', () => {
        try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { return  }
-       assert.fail()
+       throw new Error('did not throw error')
     })
   })
 
@@ -120,7 +120,7 @@ describe('ConnectCore', () => {
         expect(opened).to.equal(true)
         expect(closed).to.equal(true)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -136,7 +136,7 @@ describe('ConnectCore', () => {
         expect(response).to.equal(UPORT_ID)
         expect(opened).to.equal(true)
       }, error => {
-        assert.fail()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -144,7 +144,7 @@ describe('ConnectCore', () => {
       let opened, closed = false
       const uport = new ConnectCore('UportTests', {
         uriHandler: (_uri) => {
-          assert.fail()
+          throw new Error('uriHandler called, expect uriHandler to not be called')
         },
         closeUriHandler: () => { closed = true }
       })
@@ -160,7 +160,7 @@ describe('ConnectCore', () => {
         expect(opened).to.equal(true)
         expect(closed).to.equal(true)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -180,7 +180,7 @@ describe('ConnectCore', () => {
         expect(response).to.equal(UPORT_ID)
         expect(opened).to.equal(true)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -197,13 +197,13 @@ describe('ConnectCore', () => {
         uri,
         topic: mockTopic(),
         uriHandler: (_uri) => {
-          assert.fail()
+          throw new Error('uriHandler called, expect uriHandler to not be called')
         }
       }).then(response => {
         expect(response).to.equal(UPORT_ID)
         expect(opened).to.equal(true)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -217,7 +217,7 @@ describe('ConnectCore', () => {
         closeUriHandler: () => { closed = true }
       })
       return uport.request({topic: errorTopic(), uri}).then(response => {
-        assert.fail()
+        throw new Error('uport.request Promise resolved, expected it to reject')
       }, error => {
         expect(error.message).to.equal('It broke')
         expect(opened).to.equal(true)
@@ -234,7 +234,7 @@ describe('ConnectCore', () => {
       return uport.request({topic: mockTopic(), uri}).then(response => {
         expect(pushFunc.calledOnce).to.be.true
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -248,7 +248,7 @@ describe('ConnectCore', () => {
         expect(pushFunc.calledOnce).to.be.true
         expect(uriHandlerFunc.notCalled).to.be.true
       }, error => {
-        assert.fail()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
@@ -274,7 +274,7 @@ describe('ConnectCore', () => {
         return uport.requestCredentials().then(profile => {
           expect(profile).to.equal(PROFILE)
         }, error => {
-          assert.fail()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
         })
       })
 
@@ -282,7 +282,7 @@ describe('ConnectCore', () => {
         const uport = new ConnectCore('UportTests')
         expect(uport.canSign).to.be.false
         return uport.requestCredentials({requested: ['phone']}).then(profile => {
-          assert.fail()
+          throw new Error('uport.request Promise resolved, expected it to reject')
         }, error => {
           expect(error.message).to.equal('Specific data can not be requested without a signer configured')
         })
@@ -292,7 +292,7 @@ describe('ConnectCore', () => {
         const uport = new ConnectCore('UportTests')
         expect(uport.canSign).to.be.false
         return uport.requestCredentials({ notifications: true }).then(profile => {
-          assert.fail()
+          throw new Error('uport.request Promise resolved, expected it to reject')
         }, error => {
           expect(error.message).to.equal('Notifications rights can not currently be requested without a signer configured')
         })
@@ -326,7 +326,7 @@ describe('ConnectCore', () => {
         return uport.requestCredentials().then(profile => {
           expect(profile).to.equal(PROFILE)
         }, error => {
-          assert.fail()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
         })
       })
     })
@@ -364,7 +364,7 @@ describe('ConnectCore', () => {
         expect(profile).to.equal(PROFILE)
       }, error => {
         expect(error.message).to.equal('Specific data can not be requested without a signer configured')
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -397,7 +397,7 @@ describe('ConnectCore', () => {
         expect(uport.pushToken).to.equal(PUSH_TOKEN)
         expect(res).to.be.deep.equal({...PROFILE, pushToken: PUSH_TOKEN})
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
@@ -421,7 +421,7 @@ describe('ConnectCore', () => {
       return uport.requestAddress().then(address => {
         expect(address).to.equal(UPORT_ID)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
@@ -458,7 +458,7 @@ describe('ConnectCore', () => {
         expect(result).to.equal('ok')
         expect(opened).to.be.true
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
@@ -479,7 +479,7 @@ describe('ConnectCore', () => {
       return uport.sendTransaction({to: CONTRACT, value: '0xff'}).then(txhash => {
         expect(txhash).to.equal(FAKETX)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -506,7 +506,7 @@ describe('ConnectCore', () => {
       }).then(txhash => {
         expect(txhash).to.equal(FAKETX)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -531,7 +531,7 @@ describe('ConnectCore', () => {
       }).then(txhash => {
         expect(txhash).to.equal('FAKETX')
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -590,7 +590,7 @@ describe('ConnectCore', () => {
       return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
         expect(txhash).to.equal(FAKETX)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -612,7 +612,7 @@ describe('ConnectCore', () => {
       return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
         expect(txhash).to.equal(FAKETX)
       }, error => {
-        assert.fail()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 

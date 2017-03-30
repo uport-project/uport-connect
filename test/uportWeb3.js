@@ -108,9 +108,7 @@ describe('uportWeb3 integration tests', function () {
     status.updateStatus(coolStatus, (err, res) => {
       expect(err).to.be.null
       if (err) {
-        console.log(err.message)
-        assert.fail()
-        return done()
+        throw new Error(`Expected updateStatus to not return error: ${err.message}`)
       }
       expect(res).to.be
       web3.eth.getTransactionReceipt(res, (err, tx) => {
