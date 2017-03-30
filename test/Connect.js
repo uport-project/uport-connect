@@ -21,7 +21,7 @@ describe('Connect', () => {
       const noop = (uri) => null
       const uport = new Connect('test', {uriHandler: noop})
       expect(uport.uriHandler).to.equal(noop)
-      expect(uport.closeUriHandler).to.be.undefined
+      expect(uport.closeUriHandler, 'uport.closeUriHandler').to.be.undefined
     })
   })
 })
