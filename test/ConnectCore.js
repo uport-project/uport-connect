@@ -127,7 +127,7 @@ describe('ConnectCore', () => {
     })
 
     it('can be overriden by a passed in uriHandler', (done) => {
-      let opened, closed
+      let opened, closed = false;
       const uport = new ConnectCore('UportTests', {
         uriHandler: (_uri) => {
           assert.fail()
@@ -145,7 +145,7 @@ describe('ConnectCore', () => {
       }).then(response => {
         expect(response).to.equal(UPORT_ID)
         expect(opened).to.equal(true)
-        expect(closed).to.equal(true)
+        expect(closed).to.equal(false)
         done()
       }, error => {
         assert.fail()
