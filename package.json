@@ -105,7 +105,6 @@
     "qs": "^6.2.1",
     "request": "^2.75.0",
     "uport": "^0.3.3",
-    "uport-lite": "^0.2.4",
     "web3": "^0.18.2"
   },
   "devDependencies": {
