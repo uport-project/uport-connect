@@ -3,26 +3,21 @@ var webpack = require('webpack');
 module.exports = function (config) {
   config.set({
     basePath: '',
-    logLevel: config.LOG_DEBUG,
     browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
-    files: [
-      '../node_modules/es6-promise/dist/es6-promise.auto.js',
-      '../node_modules/phantomjs-polyfill-object-assign/object-assign-polyfill.js',
-      '*.js'
-    ],
+    files: [ './testIndex.js' ],
     preprocessors: {
-        '*.js': [ 'webpack', 'sourcemap' ]
+        './testIndex.js': ['webpack']
     },
-    reporters: [ 'mocha', 'coverage' ],
+    reporters: [ 'mocha' ],
     webpack: {
-      devtool: 'source-map',
+      devtool: 'cheap-module-source-map',
       entry: './*.js',
       module: {
         rules: [
           {
             test: /\.js$/,
-            exclude: /node_modules\/(?![querystring])/,
+            exclude: /(node_modules)/,
             loader: 'babel-loader'
           },
           {
@@ -42,30 +37,23 @@ module.exports = function (config) {
        fs: 'empty',
        net: 'empty',
        tls: 'empty'
-     },
-     resolve: {
-       extensions: ['.js', '.json']
      }
   },
   webpackServer: {
     noInfo: true
   },
-  coverageReporter: {
-    reporters: [
-      {type:'lcovonly', subdir: '.'},
-      {type:'html', subdir: 'html'}
-    ]
+  webpackMiddleware: {
+    stats: 'errors-only'
   },
   port: 9876,
   logLevel: config.LOG_INFO,
   client: {
     captureConsole: true
   },
-  browserNoActivityTimeout: 60000,
+  browserNoActivityTimeout: 10000,
   autoWatch: true,
   // override to true for CI
   singleRun: false,
-  colors: true,
-  concurrency: Infinity
+  colors: true
   });
 };
