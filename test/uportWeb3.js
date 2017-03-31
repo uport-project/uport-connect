@@ -20,7 +20,7 @@ describe('uportWeb3 integration tests', function () {
   const coolStatus = 'Writing some tests!'
 
   before(done => {
-    global.navigator = {}
+    // global.navigator = {}
 
     // const testrpcProv = TestRPC.provider()
     const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
