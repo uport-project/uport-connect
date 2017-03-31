@@ -813,6 +813,10 @@ base-x-bytearray@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/base-x-bytearray/-/base-x-bytearray-0.1.0.tgz#8c2c5052aeab25207b21d866e78c1b59ab65ec2a"
 
+base-x-bytearray@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/base-x-bytearray/-/base-x-bytearray-0.1.2.tgz#23faa9ac44fc774762d257082efbb8e5bae02dfb"
+
 base-x@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/base-x/-/base-x-1.1.0.tgz#42d3d717474f9ea02207f6d1aa1f426913eeb7ac"
@@ -6051,6 +6055,13 @@ uport-lite@^0.2.4:
   resolved "https://registry.yarnpkg.com/uport-lite/-/uport-lite-0.2.4.tgz#f928015c8954c8d846cbbe9df01cc90accbdfa14"
   dependencies:
     base-x-bytearray "^0.1.0"
+    xmlhttprequest "^1.8.0"
+
+uport-lite@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/uport-lite/-/uport-lite-0.2.5.tgz#68a37da33574ed4238b35fb83c66462755a9b111"
+  dependencies:
+    base-x-bytearray "^0.1.2"
     xmlhttprequest "^1.8.0"
 
 uport@^0.3.3:
