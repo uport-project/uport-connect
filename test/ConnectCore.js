@@ -59,7 +59,7 @@ describe('ConnectCore', () => {
       const uport = new ConnectCore('test app')
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
-      expect(uport.network.id).to.equal('0x2a')
+      expect(uport.network.id).to.equal('0x3')
       expect(uport.uriHandler.name).to.equal('defaultUriHandler')
       expect(uport.closeUriHandler).to.equal(undefined)
       expect(uport.credentials).to.be.an.instanceof(Credentials)
@@ -512,7 +512,7 @@ describe('ConnectCore', () => {
           return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
         closeUriHandler: () => null
       })
@@ -535,7 +535,7 @@ describe('ConnectCore', () => {
         uriHandler: (uri) => {
           // Note it intentionally leaves out data as function overrides it
           // gas is not included in uri
-          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
         },
         closeUriHandler: () => null
       })
@@ -563,7 +563,7 @@ describe('ConnectCore', () => {
         },
         uriHandler: (uri) => {
           // gas is not included in uri
-          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
         closeUriHandler: () => null
       })
@@ -627,7 +627,7 @@ describe('ConnectCore', () => {
           return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
         },
         closeUriHandler: () => null
       })
@@ -653,7 +653,7 @@ describe('ConnectCore', () => {
       })
 
       const overideUriHandler = (uri) => {
-        expect(uri).to.equal(`me.uport:357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+        expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
       }
 
       const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
@@ -669,7 +669,7 @@ describe('ConnectCore', () => {
     it('MNID encodes contract addresses in requests', (done) => {
      const uport = new ConnectCore('UportTests')
      const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
-       expect(uri).to.match(/357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ/)
+       expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
        done()
      });
      const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
@@ -681,7 +681,7 @@ describe('ConnectCore', () => {
      const uportMNID = new ConnectCore('UportTests')
      const contractAddress = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
      const stubFunc = ({uri}) => {
-       expect(uri).to.match(/357XsqkPE3Mu1eRFZvD4xV3c2yCJr6jPnWZ/)
+       expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
      }
      const sendTransaction = sinon.stub(uport, 'request').callsFake(stubFunc);
      const sendTransactionMNID = sinon.stub(uportMNID, 'request').callsFake(stubFunc);

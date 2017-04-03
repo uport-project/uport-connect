@@ -22,7 +22,7 @@ const networks = {
   //                 rpcUrl: 'https://infuranet.infura.io' }
 }
 
-const DEFAULTNETWORK = 'kovan'
+const DEFAULTNETWORK = 'ropsten'
 
 const configNetwork = (net = DEFAULTNETWORK) => {
   if (typeof net === 'object') {
