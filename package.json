@@ -24,7 +24,7 @@
     "build:docs:html": "./node_modules/.bin/jsdoc src/* README.md -d docs",
     "build:docs:md": "./node_modules/jsdoc-to-markdown/bin/cli.js src/* > DOCS.md",
     "build:docs": "npm run build:docs:html && npm run build:docs:md",
-    "commitmsg": "./node_modules/validate-commit-msg/index.js"
+    "commitmsg": "validate-commit-msg"
   },
   "repository": {
     "type": "git",
@@ -129,7 +129,7 @@
     "eth-lightwallet": "^2.4.3",
     "ethereumjs-testrpc": "^3.0.3",
     "ethereumjs-tx": "^1.1.1",
-    "husky": "^0.11.9",
+    "husky": "^0.13.3",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc": "^3.4.3",
@@ -156,7 +156,7 @@
     "snazzy": "^5.0.0",
     "standard": "^8.0.0-beta.5",
     "supervisor": "^0.12.0",
-    "validate-commit-msg": "^2.8.2",
+    "validate-commit-msg": "^2.12.0",
     "webpack": "2.1.0-beta.15"
   },
   "config": {
