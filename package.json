@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.5.5",
+  "version": "0.6.0-alpha-1",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
