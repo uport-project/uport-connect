@@ -16,15 +16,14 @@ module.exports = {
   entry: {'uport-connect': './src/index.js',
           'uport-connect-core': './src/indexCore.js'},
   output: {
-    path: 'dist',
-    filename: '[name].js',
+    filename: 'dist/[name].js',
     library: libraryName,
     libraryTarget: 'umd',
     umdNamedDefine: true
   },
   devtool: 'source-map',
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
@@ -32,7 +31,7 @@ module.exports = {
       },
       {
         test: /\.json$/,
-        loader: 'json'
+        loader: 'json-loader'
       }
     ]
   },

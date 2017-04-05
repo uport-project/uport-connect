@@ -14,26 +14,25 @@ module.exports = function (config) {
         '*.js': [ 'webpack', 'sourcemap' ]
     },
     reporters: [ 'mocha', 'coverage' ],
-
     webpack: {
       devtool: 'source-map',
+      entry: './*.js',
       module: {
-        loaders: [
+        rules: [
           {
             test: /\.js$/,
             exclude: /node_modules\/(?![querystring])/,
-            loader: 'babel'
+            loader: 'babel-loader'
           },
           {
             test: /\.json$/,
-            loader: 'json'
-          }
-        ],
-        postLoaders: [
+            loader: 'json-loader'
+          },
           {
+            enforce: 'post',
             test: /\.js$/,
             exclude: /(__tests__|node_modules|bower_components|test)/,
-            loader: 'istanbul-instrumenter'
+            loader: 'istanbul-instrumenter-loader'
           }
         ]
      },
