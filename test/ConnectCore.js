@@ -59,7 +59,7 @@ describe('ConnectCore', () => {
       const uport = new ConnectCore('test app')
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
-      expect(uport.rpcUrl).to.equal('https://ropsten.infura.io/test-app')
+      expect(uport.network.id).to.equal('0x3')
       expect(uport.uriHandler.name).to.equal('defaultUriHandler')
       expect(uport.closeUriHandler).to.equal(undefined)
       expect(uport.credentials).to.be.an.instanceof(Credentials)
@@ -82,6 +82,24 @@ describe('ConnectCore', () => {
       expect(uport.credentials.settings.address).to.equal(CLIENT_ID)
       expect(uport.credentials.settings.signer).to.equal(signer)
       expect(uport.canSign).to.be.true
+    })
+
+    it('configures the network in connect and in credentials give a supported string', () => {
+       const uport = new ConnectCore('test app', {network: 'mainnet'})
+       expect(uport.network.id).to.equal('0x1')
+       expect('0x1' in uport.credentials.settings.networks).to.equal(true)
+    })
+
+    it('configures the network in connect and in credentials given a well formed network config object', () => {
+      const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
+      const uport = new ConnectCore('test app', {network: netConfig})
+      expect(uport.network.id).to.equal('0x5')
+       expect('0x5' in uport.credentials.settings.networks).to.equal(true)
+    })
+
+    it('throws error if the network config object is not well formed ', (done) => {
+       try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { done() }
+       assert.fail()
     })
   })
 
@@ -257,9 +275,11 @@ describe('ConnectCore', () => {
   describe('requestCredentials', () => {
     describe('without signer', () => {
       it('requests public profile', (done) => {
+        // TODO This tests fails
         const uport = new ConnectCore('UportTests', {
           clientId: CLIENT_ID,
           topicFactory: (name) => {
+            // TODO is called
             expect(name).to.equal('access_token')
             return mockTopic(CREDENTIALS_JWT)
           },
@@ -267,6 +287,7 @@ describe('ConnectCore', () => {
             expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
           },
           credentials: mockVerifyingCredentials((jwt) => {
+            // TODO is called, why is this one false not true (isCredential)
             expect(jwt).to.equal(CREDENTIALS_JWT)
             return PROFILE
           })
@@ -276,7 +297,7 @@ describe('ConnectCore', () => {
           expect(profile).to.equal(PROFILE)
           done()
         }, error => {
-          console.log(error)
+          assert.fail()
           done()
         })
       })
@@ -334,13 +355,14 @@ describe('ConnectCore', () => {
           expect(profile).to.equal(PROFILE)
           done()
         }, error => {
-          console.log(error)
+          assert.fail()
           done()
         })
       })
     })
 
     it('requests specific credentials', (done) => {
+      // TODO THIS tests fails
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
@@ -349,6 +371,8 @@ describe('ConnectCore', () => {
         },
         uriHandler: (uri) => {
           expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
+          // TODO does this fail
+          // expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}&network_id=0x2a`)
         },
         credentials: mockSigningCredentials(
           {
@@ -371,7 +395,8 @@ describe('ConnectCore', () => {
         expect(profile).to.equal(PROFILE)
         done()
       }, error => {
-        console.log(error)
+        expect(error.message).to.equal('Specific data can not be requested without a signer configured')
+        assert.fail()
         done()
       })
     })
@@ -414,6 +439,7 @@ describe('ConnectCore', () => {
 
   describe('requestAddress', () => {
     it('returns address', (done) => {
+      // TODO  THIS test fails
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
@@ -432,10 +458,19 @@ describe('ConnectCore', () => {
         expect(address).to.equal(UPORT_ID)
         done()
       }, error => {
-        console.log(error)
+        assert.fail()
         done()
       })
     })
+  })
+
+  describe('getProvider', () => {
+     it('returns a provider with same network settings as connect', () => {
+       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
+       const uport = new ConnectCore('test app', {network: netConfig})
+       const provider = uport.getProvider()
+       expect(uport.network.rpcUrl).to.equal(provider.provider.host)
+     })
   })
 
   describe('attestCredentials', () => {
@@ -462,7 +497,7 @@ describe('ConnectCore', () => {
         expect(opened).to.be.true
         done()
       }, error => {
-        console.err(error)
+        assert.fail()
         done()
       })
     })
@@ -477,12 +512,15 @@ describe('ConnectCore', () => {
           return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
         closeUriHandler: () => null
       })
       uport.sendTransaction({to: CONTRACT, value: '0xff'}).then(txhash => {
         expect(txhash).to.equal(FAKETX)
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
@@ -497,7 +535,7 @@ describe('ConnectCore', () => {
         uriHandler: (uri) => {
           // Note it intentionally leaves out data as function overrides it
           // gas is not included in uri
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
         },
         closeUriHandler: () => null
       })
@@ -509,6 +547,9 @@ describe('ConnectCore', () => {
         function: `transfer(address ${UPORT_ID},uint 12312)`
       }).then(txhash => {
         expect(txhash).to.equal(FAKETX)
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
@@ -522,7 +563,7 @@ describe('ConnectCore', () => {
         },
         uriHandler: (uri) => {
           // gas is not included in uri
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
         },
         closeUriHandler: () => null
       })
@@ -533,6 +574,9 @@ describe('ConnectCore', () => {
         gas: '0x4444'
       }).then(txhash => {
         expect(txhash).to.equal('FAKETX')
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
@@ -583,7 +627,7 @@ describe('ConnectCore', () => {
           return mockTopic(FAKETX)
         },
         uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
         },
         closeUriHandler: () => null
       })
@@ -591,6 +635,9 @@ describe('ConnectCore', () => {
       const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
       token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
         expect(txhash).to.equal(FAKETX)
+        done()
+      }, error => {
+        assert.fail()
         done()
       })
     })
@@ -606,14 +653,42 @@ describe('ConnectCore', () => {
       })
 
       const overideUriHandler = (uri) => {
-        expect(uri).to.equal(`me.uport:0x819320ce2f72768054ac01248734c7d4f9929f6c?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
+        expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
       }
 
       const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
       token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
         expect(txhash).to.equal(FAKETX)
         done()
+      }, error => {
+        assert.fail()
+        done()
       })
     })
+
+    it('MNID encodes contract addresses in requests', (done) => {
+     const uport = new ConnectCore('UportTests')
+     const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
+       expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
+       done()
+     });
+     const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
+     token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+   })
+
+   it('accepts contracts at both addresses and MNID encoded adresses', () => {
+     const uport = new ConnectCore('UportTests')
+     const uportMNID = new ConnectCore('UportTests')
+     const contractAddress = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
+     const stubFunc = ({uri}) => {
+       expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
+     }
+     const sendTransaction = sinon.stub(uport, 'request').callsFake(stubFunc);
+     const sendTransactionMNID = sinon.stub(uportMNID, 'request').callsFake(stubFunc);
+     const token = uport.contract(miniTokenABI).at(contractAddress)
+     token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+     const tokenMNID = uportMNID.contract(miniTokenABI).at(contractAddress)
+     tokenMNID.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+   })
   })
 })

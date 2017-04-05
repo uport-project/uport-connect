@@ -3,6 +3,7 @@ var webpack = require('webpack');
 module.exports = function (config) {
   config.set({
     basePath: '',
+    logLevel: config.LOG_DEBUG,
     browsers: ['PhantomJS', 'Chrome'],
     frameworks: [ 'mocha', 'chai' ],
     files: [
@@ -57,6 +58,9 @@ module.exports = function (config) {
   },
   port: 9876,
   logLevel: config.LOG_INFO,
+  client: {
+    captureConsole: true
+  },
   browserNoActivityTimeout: 60000,
   autoWatch: true,
   // override to true for CI
