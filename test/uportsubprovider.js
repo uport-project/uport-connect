@@ -90,7 +90,7 @@ describe('UportSubprovider', () => {
       sendTransaction: mockSendTransaction,
       provider: { sendAsync: (payload, callback) => callback(null, payload) }
     })
-    
+
     it('Should pass on request not handled', (done) => {
       const request = { method: 'eth_sendRawTransaction' }
       subprovider.sendAsync(request, (err, payload) => {

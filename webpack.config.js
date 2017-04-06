@@ -46,7 +46,7 @@ module.exports = {
     extensions: ['.js', '.json']
   },
   plugins: [
-    globalsPlugin,
+    globalsPlugin
     // new webpack.SourceMapDevToolPlugin({
     //   filename: outputFile + '.map',
     //   append: false,

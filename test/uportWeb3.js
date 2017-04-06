@@ -141,7 +141,7 @@ describe('uportWeb3 integration tests', function () {
   })
 
   it('does not handle sync calls', (done) => {
-    expect(() => web3.eth.getBalance(autosigner.address)).to.throw('Uport Web3 SubProvider does not support synchronous requests.');
+    expect(() => web3.eth.getBalance(autosigner.address)).to.throw('Uport Web3 SubProvider does not support synchronous requests.')
     done()
   })
 })
