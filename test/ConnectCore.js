@@ -71,273 +71,203 @@ describe('ConnectCore', () => {
       const noop = (uri) => null
       const uport = new ConnectCore('test', {uriHandler: noop})
       expect(uport.uriHandler).to.equal(noop)
-      expect(uport.closeUriHandler).to.be.undefined
+      expect(uport.closeUriHandler, 'uport.closeUriHandler').to.be.undefined
     })
 
     it('configures credentials correctly', () => {
       const signer = () => null
       const uport = new ConnectCore('test app', {clientId: CLIENT_ID, signer})
       expect(uport.credentials).to.be.an.instanceof(Credentials)
-      expect(uport.clientId).to.equal(CLIENT_ID)
-      expect(uport.credentials.settings.address).to.equal(CLIENT_ID)
+      expect(uport.clientId, 'uport.clientId').to.equal(CLIENT_ID)
+      expect(uport.credentials.settings.address, 'uport.credentials.settings.address').to.equal(CLIENT_ID)
       expect(uport.credentials.settings.signer).to.equal(signer)
-      expect(uport.canSign).to.be.true
+      expect(uport.canSign, 'uport.canSign').to.be.true
     })
 
     it('configures the network in connect and in credentials give a supported string', () => {
        const uport = new ConnectCore('test app', {network: 'mainnet'})
-       expect(uport.network.id).to.equal('0x1')
-       expect('0x1' in uport.credentials.settings.networks).to.equal(true)
+       expect(uport.network.id, 'uport.network.id').to.equal('0x1')
+       expect('0x1' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x1').to.be.true
     })
 
     it('configures the network in connect and in credentials given a well formed network config object', () => {
       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
       const uport = new ConnectCore('test app', {network: netConfig})
-      expect(uport.network.id).to.equal('0x5')
-       expect('0x5' in uport.credentials.settings.networks).to.equal(true)
+      expect(uport.network.id, 'uport.network.id').to.equal('0x5')
+      expect('0x5' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x5').to.be.true
     })
 
-    it('throws error if the network config object is not well formed ', (done) => {
-       try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { done() }
-       assert.fail()
+    it('throws error if the network config object is not well formed ', () => {
+       try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { return  }
+       throw new Error('did not throw error')
     })
   })
 
   describe('request', () => {
     const uri = 'me.uport:me'
 
-    it('defaults to the preset uriHandler', (done) => {
-      let opened, closed
-      const uport = new ConnectCore('UportTests', {
-        uriHandler: (_uri) => {
-          expect(_uri).to.equal(uri)
-          opened = true
-        },
-        closeUriHandler: () => { closed = true }
-      })
-      uport.request({topic: mockTopic(), uri}).then(response => {
-        expect(response).to.equal(UPORT_ID)
-        expect(opened).to.equal(true)
-        expect(closed).to.equal(true)
-        done()
+    it('defaults to the preset uriHandler', () => {
+      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', {uriHandler, closeUriHandler})
+      return uport.request({topic: mockTopic(), uri}).then(response => {
+        expect(response, 'uport.request response').to.equal(UPORT_ID)
+        expect(uriHandler.calledWith(uri), uriHandler.lastCall.args[0]).to.be.true
+        expect(closeUriHandler.called, 'closeUriHandler called').to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('works fine without a closeUriHandler', (done) => {
-      let opened
-      const uport = new ConnectCore('UportTests', {
-        uriHandler: (_uri) => {
-          expect(_uri).to.equal(uri)
-          opened = true
-        }
-      })
-      uport.request({topic: mockTopic(), uri}).then(response => {
-        expect(response).to.equal(UPORT_ID)
-        expect(opened).to.equal(true)
-        done()
+    it('works fine without a closeUriHandler', () => {
+      const uriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', { uriHandler })
+      return uport.request({topic: mockTopic(), uri}).then(response => {
+        expect(response, 'uport.request response').to.equal(UPORT_ID)
+        expect(uriHandler.calledWith(uri), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('can be overriden by a passed in uriHandler', (done) => {
-      let opened, closed = false;
-      const uport = new ConnectCore('UportTests', {
-        uriHandler: (_uri) => {
-          assert.fail()
-          done()
-        },
-        closeUriHandler: () => { closed = true }
-      })
-      uport.request({
+    it('can be overriden by a passed in uriHandler', () => {
+      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy(), uriHandlerDefault = sinon.spy()
+      const uport = new ConnectCore('UportTests', { uriHandler: uriHandlerDefault, closeUriHandler })
+      return uport.request({
         uri,
         topic: mockTopic(),
-        uriHandler: (_uri) => {
-          expect(_uri).to.equal(uri)
-          opened = true
-        }
+        uriHandler
       }).then(response => {
         expect(response).to.equal(UPORT_ID)
-        expect(opened).to.equal(true)
-        expect(closed).to.equal(false)
-        done()
+        expect(uriHandler.calledWith(uri), uriHandler.lastCall.args[0]).to.be.true
+        expect(closeUriHandler.called, 'closeUriHandler called').to.be.false
+        expect(uriHandlerDefault.called, 'default uriHandler called').to.be.false
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('uses the preset mobileUriHandler', (done) => {
-      let opened, closed
-      const uport = new ConnectCore('UportTests', {
-        isMobile: true,
-        mobileUriHandler: (_uri) => {
-          expect(_uri).to.equal(uri)
-          opened = true
-        }
-      })
-      uport.request({
-        uri,
-        topic: mockTopic()
-      }).then(response => {
-        expect(response).to.equal(UPORT_ID)
-        expect(opened).to.equal(true)
-        done()
-      }, error => {
-        assert.fail()
-        done()
-      })
+    it('uses the preset mobileUriHandler', () => {
+      const mobileUriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', { isMobile: true, mobileUriHandler })
+      return uport.request({ uri, topic: mockTopic()})
+        .then(response => {
+          expect(response, 'uport.request response').to.equal(UPORT_ID)
+          expect(mobileUriHandler.calledWith(uri), mobileUriHandler.lastCall.args[0]).to.be.true
+        }, error => {
+          throw new Error('uport.request Promise rejected, expected it to resolve')
+        })
     })
 
-    it('uses the preset mobileUriHandler even if there is a local override', (done) => {
-      let opened, closed
-      const uport = new ConnectCore('UportTests', {
-        isMobile: true,
-        mobileUriHandler: (_uri) => {
-          expect(_uri).to.equal(uri)
-          opened = true
-        }
-      })
-      uport.request({
+    it('uses the preset mobileUriHandler even if there is a local override', () => {
+      const mobileUriHandler = sinon.spy(), uriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', { isMobile: true, mobileUriHandler })
+      return uport.request({
         uri,
         topic: mockTopic(),
-        uriHandler: (_uri) => {
-          assert.fail()
-          done()
-        }
+        uriHandler
       }).then(response => {
-        expect(response).to.equal(UPORT_ID)
-        expect(opened).to.equal(true)
-        done()
+        expect(response, 'uport.request response').to.equal(UPORT_ID)
+        expect(mobileUriHandler.calledWith(uri), mobileUriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.called, 'uriHandler called').to.be.false
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('remembers to close if there is an error on the topic', (done) => {
-      let opened, closed
-      const uport = new ConnectCore('UportTests', {
-        uriHandler: (_uri) => {
-          expect(_uri).to.equal(uri)
-          opened = true
-        },
-        closeUriHandler: () => { closed = true }
-      })
-      uport.request({topic: errorTopic(), uri}).then(response => {
-        assert.fail()
-        done()
+    it('remembers to close if there is an error on the topic', () => {
+      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', { uriHandler, closeUriHandler })
+      return uport.request({topic: errorTopic(), uri}).then(response => {
+        throw new Error('uport.request Promise resolved, expected it to reject')
       }, error => {
-        expect(error.message).to.equal('It broke')
-        expect(opened).to.equal(true)
-        expect(closed).to.equal(true)
-        done()
+          expect(uriHandler.called, 'uriHandler called').to.be.truef
+          expect(closeUriHandler.called, 'cloeUriHandler called').to.be.true
       })
     })
 
-    it('sends a push notification if push token is available', (done) => {
-
+    it('sends a push notification if push token is available', () => {
       const uport = new ConnectCore('UportTests')
       uport.pushToken = '12345'
       const pushFunc = sinon.stub(uport.credentials, 'push');
 
-      uport.request({topic: mockTopic(), uri}).then(response => {
-        expect(pushFunc.calledOnce).to.be.true
-        done()
+      return uport.request({topic: mockTopic(), uri}).then(response => {
+        expect(pushFunc.calledOnce, 'uport.credentials.push called').to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('does not call default uriHandler if push notification sent', (done) => {
+    it('does not call default uriHandler if push notification sent', () => {
       const uport = new ConnectCore('UportTests')
       uport.pushToken = '12345'
       const pushFunc = sinon.stub(uport.credentials, 'push');
       const uriHandlerFunc = sinon.stub(uport, 'uriHandler')
 
-      uport.request({topic: mockTopic(), uri}).then(response => {
-        expect(pushFunc.calledOnce).to.be.true
-        console.log(uriHandlerFunc)
-        expect(uriHandlerFunc.notCalled).to.be.true
-        done()
+      return uport.request({topic: mockTopic(), uri}).then(response => {
+        expect(pushFunc.calledOnce, 'uport.credentials.push called').to.be.true
+        expect(uriHandlerFunc.called, 'uriHandler called').to.be.false
       }, error => {
-        assert.fail()
-        done()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
 
   describe('requestCredentials', () => {
     describe('without signer', () => {
-      it('requests public profile', (done) => {
-        // TODO This tests fails
+      it('requests public profile', () => {
+        const uriHandler = sinon.spy()
         const uport = new ConnectCore('UportTests', {
           clientId: CLIENT_ID,
           topicFactory: (name) => {
-            // TODO is called
-            expect(name).to.equal('access_token')
+            expect(name, 'topic name').to.equal('access_token')
             return mockTopic(CREDENTIALS_JWT)
           },
-          uriHandler: (uri) => {
-            expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
-          },
+          uriHandler,
           credentials: mockVerifyingCredentials((jwt) => {
-            // TODO is called, why is this one false not true (isCredential)
             expect(jwt).to.equal(CREDENTIALS_JWT)
             return PROFILE
           })
         })
         expect(uport.canSign).to.be.false
-        uport.requestCredentials().then(profile => {
-          expect(profile).to.equal(PROFILE)
-          done()
+        return uport.requestCredentials().then(profile => {
+          expect(uriHandler.calledWith(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+          expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
         }, error => {
-          assert.fail()
-          done()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
         })
       })
 
-      it('throws error when requesting specific credentials', (done) => {
+      it('throws error when requesting specific credentials', () => {
         const uport = new ConnectCore('UportTests')
-        expect(uport.canSign).to.be.false
-        uport.requestCredentials({requested: ['phone']}).then(profile => {
-          assert.fail()
-          done()
+        expect(uport.canSign, 'uport.canSign').to.be.false
+        return uport.requestCredentials({requested: ['phone']}).then(profile => {
+          throw new Error('uport.request Promise resolved, expected it to reject')
         }, error => {
           expect(error.message).to.equal('Specific data can not be requested without a signer configured')
-          done()
         })
       })
 
-      it('throws error when requesting notifications', (done) => {
+      it('throws error when requesting notifications', () => {
         const uport = new ConnectCore('UportTests')
-        expect(uport.canSign).to.be.false
-        uport.requestCredentials({ notifications: true }).then(profile => {
-          assert.fail()
-          done()
+        expect(uport.canSign, 'uport.canSign').to.be.false
+        return uport.requestCredentials({ notifications: true }).then(profile => {
+          throw new Error('uport.request Promise resolved, expected it to reject')
         }, error => {
           expect(error.message).to.equal('Notifications rights can not currently be requested without a signer configured')
-          done()
         })
       })
     })
 
     describe('with signer', () => {
-      it('requests public profile', (done) => {
+      it('requests public profile', () => {
+        const uriHandler = sinon.spy()
         const uport = new ConnectCore('UportTests', {
           clientId: CLIENT_ID,
           topicFactory: (name) => {
-            expect(name).to.equal('access_token')
+            expect(name, 'topic name').to.equal('access_token')
             return mockTopic(CREDENTIALS_JWT)
           },
-          uriHandler: (uri) => {
-            expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
-          },
+          uriHandler,
           credentials: mockSigningCredentials(
             {
               receive: (jwt) => {
@@ -351,29 +281,24 @@ describe('ConnectCore', () => {
             })
         })
         expect(uport.canSign).to.be.true
-        uport.requestCredentials().then(profile => {
-          expect(profile).to.equal(PROFILE)
-          done()
+        return uport.requestCredentials().then(profile => {
+          expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
+          expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
         }, error => {
-          assert.fail()
-          done()
+          throw new Error('uport.request Promise rejected, expected it to resolve')
         })
       })
     })
 
-    it('requests specific credentials', (done) => {
-      // TODO THIS tests fails
+    it('requests specific credentials', () => {
+      const uriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
-          expect(name).to.equal('access_token')
+          expect(name, 'topic name').to.equal('access_token')
           return mockTopic(CREDENTIALS_JWT)
         },
-        uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
-          // TODO does this fail
-          // expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}&network_id=0x2a`)
-        },
+        uriHandler,
         credentials: mockSigningCredentials(
           {
             receive: (jwt) => {
@@ -391,26 +316,23 @@ describe('ConnectCore', () => {
           })
       })
       expect(uport.canSign).to.be.true
-      uport.requestCredentials({requested: ['phone'], notifications: true}).then(profile => {
-        expect(profile).to.equal(PROFILE)
-        done()
+      return uport.requestCredentials({requested: ['phone'], notifications: true}).then(profile => {
+        expect(profile,  'uport.requestCredentials profile').to.equal(PROFILE)
+        expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        expect(error.message).to.equal('Specific data can not be requested without a signer configured')
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('it saves a push notification token if push token is included in response', (done) => {
+    it('it saves a push notification token if push token is included in response', () => {
+      const uriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
-          expect(name).to.equal('access_token')
+          expect(name, 'topic name').to.equal('access_token')
           return mockTopic(CREDENTIALS_JWT)
         },
-        uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:me?requestToken=${REQUEST_TOKEN}`)
-        },
+        uriHandler,
         credentials: mockSigningCredentials(
           {
             receive: (jwt) => {
@@ -426,40 +348,36 @@ describe('ConnectCore', () => {
             }
           })
       })
-      uport.requestCredentials({notifications: true}).then(res => {
-        expect(uport.pushToken).to.equal(PUSH_TOKEN)
+      return uport.requestCredentials({notifications: true}).then(res => {
+        expect(uport.pushToken, 'uport.pushToken').to.equal(PUSH_TOKEN)
         expect(res).to.be.deep.equal({...PROFILE, pushToken: PUSH_TOKEN})
-        done()
+        expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
 
   describe('requestAddress', () => {
-    it('returns address', (done) => {
-      // TODO  THIS test fails
+    it('returns address', () => {
+      const uriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
-          expect(name).to.equal('access_token')
+          expect(name, 'topic name').to.equal('access_token')
           return mockTopic(CREDENTIALS_JWT)
         },
-        uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
-        },
+        uriHandler,
         credentials: mockVerifyingCredentials(jwt => {
           expect(jwt).to.equal(CREDENTIALS_JWT)
           return PROFILE
         })
       })
-      uport.requestAddress().then(address => {
-        expect(address).to.equal(UPORT_ID)
-        done()
+      return uport.requestAddress().then(address => {
+        expect(address, 'uport.requestAddress address').to.equal(UPORT_ID)
+        expect(uriHandler.calledWith(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
@@ -469,123 +387,109 @@ describe('ConnectCore', () => {
        const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
        const uport = new ConnectCore('test app', {network: netConfig})
        const provider = uport.getProvider()
-       expect(uport.network.rpcUrl).to.equal(provider.provider.host)
+       expect(uport.network.rpcUrl, 'uport.network.rpcUrl').to.equal(provider.provider.host)
      })
   })
 
   describe('attestCredentials', () => {
     const ATTESTATION = 'ATTESTATION'
     const PAYLOAD = {sub: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', claim: { name: 'Bob' }, exp: 123123123}
-    it('provides attestation to user using default uriHandler', (done) => {
-      let opened
+    it('provides attestation to user using default uriHandler', () => {
+      const uriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         topicFactory: (name) => {
-          expect(name).to.equal('status')
+          expect(name, 'topic name').to.equal('status')
           return mockTopic('ok')
         },
-        uriHandler: (uri) => {
-          opened = true
-          expect(uri).to.equal(`me.uport:add?attestations=${ATTESTATION}&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123`)
-        },
+        uriHandler,
         credentials: mockAttestingCredentials((payload) => {
           expect(payload).to.deep.equal(PAYLOAD)
           return ATTESTATION
         })
       })
-      uport.attestCredentials(PAYLOAD).then((result) => {
-        expect(result).to.equal('ok')
-        expect(opened).to.be.true
-        done()
+      return uport.attestCredentials(PAYLOAD).then((result) => {
+        expect(result, 'uport.attestCredentials response').to.equal('ok')
+        expect(uriHandler.calledWith(`me.uport:add?attestations=${ATTESTATION}&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
 
   describe('sendTransaction', () => {
-    it('shows simple value url', (done) => {
+    it('shows simple value url', () => {
+      const uriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('tx')
           return mockTopic(FAKETX)
         },
-        uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
-        },
+        uriHandler,
         closeUriHandler: () => null
       })
-      uport.sendTransaction({to: CONTRACT, value: '0xff'}).then(txhash => {
-        expect(txhash).to.equal(FAKETX)
-        done()
+      return uport.sendTransaction({to: CONTRACT, value: '0xff'}).then(txhash => {
+        expect(txhash, 'uport.sendTransaction txhash').to.equal(FAKETX)
+        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('shows simple url with function', (done) => {
+    it('shows simple url with function', () => {
+      const uriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('tx')
           return mockTopic(FAKETX)
         },
-        uriHandler: (uri) => {
-          // Note it intentionally leaves out data as function overrides it
-          // gas is not included in uri
-          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
-        },
+        uriHandler,
         closeUriHandler: () => null
       })
-      uport.sendTransaction({
+      return uport.sendTransaction({
         to: CONTRACT,
         value: '0xff',
         data: 'abcdef01',
         gas: '0x4444',
         function: `transfer(address ${UPORT_ID},uint 12312)`
       }).then(txhash => {
-        expect(txhash).to.equal(FAKETX)
-        done()
+        expect(txhash, 'uport.sendTransaction txhash').to.equal(FAKETX)
+        // Note it intentionally leaves out data as function overrides it
+        // gas is not included in uri
+        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('shows simple url with data', (done) => {
+    it('shows simple url with data', () => {
+      const uriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
           expect(name).to.equal('tx')
           return mockTopic('FAKETX')
         },
-        uriHandler: (uri) => {
-          // gas is not included in uri
-          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`)
-        },
+        uriHandler,
         closeUriHandler: () => null
       })
-      uport.sendTransaction({
+      return uport.sendTransaction({
         to: CONTRACT,
         value: '0xff',
         data: 'abcdef01',
         gas: '0x4444'
       }).then(txhash => {
-        expect(txhash).to.equal('FAKETX')
-        done()
+        expect(txhash, 'uport.sendTransaction txhash').to.equal('FAKETX')
+        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
     it('throws an error for contract transactions', () => {
-      const uport = new ConnectCore('UportTests', {
-        uriHandler: (uri) => null,
-        closeUriHandler: () => null
-      })
+      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', { uriHandler, closeUriHandler })
       expect(
         () => uport.sendTransaction({
           value: '0xff',
@@ -619,61 +523,53 @@ describe('ConnectCore', () => {
       'payable': false,
       'type': 'function'
     }]
-    it('shows correct uri to default uriHandler', (done) => {
+    it('shows correct uri to default uriHandler', () => {
+      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
-          expect(name).to.equal('tx')
+          expect(name, 'topic name').to.equal('tx')
           return mockTopic(FAKETX)
         },
-        uriHandler: (uri) => {
-          expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
-        },
-        closeUriHandler: () => null
+        uriHandler,
+        closeUriHandler
       })
       const contract = uport.contract(miniTokenABI)
       const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
-        expect(txhash).to.equal(FAKETX)
-        done()
+      return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
+        expect(txhash, 'token.transfer txhash').to.equal(FAKETX)
+        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('shows correct uri to overridden uriHandler', (done) => {
+    it('shows correct uri to overridden uriHandler', () => {
+      const overideUriHandler = sinon.spy(), closeUriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', {
         clientId: CLIENT_ID,
         topicFactory: (name) => {
-          expect(name).to.equal('tx')
+          expect(name, 'topic name').to.equal('tx')
           return mockTopic(FAKETX)
         },
-        closeUriHandler: () => null
+        closeUriHandler
       })
-
-      const overideUriHandler = (uri) => {
-        expect(uri).to.equal(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`)
-      }
-
       const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
-        expect(txhash).to.equal(FAKETX)
-        done()
+      return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
+        expect(txhash, 'token.transfer txhash').to.equal(FAKETX)
+        expect(overideUriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), overideUriHandler.lastCall.args[0]).to.be.true
       }, error => {
-        assert.fail()
-        done()
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
-    it('MNID encodes contract addresses in requests', (done) => {
+    it('MNID encodes contract addresses in requests', () => {
      const uport = new ConnectCore('UportTests')
      const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
-       expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
-       done()
+       expect(uri, 'request consumes uri').to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
      });
      const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-     token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+     return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
    })
 
    it('accepts contracts at both addresses and MNID encoded adresses', () => {
