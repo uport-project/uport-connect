@@ -28,7 +28,7 @@ const openQr = (data, cancel) => {
   let wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'uport-wrapper')
   wrapper.innerHTML = uportQRDisplay({qrImageUri: getQRDataURI(data), cancel})
-  const cancelClick =  (event) => { document.getElementById('uport-qr-text').innerHTML = 'Cancelling'; cancel() }
+  const cancelClick = (event) => { document.getElementById('uport-qr-text').innerHTML = 'Cancelling'; cancel() }
   document.body.appendChild(wrapper)
   document.getElementById('uport-qr-cancel').addEventListener('click', cancelClick)
 }

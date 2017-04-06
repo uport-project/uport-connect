@@ -54,7 +54,7 @@ class Autosigner {
 
   closeQr () {}
 
-  isQRCancelled () {return false}
+  isQRCancelled () { return false }
 
   resetQRCancellation () {}
 
@@ -114,6 +114,5 @@ class Autosigner {
     }, cb)
   }
 }
-
 
 export default Autosigner

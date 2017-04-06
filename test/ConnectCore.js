@@ -85,9 +85,9 @@ describe('ConnectCore', () => {
     })
 
     it('configures the network in connect and in credentials give a supported string', () => {
-       const uport = new ConnectCore('test app', {network: 'mainnet'})
-       expect(uport.network.id, 'uport.network.id').to.equal('0x1')
-       expect('0x1' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x1').to.be.true
+      const uport = new ConnectCore('test app', {network: 'mainnet'})
+      expect(uport.network.id, 'uport.network.id').to.equal('0x1')
+      expect('0x1' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x1').to.be.true
     })
 
     it('configures the network in connect and in credentials given a well formed network config object', () => {
@@ -98,8 +98,8 @@ describe('ConnectCore', () => {
     })
 
     it('throws error if the network config object is not well formed ', () => {
-       try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { return  }
-       throw new Error('did not throw error')
+      try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { return }
+      throw new Error('did not throw error')
     })
   })
 
@@ -125,7 +125,7 @@ describe('ConnectCore', () => {
         expect(response, 'uport.request response').to.equal(UPORT_ID)
         expect(uriHandler.calledWith(uri), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
-          throw new Error('uport.request Promise rejected, expected it to resolve')
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -180,15 +180,15 @@ describe('ConnectCore', () => {
       return uport.request({topic: errorTopic(), uri}).then(response => {
         throw new Error('uport.request Promise resolved, expected it to reject')
       }, error => {
-          expect(uriHandler.called, 'uriHandler called').to.be.truef
-          expect(closeUriHandler.called, 'cloeUriHandler called').to.be.true
+        expect(uriHandler.called, 'uriHandler called').to.be.truef
+        expect(closeUriHandler.called, 'cloeUriHandler called').to.be.true
       })
     })
 
     it('sends a push notification if push token is available', () => {
       const uport = new ConnectCore('UportTests')
       uport.pushToken = '12345'
-      const pushFunc = sinon.stub(uport.credentials, 'push');
+      const pushFunc = sinon.stub(uport.credentials, 'push')
 
       return uport.request({topic: mockTopic(), uri}).then(response => {
         expect(pushFunc.calledOnce, 'uport.credentials.push called').to.be.true
@@ -200,14 +200,14 @@ describe('ConnectCore', () => {
     it('does not call default uriHandler if push notification sent', () => {
       const uport = new ConnectCore('UportTests')
       uport.pushToken = '12345'
-      const pushFunc = sinon.stub(uport.credentials, 'push');
+      const pushFunc = sinon.stub(uport.credentials, 'push')
       const uriHandlerFunc = sinon.stub(uport, 'uriHandler')
 
       return uport.request({topic: mockTopic(), uri}).then(response => {
         expect(pushFunc.calledOnce, 'uport.credentials.push called').to.be.true
         expect(uriHandlerFunc.called, 'uriHandler called').to.be.false
       }, error => {
-          throw new Error('uport.request Promise rejected, expected it to resolve')
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
   })
@@ -317,7 +317,7 @@ describe('ConnectCore', () => {
       })
       expect(uport.canSign).to.be.true
       return uport.requestCredentials({requested: ['phone'], notifications: true}).then(profile => {
-        expect(profile,  'uport.requestCredentials profile').to.equal(PROFILE)
+        expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
         expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
@@ -383,12 +383,12 @@ describe('ConnectCore', () => {
   })
 
   describe('getProvider', () => {
-     it('returns a provider with same network settings as connect', () => {
-       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
-       const uport = new ConnectCore('test app', {network: netConfig})
-       const provider = uport.getProvider()
-       expect(uport.network.rpcUrl, 'uport.network.rpcUrl').to.equal(provider.provider.host)
-     })
+    it('returns a provider with same network settings as connect', () => {
+      const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
+      const uport = new ConnectCore('test app', {network: netConfig})
+      const provider = uport.getProvider()
+      expect(uport.network.rpcUrl, 'uport.network.rpcUrl').to.equal(provider.provider.host)
+    })
   })
 
   describe('attestCredentials', () => {
@@ -564,27 +564,27 @@ describe('ConnectCore', () => {
     })
 
     it('MNID encodes contract addresses in requests', () => {
-     const uport = new ConnectCore('UportTests')
-     const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
-       expect(uri, 'request consumes uri').to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
-     });
-     const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-     return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
-   })
+      const uport = new ConnectCore('UportTests')
+      const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
+        expect(uri, 'request consumes uri').to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
+      })
+      const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
+      return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+    })
 
-   it('accepts contracts at both addresses and MNID encoded adresses', () => {
-     const uport = new ConnectCore('UportTests')
-     const uportMNID = new ConnectCore('UportTests')
-     const contractAddress = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
-     const stubFunc = ({uri}) => {
-       expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
-     }
-     const sendTransaction = sinon.stub(uport, 'request').callsFake(stubFunc);
-     const sendTransactionMNID = sinon.stub(uportMNID, 'request').callsFake(stubFunc);
-     const token = uport.contract(miniTokenABI).at(contractAddress)
-     token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
-     const tokenMNID = uportMNID.contract(miniTokenABI).at(contractAddress)
-     tokenMNID.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
-   })
+    it('accepts contracts at both addresses and MNID encoded adresses', () => {
+      const uport = new ConnectCore('UportTests')
+      const uportMNID = new ConnectCore('UportTests')
+      const contractAddress = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
+      const stubFunc = ({uri}) => {
+        expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
+      }
+      const sendTransaction = sinon.stub(uport, 'request').callsFake(stubFunc)
+      const sendTransactionMNID = sinon.stub(uportMNID, 'request').callsFake(stubFunc)
+      const token = uport.contract(miniTokenABI).at(contractAddress)
+      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+      const tokenMNID = uportMNID.contract(miniTokenABI).at(contractAddress)
+      tokenMNID.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
+    })
   })
 })
