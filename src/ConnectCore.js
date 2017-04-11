@@ -234,7 +234,7 @@ class ConnectCore {
    *  @param    {Function}   [request.uriHandler=this.uriHandler]   function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                            A promise which resolves with a resonse object or rejects with an error.
    */
-  sendTransaction (txobj, uriHandler = this.uriHandler) {
+  sendTransaction (txobj, uriHandler) {
     const topic = this.topicFactory('tx')
     let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
     return this.request({uri, topic, uriHandler})
