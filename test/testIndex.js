@@ -1,5 +1,6 @@
 require('./Connect.js')
 require('./ConnectCore.js')
+require('./ConnectLite.js')
 require('./topicFactory.js')
 require('./uportsubprovider.js')
 require('./uportWeb3.js')

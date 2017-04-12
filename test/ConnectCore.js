@@ -96,23 +96,17 @@ describe('ConnectCore', () => {
       expect(uport.network.id, 'uport.network.id').to.equal('0x5')
       expect('0x5' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x5').to.be.true
     })
-
-    it('throws error if the network config object is not well formed ', () => {
-      try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { return }
-      throw new Error('did not throw error')
-    })
   })
 
   describe('request', () => {
     const uri = 'me.uport:me'
 
     it('defaults to the preset uriHandler', () => {
-      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', {uriHandler, closeUriHandler})
+      const uriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', {uriHandler})
       return uport.request({topic: mockTopic(), uri}).then(response => {
         expect(response, 'uport.request response').to.equal(UPORT_ID)
         expect(uriHandler.calledWith(uri), uriHandler.lastCall.args[0]).to.be.true
-        expect(closeUriHandler.called, 'closeUriHandler called').to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
@@ -171,17 +165,6 @@ describe('ConnectCore', () => {
         expect(uriHandler.called, 'uriHandler called').to.be.false
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
-      })
-    })
-
-    it('remembers to close if there is an error on the topic', () => {
-      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', { uriHandler, closeUriHandler })
-      return uport.request({topic: errorTopic(), uri}).then(response => {
-        throw new Error('uport.request Promise resolved, expected it to reject')
-      }, error => {
-        expect(uriHandler.called, 'uriHandler called').to.be.truef
-        expect(closeUriHandler.called, 'cloeUriHandler called').to.be.true
       })
     })
 
@@ -382,15 +365,6 @@ describe('ConnectCore', () => {
     })
   })
 
-  describe('getProvider', () => {
-    it('returns a provider with same network settings as connect', () => {
-      const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
-      const uport = new ConnectCore('test app', {network: netConfig})
-      const provider = uport.getProvider()
-      expect(uport.network.rpcUrl, 'uport.network.rpcUrl').to.equal(provider.provider.host)
-    })
-  })
-
   describe('attestCredentials', () => {
     const ATTESTATION = 'ATTESTATION'
     const PAYLOAD = {sub: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', claim: { name: 'Bob' }, exp: 123123123}
@@ -413,178 +387,6 @@ describe('ConnectCore', () => {
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
-    })
-  })
-
-  describe('sendTransaction', () => {
-    it('shows simple value url', () => {
-      const uriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', {
-        clientId: CLIENT_ID,
-        topicFactory: (name) => {
-          expect(name).to.equal('tx')
-          return mockTopic(FAKETX)
-        },
-        uriHandler,
-        closeUriHandler: () => null
-      })
-      return uport.sendTransaction({to: CONTRACT, value: '0xff'}).then(txhash => {
-        expect(txhash, 'uport.sendTransaction txhash').to.equal(FAKETX)
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
-      }, error => {
-        throw new Error('uport.request Promise rejected, expected it to resolve')
-      })
-    })
-
-    it('shows simple url with function', () => {
-      const uriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', {
-        clientId: CLIENT_ID,
-        topicFactory: (name) => {
-          expect(name).to.equal('tx')
-          return mockTopic(FAKETX)
-        },
-        uriHandler,
-        closeUriHandler: () => null
-      })
-      return uport.sendTransaction({
-        to: CONTRACT,
-        value: '0xff',
-        data: 'abcdef01',
-        gas: '0x4444',
-        function: `transfer(address ${UPORT_ID},uint 12312)`
-      }).then(txhash => {
-        expect(txhash, 'uport.sendTransaction txhash').to.equal(FAKETX)
-        // Note it intentionally leaves out data as function overrides it
-        // gas is not included in uri
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
-      }, error => {
-        throw new Error('uport.request Promise rejected, expected it to resolve')
-      })
-    })
-
-    it('shows simple url with data', () => {
-      const uriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', {
-        clientId: CLIENT_ID,
-        topicFactory: (name) => {
-          expect(name).to.equal('tx')
-          return mockTopic('FAKETX')
-        },
-        uriHandler,
-        closeUriHandler: () => null
-      })
-      return uport.sendTransaction({
-        to: CONTRACT,
-        value: '0xff',
-        data: 'abcdef01',
-        gas: '0x4444'
-      }).then(txhash => {
-        expect(txhash, 'uport.sendTransaction txhash').to.equal('FAKETX')
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
-      }, error => {
-        throw new Error('uport.request Promise rejected, expected it to resolve')
-      })
-    })
-
-    it('throws an error for contract transactions', () => {
-      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', { uriHandler, closeUriHandler })
-      expect(
-        () => uport.sendTransaction({
-          value: '0xff',
-          data: 'abcdef01',
-          gas: '0x4444'
-        })
-      ).to.throw('Contract creation is not supported by uportProvider')
-    })
-  })
-
-  describe('contract', () => {
-    const miniTokenABI = [{
-      'constant': false,
-      'inputs': [
-        {
-          'name': '_to',
-          'type': 'address'
-        },
-        {
-          'name': '_value',
-          'type': 'uint256'
-        }
-      ],
-      'name': 'transfer',
-      'outputs': [
-        {
-          'name': 'success',
-          'type': 'bool'
-        }
-      ],
-      'payable': false,
-      'type': 'function'
-    }]
-    it('shows correct uri to default uriHandler', () => {
-      const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', {
-        clientId: CLIENT_ID,
-        topicFactory: (name) => {
-          expect(name, 'topic name').to.equal('tx')
-          return mockTopic(FAKETX)
-        },
-        uriHandler,
-        closeUriHandler
-      })
-      const contract = uport.contract(miniTokenABI)
-      const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-      return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
-        expect(txhash, 'token.transfer txhash').to.equal(FAKETX)
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
-      }, error => {
-        throw new Error('uport.request Promise rejected, expected it to resolve')
-      })
-    })
-
-    it('shows correct uri to overridden uriHandler', () => {
-      const overideUriHandler = sinon.spy(), closeUriHandler = sinon.spy()
-      const uport = new ConnectCore('UportTests', {
-        clientId: CLIENT_ID,
-        topicFactory: (name) => {
-          expect(name, 'topic name').to.equal('tx')
-          return mockTopic(FAKETX)
-        },
-        closeUriHandler
-      })
-      const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-      return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
-        expect(txhash, 'token.transfer txhash').to.equal(FAKETX)
-        expect(overideUriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), overideUriHandler.lastCall.args[0]).to.be.true
-      }, error => {
-        throw new Error('uport.request Promise rejected, expected it to resolve')
-      })
-    })
-
-    it('MNID encodes contract addresses in requests', () => {
-      const uport = new ConnectCore('UportTests')
-      const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
-        expect(uri, 'request consumes uri').to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
-      })
-      const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
-      return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
-    })
-
-    it('accepts contracts at both addresses and MNID encoded adresses', () => {
-      const uport = new ConnectCore('UportTests')
-      const uportMNID = new ConnectCore('UportTests')
-      const contractAddress = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
-      const stubFunc = ({uri}) => {
-        expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
-      }
-      const sendTransaction = sinon.stub(uport, 'request').callsFake(stubFunc)
-      const sendTransactionMNID = sinon.stub(uportMNID, 'request').callsFake(stubFunc)
-      const token = uport.contract(miniTokenABI).at(contractAddress)
-      token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
-      const tokenMNID = uportMNID.contract(miniTokenABI).at(contractAddress)
-      tokenMNID.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
     })
   })
 })

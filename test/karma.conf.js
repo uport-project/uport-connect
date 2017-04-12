@@ -12,7 +12,7 @@ module.exports = function (config) {
     reporters: [ 'mocha' ],
     webpack: {
       devtool: 'cheap-module-source-map',
-      entry: 'testIndex.js',
+      entry: './testIndex.js',
       module: {
         rules: [
           {
