@@ -1,4 +1,4 @@
-import async from 'async'
+// import async from 'async'
 
 /**
 *  A web3 style provider which can easily be wrapped with uPort functionality.
@@ -69,10 +69,7 @@ class UportSubprovider {
         })
       }
     }
-    if (Array.isArray(payload)) {
-      async.map(payload, self.sendAsync.bind(self), callback)
-      return
-    }
+
     switch (payload.method) {
       // TODO consider removing, not necessary for interaction with uport
       case 'eth_coinbase':
