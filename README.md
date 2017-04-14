@@ -65,12 +65,14 @@ For a quick setup you may also request a remote copy from [unpkg CDN](https://un
 
 ```html
 <!-- The most recent version  -->
-<script src="https://unpkg.com/uport-connect/dist/uportconnect.js"></script>
+<script src="https://unpkg.com/uport-connect/dist/uport-connect.js"></script>
 <!-- The most recent minified version  -->
-<script src="https://unpkg.com/uport-connect/dist/uportconnect.min.js"></script>
-<!-- You can also fetch specific versions by specifying the version -->
-<script src="https://unpkg.com/uport-connect@0.4.5/dist/uportconnect.js"></script>
+<script src="https://unpkg.com/uport-connect/dist/uport-connect.min.js"></script>
+<!-- You can also fetch specific versions by specifying the version, files names may differ for past versions -->
+<script src="https://unpkg.com/uport-connect@<version>/dist/uport-connect.js"></script>
 ```
+To see all available dist files on unpkg, vist [unpkg.com/uport-connect/dist/](https://unpkg.com/uport-connect/dist/)
+
 Then to instantiate the uPort object from the browser window object:
 
 ```js
