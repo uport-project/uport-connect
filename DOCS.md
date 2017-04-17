@@ -159,7 +159,7 @@ Instantiates a new uPort connect object.
 | opts.credentials | <code>Object</code> | pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests |
 | opts.signer | <code>function</code> | signing function which will be used to sign JWT's in the credentials object |
 | opts.clientId | <code>String</code> | uport identifier for your application this will be used in the default credentials object |
-| opts.rpcUrl | <code>String</code> | JSON rpc url (defaults to https://ropsten.infura.io) |
+| [opts.network='kovan'] | <code>Object</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'. |
 | opts.infuraApiKey | <code>String</code> | Infura API Key (register here http://infura.io/register.html) |
 | opts.topicFactory | <code>function</code> | function which generates topics and deals with requests and response |
 | opts.uriHandler | <code>function</code> | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
