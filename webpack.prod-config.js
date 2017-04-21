@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 // Webpack
 const webpack = require('webpack')
@@ -11,14 +11,13 @@ module.exports = {
           'uport-connect-core': './src/indexCore.js'},
   devtool: 'source-map',
   output: {
-    path: 'dist',
-    filename: '[name].min.js',
+    filename: 'dist/[name].min.js',
     library: libraryName,
     libraryTarget: 'umd',
     umdNamedDefine: true
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
@@ -26,7 +25,7 @@ module.exports = {
       },
       {
         test: /\.json$/,
-        loader: 'json'
+        loader: 'json-loader'
       }
     ]
   },
@@ -48,10 +47,8 @@ module.exports = {
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true
     }),
-    new webpack.optimize.DedupePlugin(),
     new webpack.DefinePlugin({
       'process.env': { NODE_ENV: JSON.stringify('production') }
     })
-
-  ],
+  ]
 }

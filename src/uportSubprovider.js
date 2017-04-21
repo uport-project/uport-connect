@@ -22,9 +22,9 @@ class UportSubprovider {
       if (self.address) return cb(null, self.address)
       requestAddress().then(
         address => {
-        self.address = address
-        cb(null, address)
-      },
+          self.address = address
+          cb(null, address)
+        },
       error => cb(error))
     }
 

@@ -9,7 +9,6 @@ describe('TopicFactory', function () {
   this.timeout(10000)
 
   describe('On desktop', function () {
-
     before(function () { topicFactory = TopicFactory(false, 500) })
 
     it('Correctly polls for data', (done) => {

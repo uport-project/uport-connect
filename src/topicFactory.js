@@ -23,7 +23,6 @@ const CHASQUI_URL = 'https://chasqui.uport.me/api/v1/topic/'
  *  @return   {Function}
  */
 function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_URL) {
-
   /**
    *  Waits for a window.onhashchange event, which occurs when control is returned
    *  from the mobile uPort app to the mobile browser.
@@ -121,8 +120,7 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
    *  @return   {Promise<Object, Error>}   a promise which resolves with a response or rejects with an error.
    */
   function newTopic (topicName) {
-
-    let isCancelled = false;
+    let isCancelled = false
 
     let url
     if (isOnMobile) {
@@ -142,12 +140,11 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
       }
     })
     topic.url = url
-    topic.cancel = () => {isCancelled = true}
+    topic.cancel = () => { isCancelled = true }
     return topic
   }
 
   return newTopic
 }
-
 
 export default TopicFactory

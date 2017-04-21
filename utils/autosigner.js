@@ -9,6 +9,7 @@ import Web3 from 'web3'
 import url from 'url'
 import querystring from 'querystring'
 import nets from 'nets'
+import { isMNID, decode, encode } from 'mnid'
 
 const PASSWORD = 'password'
 const SEED = 'unhappy nerve cancel reject october fix vital pulse cash behind curious bicycle'
@@ -53,7 +54,7 @@ class Autosigner {
 
   closeQr () {}
 
-  isQRCancelled () {return false}
+  isQRCancelled () { return false }
 
   resetQRCancellation () {}
 
@@ -87,9 +88,15 @@ class Autosigner {
 
   static parse (uri) {
     let parsedUri = url.parse(uri)
+    // url.parse does not retain base58 encoding
+    let address = uri.match(/:(?:(?!\?).)*/)[0].slice(1)
+
+    if (address !== 'me') {
+      address = isMNID(address) ? decode(address).address : address
+    }
     let parsedParams = querystring.parse(parsedUri.query)
     let result = {
-      to: parsedUri.host,
+      to: address,
       callback_url: parsedParams.callback_url,
       value: parsedParams.value,
       data: parsedParams.bytecode
@@ -107,6 +114,5 @@ class Autosigner {
     }, cb)
   }
 }
-
 
 export default Autosigner

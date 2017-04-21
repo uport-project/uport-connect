@@ -20,7 +20,7 @@ describe('uportWeb3 integration tests', function () {
   const coolStatus = 'Writing some tests!'
 
   before(done => {
-    global.navigator = {}
+    // global.navigator = {}
 
     // const testrpcProv = TestRPC.provider()
     const testrpcProv = new Web3.providers.HttpProvider('http://localhost:8545')
@@ -108,8 +108,7 @@ describe('uportWeb3 integration tests', function () {
     status.updateStatus(coolStatus, (err, res) => {
       expect(err).to.be.null
       if (err) {
-        console.log(err.message)
-        return done()
+        throw new Error(`Expected updateStatus to not return error: ${err.message}`)
       }
       expect(res).to.be
       web3.eth.getTransactionReceipt(res, (err, tx) => {
@@ -142,7 +141,7 @@ describe('uportWeb3 integration tests', function () {
   })
 
   it('does not handle sync calls', (done) => {
-    expect(() => web3.eth.getBalance(autosigner.address)).to.throw('Uport Web3 SubProvider does not support synchronous requests.');
+    expect(() => web3.eth.getBalance(autosigner.address)).to.throw('Uport Web3 SubProvider does not support synchronous requests.')
     done()
   })
 })
