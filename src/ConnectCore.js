@@ -6,6 +6,7 @@ const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode } from 'mnid'
+import nets from 'nets'
 
 const networks = {
   'mainnet':   {  id: '0x1',
@@ -273,6 +274,90 @@ class ConnectCore {
     const topic = this.topicFactory('tx')
     let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
     return this.request({uri, topic, uriHandler})
+  }
+
+  /**
+   *  Wraps up functionality to allow you to easily manage the entire req/res lifecycle
+   *  with a request token created on you server and then fetching the response
+   *  from your server. Given a token this will use the default uriHandler as usual
+   *  or will use a given uriHandler. If given a callbackUrl for the request, it will
+   *  poll for a response and return the body. You should form the callbackUrl as
+   *  necessary, likely including the pairId for the request as a param. If a callbackUrl
+   *  is not given, it will pass a uri to the uriHandler, but will not poll for a response.
+   *  If not polling and using the default uriHandler, you will have to close the QR
+   *  code yourself using QRUtil.closeQR().
+   *
+   *  @param    {Object}     txobj             transaction object
+   *  @param    {String}     callbackUrl       application callback url
+   *  @return   {Promise<Object, Error>}       A promise which resolves with a resonse object or rejects with an error.
+   */
+  sendRequestToken({token, callbackUrl, uriHandler = this.uriHandler, pollingInterval = 2000}) {
+
+    // Create the uri with the token
+    const uri = `me.uport:me?requestToken=${token}`
+
+    let isCancelled = false
+    const cancelled = () => isCancelled
+    const cancel = () => { isCancelled = true }
+
+    (this.isOnMobile && this.mobileUriHandler)
+      ? this.mobileUriHandler(uri)
+      : uriHandler(uri, cancel)
+
+    // Polls only if given a callbackUrl
+    if (!callbackUrl) return
+
+    const polling = () => {
+      new Promise((resolve, reject) => {
+        const cb = (err, res) => {
+          if  (err) reject(err)
+          resolve(res)
+        }
+
+        let interval = setInterval(
+          () => {
+            nets({
+              uri: callbackUrl,
+              json: true,
+              method: 'GET',
+              withCredentials: false,
+              rejectUnauthorized: false
+            },
+            (err, res, body) => {
+              if (err) return cb(err)
+
+              if (cancelled()) {
+                clearInterval(interval)
+                return cb(new Error('Request Cancelled'))
+              }
+
+              if (body.error) {
+                clearInterval(interval)
+                return cb(data.error)
+              }
+
+              if (body) {
+                clearInterval(interval)
+                return cb(null, body)
+              }
+            })
+          },
+          pollingInterval
+        )
+      })
+    }
+
+    if (defaultUriHandler && !this.isOnMobile && this.closeUriHandler) {
+      return new Promise((resolve, reject) => {
+        polling.then(res => {
+          this.closeUriHandler()
+          resolve(res)
+        }, error => {
+          this.closeUriHandler()
+          reject(error)
+        })
+      })
+    } else { return polling }
   }
 
   /**
