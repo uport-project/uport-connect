@@ -131,7 +131,7 @@ class ConnectCore {
     return new Promise((resolve, reject) => {
       if (this.canSign) {
         this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
-          resolve(`me.uport:me?requestToken=${encodeURIComponent(requestToken)}`)
+          resolve(paramsToUri({to: 'me', requestToken}))
         )
       } else {
         if (request.requested && request.requested.length > 0) {
@@ -191,7 +191,7 @@ class ConnectCore {
     const self = this
     const topic = this.topicFactory('status')
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
-      return self.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
+      return self.request({uri: paramsToUri({action: 'add', attestations: jwt, callback_url: topic.url}), topic, uriHandler})
     })
   }
 
@@ -294,7 +294,7 @@ class ConnectCore {
   sendRequestToken({token, callbackUrl, uriHandler = this.uriHandler, pollingInterval = 2000}) {
 
     // Create the uri with the token
-    const uri = `me.uport:me?requestToken=${token}`
+    const uri = paramsToUri({to: 'me', requestToken: token})
 
     let isCancelled = false
     const cancelled = () => isCancelled
@@ -392,12 +392,21 @@ class ConnectCore {
  *  @private
  */
 const paramsToUri = (params) => {
-  if (!params.to) {
+  let baseUri = 'me.uport'
+
+  if (!params.to && !params.action) {
     throw new Error('Contract creation is not supported by uportProvider')
   }
+
   const networkId = params.network_id || this.network.id
-  params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: networkId, address: params.to})
-  let uri = `me.uport:${params.to}`
+
+  if (params.to) {
+    params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: params.network_id, address: params.to})
+    baseUri = `${baseUri}:${params.to}`
+  } else if (params.action) {
+    baseUri = `${baseUri}:${params.action}`
+  }
+
   const pairs = []
   if (params.value) {
     pairs.push(['value', parseInt(params.value, 16)])
@@ -408,7 +417,7 @@ const paramsToUri = (params) => {
     pairs.push(['bytecode', params.data])
   }
 
-  const paramsAdd = ['label', 'callback_url', 'client_id']
+  const paramsAdd = ['requestToken', 'attestations', 'label', 'callback_url', 'client_id']
   if (params.to === 'me') {
     pairs.push(['network_id', networkId])
   }
@@ -418,7 +427,8 @@ const paramsToUri = (params) => {
       pairs.push([param, params[param]])
     }
   })
-  return `${uri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
+
+  return `${baseUri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
 /**
