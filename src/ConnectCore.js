@@ -3,6 +3,7 @@ import { Credentials, ContractFactory } from 'uport'
 import MobileDetect from 'mobile-detect'
 import UportSubprovider from './uportSubprovider'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
+import qs from 'qs'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode } from 'mnid'
@@ -276,88 +277,50 @@ class ConnectCore {
     return this.request({uri, topic, uriHandler})
   }
 
-  /**
-   *  Wraps up functionality to allow you to easily manage the entire req/res lifecycle
-   *  with a request token created on you server and then fetching the response
-   *  from your server. Given a token this will use the default uriHandler as usual
-   *  or will use a given uriHandler. If given a callbackUrl for the request, it will
-   *  poll for a response and return the body. You should form the callbackUrl as
-   *  necessary, likely including the pairId for the request as a param. If a callbackUrl
-   *  is not given, it will pass a uri to the uriHandler, but will not poll for a response.
-   *  If not polling and using the default uriHandler, you will have to close the QR
-   *  code yourself using QRUtil.closeQR().
-   *
-   *  @param    {Object}     txobj             transaction object
-   *  @param    {String}     callbackUrl       application callback url
-   *  @return   {Promise<Object, Error>}       A promise which resolves with a resonse object or rejects with an error.
-   */
-  sendRequestToken({token, callbackUrl, uriHandler = this.uriHandler, pollingInterval = 2000}) {
 
-    // Create the uri with the token
+    /**
+     *  Wraps up functionality to allow you to easily manage the entire req/res lifecycle
+     *  with a request token created on you server and then fetching the response
+     *  from your server. Given a token this will use the default uriHandler as usual
+     *  or will use a given uriHandler. resUrl is the url polled for a response from mobile.
+     *  authUrl is an optional url. When given, the mobile response will be posted to the
+     *  given authUrl and the response returned When not given, the mobile response will
+     *  be returned.
+     *
+     *  @param    {Object}     requestObj                                 request object
+     *  @param    {String}     requestObj.token                           a request token
+     *  @param    {String}     requestObj.resUrl                          callback url to poll for the response from mobile
+     *  @param    {String}     [requestObj.authUrl]                       url to send mobile response for verification (optional, you can handle this as you choose)
+     *  @param    {Function}   [requestObj.uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
+     *  @return   {Promise<Object, Error>}                                A promise which resolves with a resonse object or rejects with an error.
+     */
+
+
+  //  TODO Needs addtional thought/changes to handle all general tokens, not only request/access_token
+  sendRequestToken({token, resUrl, authUrl,  uriHandler}) {
     const uri = paramsToUri({to: 'me', requestToken: token})
+    const topic = this.topicFactory('access_token', resUrl)
 
-    let isCancelled = false
-    const cancelled = () => isCancelled
-    const cancel = () => { isCancelled = true }
-
-    (this.isOnMobile && this.mobileUriHandler)
-      ? this.mobileUriHandler(uri)
-      : uriHandler(uri, cancel)
-
-    // Polls only if given a callbackUrl
-    if (!callbackUrl) return
-
-    const polling = () => {
-      new Promise((resolve, reject) => {
-        const cb = (err, res) => {
-          if  (err) reject(err)
-          resolve(res)
-        }
-
-        let interval = setInterval(
-          () => {
-            nets({
-              uri: callbackUrl,
-              json: true,
-              method: 'GET',
-              withCredentials: false,
-              rejectUnauthorized: false
-            },
-            (err, res, body) => {
-              if (err) return cb(err)
-
-              if (cancelled()) {
-                clearInterval(interval)
-                return cb(new Error('Request Cancelled'))
-              }
-
-              if (body.error) {
-                clearInterval(interval)
-                return cb(data.error)
-              }
-
-              if (body) {
-                clearInterval(interval)
-                return cb(null, body)
-              }
-            })
-          },
-          pollingInterval
-        )
+    const postMobileResponse = (url, res) => {
+      return new Promise((resolve, reject) => {
+        nets({
+          uri: url,
+          body: res,
+          json: true,
+          method: 'POST',
+          withCredentials: false,
+          rejectUnauthorized: false
+        },
+        (err, res, body) => {
+          if(err) reject(err)
+          resolve(body)
+        })
       })
     }
 
-    if (defaultUriHandler && !this.isOnMobile && this.closeUriHandler) {
-      return new Promise((resolve, reject) => {
-        polling.then(res => {
-          this.closeUriHandler()
-          resolve(res)
-        }, error => {
-          this.closeUriHandler()
-          reject(error)
-        })
-      })
-    } else { return polling }
+    return this.request({uri, topic, uriHandler}).then(res => (
+        authUrl ? postMobileResponse(authUrl, { access_token: res }) : res
+    ))
   }
 
   /**
@@ -391,7 +354,7 @@ class ConnectCore {
  *  @return   {Strings}              A uPort mobile URI
  *  @private
  */
-const paramsToUri = (params) => {
+function paramsToUri(params){
   let baseUri = 'me.uport'
 
   if (!params.to && !params.action) {
