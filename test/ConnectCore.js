@@ -275,7 +275,7 @@ describe('ConnectCore', () => {
                 return PROFILE
               },
               createRequest: (payload) => {
-                expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123' })
+                expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123', network_id: '0x3' })
                 return REQUEST_TOKEN
               }
             })
@@ -287,6 +287,37 @@ describe('ConnectCore', () => {
         }, error => {
           throw new Error('uport.request Promise rejected, expected it to resolve')
         })
+      })
+    })
+
+    it('requests public profile and current network', () => {
+      const uriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', {
+        clientId: CLIENT_ID,
+        network: 'kovan',
+        topicFactory: (name) => {
+          expect(name, 'topic name').to.equal('access_token')
+          return mockTopic(CREDENTIALS_JWT)
+        },
+        uriHandler,
+        credentials: mockSigningCredentials(
+          {
+            receive: (jwt) => {
+              expect(jwt).to.equal(CREDENTIALS_JWT)
+              return PROFILE
+            },
+            createRequest: (payload) => {
+              expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123', network_id: '0x2a' })
+              return REQUEST_TOKEN
+            }
+          })
+      })
+      expect(uport.canSign).to.be.true
+      return uport.requestCredentials().then(profile => {
+        expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
+        expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
+      }, error => {
+        throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
 
@@ -308,6 +339,7 @@ describe('ConnectCore', () => {
             createRequest: (payload) => {
               expect(payload).to.be.deep.equal({
                 requested: ['phone'],
+                network_id: '0x3',
                 notifications: true,
                 callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123'
               })
@@ -342,6 +374,7 @@ describe('ConnectCore', () => {
             createRequest: (payload) => {
               expect(payload).to.be.deep.equal({
                 notifications: true,
+                network_id: '0x3',
                 callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123'
               })
               return REQUEST_TOKEN
@@ -380,6 +413,31 @@ describe('ConnectCore', () => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
+
+    it('returns address for specific network', () => {
+      const uriHandler = sinon.spy()
+      const KOVAN_ADDRESS = '34ukSmiK1oA1C5Du8aWpkjFGALoH7nsHeDX'
+      const uport = new ConnectCore('UportTests', {
+        clientId: CLIENT_ID,
+        network: 'kovan',
+        topicFactory: (name) => {
+          expect(name, 'topic name').to.equal('access_token')
+          return mockTopic(CREDENTIALS_JWT)
+        },
+        uriHandler,
+        credentials: mockVerifyingCredentials(jwt => {
+          expect(jwt).to.equal(CREDENTIALS_JWT)
+          return {...PROFILE, networkAddress: KOVAN_ADDRESS} 
+        })
+      })
+      return uport.requestAddress().then(address => {
+        expect(address, 'uport.requestAddress address').to.equal(KOVAN_ADDRESS)
+        expect(uriHandler.calledWith(`me.uport:me?network_id=0x2a&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+      }, error => {
+        throw new Error('uport.request Promise rejected, expected it to resolve')
+      })
+    })
+
   })
 
   describe('getProvider', () => {

@@ -129,7 +129,7 @@ class ConnectCore {
     const topic = this.topicFactory('access_token')
     return new Promise((resolve, reject) => {
       if (this.canSign) {
-        this.credentials.createRequest({...request, callbackUrl: topic.url}).then(requestToken =>
+        this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
           resolve(`me.uport:me?requestToken=${encodeURIComponent(requestToken)}`)
         )
       } else {
@@ -160,7 +160,7 @@ class ConnectCore {
    *  @return   {Promise<String, Error>}                                  a promise which resolves with an address or rejects with an error.
    */
   requestAddress (uriHandler) {
-    return this.requestCredentials({}, uriHandler).then((profile) => profile.address)
+    return this.requestCredentials({}, uriHandler).then((profile) => profile.networkAddress || profile.address)
   }
 
   /**
