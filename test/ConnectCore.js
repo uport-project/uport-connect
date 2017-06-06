@@ -230,7 +230,7 @@ describe('ConnectCore', () => {
         })
         expect(uport.canSign).to.be.false
         return uport.requestCredentials().then(profile => {
-          expect(uriHandler.calledWith(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+          expect(uriHandler.calledWith(`me.uport:me?network_id=0x3&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
           expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
         }, error => {
           throw new Error('uport.request Promise rejected, expected it to resolve')
@@ -375,7 +375,7 @@ describe('ConnectCore', () => {
       })
       return uport.requestAddress().then(address => {
         expect(address, 'uport.requestAddress address').to.equal(UPORT_ID)
-        expect(uriHandler.calledWith(`me.uport:me?label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.calledWith(`me.uport:me?network_id=0x3&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })

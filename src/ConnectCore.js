@@ -310,7 +310,8 @@ const paramsToUri = (params) => {
   if (!params.to) {
     throw new Error('Contract creation is not supported by uportProvider')
   }
-  params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: params.network_id, address: params.to})
+  const networkId = params.network_id || this.network.id
+  params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: networkId, address: params.to})
   let uri = `me.uport:${params.to}`
   const pairs = []
   if (params.value) {
@@ -323,7 +324,9 @@ const paramsToUri = (params) => {
   }
 
   const paramsAdd = ['label', 'callback_url', 'client_id']
-  if (params.to === 'me') paramsAdd.push['network_id']
+  if (params.to === 'me') {
+    pairs.push(['network_id', networkId])
+  }
 
   paramsAdd.map(param => {
     if (params[param]) {

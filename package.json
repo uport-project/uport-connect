@@ -157,7 +157,6 @@
     "snazzy": "^5.0.0",
     "standard": "^8.0.0-beta.5",
     "supervisor": "^0.12.0",
-    "validate-commit-msg": "^2.12.0",
     "webpack": "2.3.3"
   },
   "config": {
