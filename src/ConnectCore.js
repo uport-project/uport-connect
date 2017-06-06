@@ -6,6 +6,7 @@ const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode } from 'mnid'
+import PubSub from 'pubsub-js'
 
 const networks = {
   'mainnet':   {  id: '0x1',
@@ -87,6 +88,25 @@ class ConnectCore {
     // TODO throw error if this.network not part of network set in Credentials
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
     this.pushToken = null
+    this.PubSub = PubSub
+
+    this.loadPlugins()
+  }
+
+  loadPlugins() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('load', () => {
+        const buttonArray = document.getElementsByTagName("uport:connect")
+        for (let i = 0; i < buttonArray.length; i++) {
+          let { requested, notifications, urihandler } = buttonArray[i].dataset
+          if (requested) requested = requested.split(',')
+          if (urihandler) urihandler = window[urihandler]
+          let request = {requested}
+          if (notifications) request.notifications = notifications
+          buttonArray[i].addEventListener('click', this.requestCredentials.bind(this, request, urihandler))
+        }
+      })
+    }
   }
 
   /**
@@ -105,6 +125,18 @@ class ConnectCore {
       provider: this.provider || new HttpProvider(this.network.rpcUrl)
     })
   }
+
+  /**
+   *  Subscribe to different events
+   */
+
+   subscribe(topic) {
+     return new Promise((resolve, reject) => {
+       PubSub.subscribe(topic, (msg, data) => {
+          resolve(data)
+       })
+     })
+   }
 
   /**
    *  Creates a request given a request object, will also always return the user's
@@ -148,6 +180,8 @@ class ConnectCore {
       .then(jwt => receive(jwt, topic.url))
       .then(res => {
         if (res && res.pushToken) self.pushToken = res.pushToken
+        // TODO
+        PubSub.publish( 'authChange', res);
         return res
       })
   }
