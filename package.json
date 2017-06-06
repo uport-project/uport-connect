@@ -1,12 +1,12 @@
 {
   "name": "uport-connect",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
     "lint": "./node_modules/.bin/standard --verbose src | ./node_modules/.bin/snazzy",
-    "build": "npm run build-es5 && npm run build-dist && npm run build-dist-prod",
-    "build:yarn": "yarn build-es5 && yarn build-dist && yarn build-dist-prod",
+    "build:npm": "npm run build-es5 && npm run build-dist && npm run build-dist-prod",
+    "build": "yarn build-es5 && yarn build-dist && yarn build-dist-prod",
     "build-es5": "./node_modules/.bin/babel src -d lib",
     "build-dist": "./node_modules/.bin/webpack --config webpack.config.js",
     "build-dist-prod": "./node_modules/.bin/webpack --config webpack.prod-config.js",
@@ -105,7 +105,7 @@
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport": "^0.4.0",
+    "uport": "^0.4.2",
     "web3": "^0.18.2"
   },
   "devDependencies": {
@@ -130,7 +130,6 @@
     "eth-lightwallet": "^2.4.3",
     "ethereumjs-testrpc": "^3.0.3",
     "ethereumjs-tx": "^1.1.1",
-    "husky": "^0.13.3",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc": "^3.4.3",
@@ -157,7 +156,6 @@
     "snazzy": "^5.0.0",
     "standard": "^8.0.0-beta.5",
     "supervisor": "^0.12.0",
-    "validate-commit-msg": "^2.12.0",
     "webpack": "2.3.3"
   },
   "config": {
