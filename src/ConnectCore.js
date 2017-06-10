@@ -132,7 +132,7 @@ class ConnectCore {
     return new Promise((resolve, reject) => {
       if (this.canSign) {
         this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
-          resolve(paramsToUri({to: 'me', requestToken}))
+          resolve(this.paramsToUri({to: 'me', requestToken}))
         )
       } else {
         if (request.requested && request.requested.length > 0) {
@@ -142,7 +142,7 @@ class ConnectCore {
         if (request.notifications) {
           return reject(new Error('Notifications rights can not currently be requested without a signer configured'))
         }
-        resolve(paramsToUri(this.addAppParameters({ to: 'me' }, topic.url)))
+        resolve(this.paramsToUri(this.addAppParameters({ to: 'me' }, topic.url)))
       }
     }).then(uri => (
         this.request({uri, topic, uriHandler})
@@ -192,7 +192,7 @@ class ConnectCore {
     const self = this
     const topic = this.topicFactory('status')
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
-      return self.request({uri: paramsToUri({action: 'add', attestations: jwt, callback_url: topic.url}), topic, uriHandler})
+      return self.request({uri: this.paramsToUri({action: 'add', attestations: jwt, callback_url: topic.url}), topic, uriHandler})
     })
   }
 
@@ -273,7 +273,7 @@ class ConnectCore {
    */
   sendTransaction (txobj, uriHandler) {
     const topic = this.topicFactory('tx')
-    let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
+    let uri = this.paramsToUri(this.addAppParameters(txobj, topic.url))
     return this.request({uri, topic, uriHandler})
   }
 
@@ -298,7 +298,7 @@ class ConnectCore {
 
   //  TODO Needs addtional thought/changes to handle all general tokens, not only request/access_token
   sendRequestToken({token, resUrl, authUrl,  uriHandler}) {
-    const uri = paramsToUri({to: 'me', requestToken: token})
+    const uri = this.paramsToUri({to: 'me', requestToken: token})
     const topic = this.topicFactory('access_token', resUrl)
 
     const postMobileResponse = (url, res) => {
@@ -345,54 +345,57 @@ class ConnectCore {
     appTxObject.network_id = this.network.id
     return appTxObject
   }
-}
 
-/**
- *  Consumes a params object and creates URI for uPort mobile.
- *
- *  @param    {Object}     params    A object of params known to uPort
- *  @return   {Strings}              A uPort mobile URI
- *  @private
- */
-function paramsToUri(params){
-  let baseUri = 'me.uport'
+  /**
+   *  Consumes a params object and creates URI for uPort mobile.
+   *
+   *  @param    {Object}     params    A object of params known to uPort
+   *  @return   {Strings}              A uPort mobile URI
+   *  @private
+   */
+  paramsToUri(params){
+    let baseUri = 'me.uport'
 
-  if (!params.to && !params.action) {
-    throw new Error('Contract creation is not supported by uportProvider')
-  }
-
-  const networkId = params.network_id || this.network.id
-
-  if (params.to) {
-    params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: params.network_id, address: params.to})
-    baseUri = `${baseUri}:${params.to}`
-  } else if (params.action) {
-    baseUri = `${baseUri}:${params.action}`
-  }
-
-  const pairs = []
-  if (params.value) {
-    pairs.push(['value', parseInt(params.value, 16)])
-  }
-  if (params.function) {
-    pairs.push(['function', params.function])
-  } else if (params.data) {
-    pairs.push(['bytecode', params.data])
-  }
-
-  const paramsAdd = ['requestToken', 'attestations', 'label', 'callback_url', 'client_id']
-  if (params.to === 'me') {
-    pairs.push(['network_id', networkId])
-  }
-
-  paramsAdd.map(param => {
-    if (params[param]) {
-      pairs.push([param, params[param]])
+    if (!params.to && !params.action) {
+      throw new Error('Contract creation is not supported by uportProvider')
     }
-  })
 
-  return `${baseUri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
+    const networkId = params.network_id || this.network.id
+
+    if (params.to) {
+      params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: networkId, address: params.to})
+      baseUri = `${baseUri}:${params.to}`
+    } else if (params.action) {
+      baseUri = `${baseUri}:${params.action}`
+    }
+
+    const pairs = []
+    if (params.value) {
+      pairs.push(['value', parseInt(params.value, 16)])
+    }
+    if (params.function) {
+      pairs.push(['function', params.function])
+    } else if (params.data) {
+      pairs.push(['bytecode', params.data])
+    }
+
+    const paramsAdd = ['requestToken', 'attestations', 'label', 'callback_url', 'client_id']
+    if (params.to === 'me' && !params.requestToken) {
+      pairs.push(['network_id', networkId])
+    }
+
+    paramsAdd.map(param => {
+      if (params[param]) {
+        pairs.push([param, params[param]])
+      }
+    })
+
+    return `${baseUri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
+  }
+
 }
+
+
 
 /**
  *  Detects if this library is called on a mobile device or tablet.
