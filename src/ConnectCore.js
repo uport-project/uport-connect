@@ -98,12 +98,16 @@ class ConnectCore {
       window.addEventListener('load', () => {
         const buttonArray = document.getElementsByTagName("uport:connect")
         for (let i = 0; i < buttonArray.length; i++) {
-          let { requested, notifications, urihandler } = buttonArray[i].dataset
+          let { requested, notifications, urihandler, onconnect } = buttonArray[i].dataset
           if (requested) requested = requested.split(',')
           if (urihandler) urihandler = window[urihandler]
           let request = {requested}
           if (notifications) request.notifications = notifications
           buttonArray[i].addEventListener('click', this.requestCredentials.bind(this, request, urihandler))
+          if (onconnect) {
+            onconnect = window[onconnect]
+            this.subscribe('auth.change').then(onconnect)
+          }
         }
       })
     }
@@ -181,7 +185,7 @@ class ConnectCore {
       .then(res => {
         if (res && res.pushToken) self.pushToken = res.pushToken
         // TODO
-        PubSub.publish( 'authChange', res);
+        PubSub.publish( 'auth.change', res);
         return res
       })
   }
