@@ -103,7 +103,9 @@ class ConnectCore {
           if (urihandler) urihandler = window[urihandler]
           let request = {requested}
           if (notifications) request.notifications = notifications
-          buttonArray[i].addEventListener('click', this.requestCredentials.bind(this, request, urihandler))
+          if (buttonArray[i].onclick === null) {
+            buttonArray[i].addEventListener('click', this.requestCredentials.bind(this, request, urihandler))
+          }
           if (onconnect) {
             onconnect = window[onconnect]
             this.subscribe('auth.change').then(onconnect)

@@ -106,6 +106,8 @@ The connect button can also consume the following optional arguments, similarly 
 
 ```
 
+To use the button with out automatically binding any functionality to it, set the onclick attribute for the functionality that you require, all other non-design attributes will be ignored.
+
 ### <a name="tutorials"></a> Tutorial and Examples
 
 For a more in depth quick start example follow our [tutorial for building a simple friend wallet](https://github.com/uport-project/uport-connect/blob/develop/tutorial/tutorial.md) or locally open the `/tutorial` folder. This simple example will show you how to use our default QR flow to fetch a user's contacts and create transactions to send ether to those contacts.
