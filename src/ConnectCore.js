@@ -16,10 +16,10 @@ const networks = {
                   rpcUrl: 'https://ropsten.infura.io' },
   'kovan':     {  id: '0x2a',
                   registry: '0x5f8e9351dc2d238fb878b6ae43aa740d62fc9758',
-                  rpcUrl: 'https://kovan.infura.io' }
-  // 'infuranet': {  id: '0x2a'
-  //                 registry: '',
-  //                 rpcUrl: 'https://infuranet.infura.io' }
+                  rpcUrl: 'https://kovan.infura.io' },
+  'rinkeby':   {  id: '0x4',
+                  registry: '0x2cc31912b2b0f3075a87b3640923d45a26cef3ee',
+                  rpcUrl: 'https://rinkeby.infura.io' }
 }
 
 const DEFAULTNETWORK = 'ropsten'
