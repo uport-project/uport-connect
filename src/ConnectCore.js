@@ -22,7 +22,7 @@ const networks = {
                   rpcUrl: 'https://rinkeby.infura.io' }
 }
 
-const DEFAULTNETWORK = 'ropsten'
+const DEFAULTNETWORK = 'rinkeby'
 
 const configNetwork = (net = DEFAULTNETWORK) => {
   if (typeof net === 'object') {
