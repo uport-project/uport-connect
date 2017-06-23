@@ -1,4 +1,5 @@
 import async from 'async'
+import { isMNID, decode } from 'mnid'
 
 /**
 *  A web3 style provider which can easily be wrapped with uPort functionality.
@@ -22,8 +23,9 @@ class UportSubprovider {
       if (self.address) return cb(null, self.address)
       requestAddress().then(
         address => {
-          self.address = address
-          cb(null, address)
+          // TODO consider throwing warning if MNID does not match set network
+          self.address = isMNID(address) ? decode(address).address : address
+          cb(null, self.address)
         },
       error => cb(error))
     }
