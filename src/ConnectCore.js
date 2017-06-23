@@ -5,7 +5,7 @@ import UportSubprovider from './uportSubprovider'
 const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
-import { isMNID, encode } from 'mnid'
+import { isMNID, encode, decode } from 'mnid'
 
 const networks = {
   'mainnet':   {  id: '0x1',
@@ -87,6 +87,7 @@ class ConnectCore {
     // TODO throw error if this.network not part of network set in Credentials
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
     this.pushToken = null
+    this.address = null
   }
 
   /**
@@ -99,11 +100,13 @@ class ConnectCore {
    *  @return          {UportSubprovider}    A web3 style provider wrapped with uPort functionality
    */
   getProvider () {
-    return new UportSubprovider({
+    const subProvider = new UportSubprovider({
       requestAddress: this.requestAddress.bind(this),
       sendTransaction: this.sendTransaction.bind(this),
       provider: this.provider || new HttpProvider(this.network.rpcUrl)
     })
+    subProvider.address = isMNID(this.address) ? decode(this.address).address : this.address
+    return subProvider
   }
 
   /**
