@@ -10,7 +10,7 @@ describe('Connect', () => {
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
       expect(uport.uriHandler.name).to.equal('openQr')
-      expect(uport.network.id).to.equal('0x3')
+      expect(uport.network.id).to.equal('0x4')
       expect(uport.closeUriHandler.name).to.equal('closeQr')
       expect(uport.credentials).to.be.an.instanceof(Credentials)
       expect(uport.canSign).to.be.false

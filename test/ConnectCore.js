@@ -59,7 +59,7 @@ describe('ConnectCore', () => {
       const uport = new ConnectCore('test app')
       expect(uport.appName).to.equal('test app')
       expect(uport.infuraApiKey).to.equal('test-app')
-      expect(uport.network.id).to.equal('0x3')
+      expect(uport.network.id).to.equal('0x4')
       expect(uport.uriHandler.name).to.equal('defaultUriHandler')
       expect(uport.closeUriHandler).to.equal(undefined)
       expect(uport.credentials).to.be.an.instanceof(Credentials)
@@ -230,7 +230,7 @@ describe('ConnectCore', () => {
         })
         expect(uport.canSign).to.be.false
         return uport.requestCredentials().then(profile => {
-          expect(uriHandler.calledWith(`me.uport:me?network_id=0x3&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+          expect(uriHandler.calledWith(`me.uport:me?network_id=0x4&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
           expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
         }, error => {
           throw new Error('uport.request Promise rejected, expected it to resolve')
@@ -275,7 +275,7 @@ describe('ConnectCore', () => {
                 return PROFILE
               },
               createRequest: (payload) => {
-                expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123', network_id: '0x3' })
+                expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123', network_id: '0x4' })
                 return REQUEST_TOKEN
               }
             })
@@ -339,7 +339,7 @@ describe('ConnectCore', () => {
             createRequest: (payload) => {
               expect(payload).to.be.deep.equal({
                 requested: ['phone'],
-                network_id: '0x3',
+                network_id: '0x4',
                 notifications: true,
                 callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123'
               })
@@ -374,7 +374,7 @@ describe('ConnectCore', () => {
             createRequest: (payload) => {
               expect(payload).to.be.deep.equal({
                 notifications: true,
-                network_id: '0x3',
+                network_id: '0x4',
                 callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123'
               })
               return REQUEST_TOKEN
@@ -408,7 +408,7 @@ describe('ConnectCore', () => {
       })
       return uport.requestAddress().then(address => {
         expect(address, 'uport.requestAddress address').to.equal(UPORT_ID)
-        expect(uriHandler.calledWith(`me.uport:me?network_id=0x3&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.calledWith(`me.uport:me?network_id=0x4&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
@@ -427,7 +427,7 @@ describe('ConnectCore', () => {
         uriHandler,
         credentials: mockVerifyingCredentials(jwt => {
           expect(jwt).to.equal(CREDENTIALS_JWT)
-          return {...PROFILE, networkAddress: KOVAN_ADDRESS} 
+          return {...PROFILE, networkAddress: KOVAN_ADDRESS}
         })
       })
       return uport.requestAddress().then(address => {
@@ -488,7 +488,7 @@ describe('ConnectCore', () => {
       })
       return uport.sendTransaction({to: CONTRACT, value: '0xff'}).then(txhash => {
         expect(txhash, 'uport.sendTransaction txhash').to.equal(FAKETX)
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.calledWith(`me.uport:2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?value=255&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
@@ -515,7 +515,7 @@ describe('ConnectCore', () => {
         expect(txhash, 'uport.sendTransaction txhash').to.equal(FAKETX)
         // Note it intentionally leaves out data as function overrides it
         // gas is not included in uri
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.calledWith(`me.uport:2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
@@ -539,7 +539,7 @@ describe('ConnectCore', () => {
         gas: '0x4444'
       }).then(txhash => {
         expect(txhash, 'uport.sendTransaction txhash').to.equal('FAKETX')
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.calledWith(`me.uport:2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
@@ -596,7 +596,7 @@ describe('ConnectCore', () => {
       const token = contract.at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
       return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312).then(txhash => {
         expect(txhash, 'token.transfer txhash').to.equal(FAKETX)
-        expect(uriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.calledWith(`me.uport:2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
@@ -615,7 +615,7 @@ describe('ConnectCore', () => {
       const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
       return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312, overideUriHandler).then(txhash => {
         expect(txhash, 'token.transfer txhash').to.equal(FAKETX)
-        expect(overideUriHandler.calledWith(`me.uport:2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), overideUriHandler.lastCall.args[0]).to.be.true
+        expect(overideUriHandler.calledWith(`me.uport:2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2C%20uint256%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), overideUriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
@@ -624,7 +624,7 @@ describe('ConnectCore', () => {
     it('MNID encodes contract addresses in requests', () => {
       const uport = new ConnectCore('UportTests')
       const sendTransaction = sinon.stub(uport, 'request').callsFake(({uri}) => {
-        expect(uri, 'request consumes uri').to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
+        expect(uri, 'request consumes uri').to.match(/2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ/)
       })
       const token = uport.contract(miniTokenABI).at('0x819320ce2f72768054ac01248734c7d4f9929f6c')
       return token.transfer('0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', 12312)
@@ -635,7 +635,7 @@ describe('ConnectCore', () => {
       const uportMNID = new ConnectCore('UportTests')
       const contractAddress = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
       const stubFunc = ({uri}) => {
-        expect(uri).to.match(/2oRMMSWkzMKpqkWpBxr5Xa9zMRXG4QBzJYM/)
+        expect(uri).to.match(/2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ/)
       }
       const sendTransaction = sinon.stub(uport, 'request').callsFake(stubFunc)
       const sendTransactionMNID = sinon.stub(uportMNID, 'request').callsFake(stubFunc)
