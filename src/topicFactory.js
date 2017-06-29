@@ -75,22 +75,23 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
           }
 
           // parse response into raw account
-          const data = body.message
-          try {
-            if (data.error) {
+          if (res.statusCode === 200) {
+            const data = body.message
+            try {
+              if (data.error) {
+                clearInterval(interval)
+                return cb(data.error)
+              }
+            } catch (err) {
               clearInterval(interval)
-              return cb(data.error)
+              return cb(err)
             }
-          } catch (err) {
-            console.error(err.stack)
-            clearInterval(interval)
-            return cb(err)
-          }
-          // Check for param, stop polling and callback if present
-          if (data && data[topicName]) {
-            clearInterval(interval)
-            clearTopic(url)
-            return cb(null, data[topicName])
+            // Check for param, stop polling and callback if present
+            if (data && data[topicName]) {
+              clearInterval(interval)
+              clearTopic(url)
+              return cb(null, data[topicName])
+            }
           }
         })
       }, pollingInterval)
@@ -119,15 +120,18 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
    *  @param    {String}     topicName     the topic you are waiting for a response
    *  @return   {Promise<Object, Error>}   a promise which resolves with a response or rejects with an error.
    */
-  function newTopic (topicName) {
+  function newTopic (topicName, topicUrl) {
     let isCancelled = false
-
     let url
-    if (isOnMobile) {
+
+    if (topicUrl)
+      url = topicUrl
+    else if (isOnMobile) {
       url = window.location.href
     } else {
       url = chasquiUrl + randomString(16)
     }
+
     const topic = new Promise((resolve, reject) => {
       const cb = (error, response) => {
         if (error) return reject(error)
