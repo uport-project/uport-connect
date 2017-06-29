@@ -6,7 +6,7 @@
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 [![Twitter Follow](https://img.shields.io/twitter/follow/uport_me.svg?style=social&label=Follow)](https://twitter.com/uport_me)
 
-[Quick Start](#quick-start) | [Tutorial and Examples](#tutorials) | [Usage Guide](#usage-guide) | [Development Guide](#development-guide) | [Contributing](#contribute)
+[Quick Start](#quick-start) | [Connect Button](#connect-button)  | [Tutorial and Examples](#tutorials) | [Usage Guide](#usage-guide) | [Development Guide](#development-guide) | [Contributing](#contribute)
 
 # <a name="introduction"></a> Introduction
 
@@ -79,6 +79,34 @@ Then to instantiate the uPort object from the browser window object:
 var uportconnect = window.uportconnect
 var uport = new uportconnect.Connect('MyDApp')
 ```
+
+### <a name="connect-button"></a> Connect Button
+
+The uPort connect button is a quick and easy way integrate with uPort. The following javascript and html snippet is all that is needed. The uPort button provides a recognizable uPort brand and experience across applications and helps to convey trust and expectations about the user experience.
+
+```js
+// javascript
+const uport = new uportconnect.Connect('Uport Example')
+
+uport.subscribe('auth.change').then(credentials => {
+  const address = credentials.address
+  const name = credentials.name
+  const web3 = uport.getWeb3()
+  // ...
+})
+
+// HTML, place where you want to use the button
+<uport:connect></uport:connect>
+```
+
+The connect button can also consume the following optional arguments, similarly to the requestCredentials function. data-urihandler and data-onconnect can take globally defined function names. The data-urihandler will be called with the request uri, while data-onconnect will be called with the response once a user has connected to uPort. data-onconnect can be used as an alternative to subscribing to the 'auth.change' event.
+
+```html
+  <uport:connect data-color='blue' data-requested='name, country' data-notifications='true' data-urihandler='myHandler' data-onconnect='onConnect'></uport:connect>
+
+```
+
+To use the button with out automatically binding any functionality to it, set the onclick attribute for the functionality that you require, all other non-design attributes will be ignored.
 
 ### <a name="tutorials"></a> Tutorial and Examples
 

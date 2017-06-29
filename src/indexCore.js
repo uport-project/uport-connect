@@ -5,7 +5,10 @@ const notSupported = (obj) => () => {
 class Connect { constructor () { notSupported('Connect object') }}
 const QRUtil = { getQRDataURI: notSupported('getQRDataURI'), closeQr: notSupported('closeQr'), openQr: notSupported('openQr')}
 import ConnectCore from './ConnectCore'
+import { loadPlugins } from './plugins.js'
 import { encode, decode, isMNID } from 'mnid'
 const MNID = { encode, decode, isMNID }
 import { SimpleSigner, Credentials } from 'uport'
 export { Connect, ConnectCore, QRUtil, SimpleSigner, Credentials, MNID }
+
+loadPlugins()
