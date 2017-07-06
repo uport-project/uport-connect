@@ -103,9 +103,10 @@ class ConnectCore {
     const subProvider = new UportSubprovider({
       requestAddress: this.requestAddress.bind(this),
       sendTransaction: this.sendTransaction.bind(this),
-      provider: this.provider || new HttpProvider(this.network.rpcUrl)
+      provider: this.provider || new HttpProvider(this.network.rpcUrl),
+      networkId: this.network.id
     })
-    subProvider.address = isMNID(this.address) ? decode(this.address).address : this.address
+    if (this.address) subProvider.setAccount(this.address)
     return subProvider
   }
 
@@ -151,6 +152,7 @@ class ConnectCore {
       .then(jwt => receive(jwt, topic.url))
       .then(res => {
         if (res && res.pushToken) self.pushToken = res.pushToken
+        self.address = res.address
         return res
       })
   }
