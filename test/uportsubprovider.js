@@ -1,12 +1,23 @@
 import { assert, expect } from 'chai'
 import UportSubprovider from '../src/uportSubprovider.js'
+import { isMNID, encode, decode } from 'mnid'
 
 const MSG_DATA = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL0lySGVsNTA0MmlwWlk3Q04iLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg4MTkzMjBjZTJmNzI3NjgwNTRhYzAxMjQ4NzM0YzdkNGY5OTI5ZjZjIiwiaWF0IjoxNDgyNDI2MjEzMTk0LCJleHAiOjE0ODI1MTI2MTMxOTR9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
 const UPORT_ID = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
 
+const rinkebyMNID = '2ocuXMaz4pJPtzkbqeaAeJUvGRdVGm2MJth'
+const mainMNID = '2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX'
+const mindDecoded = '0x00521965e7bd230323c423d96c657db5b79d099f'
+
 const mockFetchAddress = () => {
   return new Promise((resolve, reject) => {
     resolve(UPORT_ID)
+  })
+}
+
+const mockFetchMNID = (mnid) => () => {
+  return new Promise((resolve, reject) => {
+    resolve(mnid)
   })
 }
 
@@ -34,12 +45,30 @@ const failingSendTransaction = (txparams) => {
 
 describe('UportSubprovider', () => {
   describe('getAddress', () => {
+    //TODO
     it('Use connect to get address first time', (done) => {
-      const subprovider = new UportSubprovider({requestAddress: mockFetchAddress})
+      const subprovider = new UportSubprovider({requestAddress: mockFetchAddress, newtorkId: '0x4'})
       subprovider.getAddress((err, address) => {
         assert.isNull(err)
         assert.equal(address, UPORT_ID)
         // assert.equal(subprovider.address, UPORT_ID)
+        done()
+      })
+    })
+
+    it('Should throw an error if given an MNID from a network it is not configured for', (done) => {
+      const subprovider = new UportSubprovider({requestAddress: mockFetchMNID(mainMNID), networkId: '0x4'})
+      subprovider.getAddress((err, address) => {
+        expect(err).to.match(/does not match the network/)
+        done()
+      })
+    })
+
+    it('Should handle MNIDs and decode them to hex', (done) => {
+      const subprovider = new UportSubprovider({requestAddress: mockFetchMNID(rinkebyMNID), networkId: '0x4'})
+      subprovider.getAddress((err, address) => {
+        assert.isNull(err)
+        assert.equal(subprovider.address, mindDecoded)
         done()
       })
     })

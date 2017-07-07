@@ -1,4 +1,5 @@
 import async from 'async'
+import { isMNID, decode } from 'mnid'
 
 /**
 *  A web3 style provider which can easily be wrapped with uPort functionality.
@@ -15,15 +16,16 @@ class UportSubprovider {
    * @param       {Object}            args.provider          a web3 sytle provider
    * @return      {UportSubprovider}                         self
    */
-  constructor ({requestAddress, sendTransaction, provider}) {
+  constructor ({requestAddress, sendTransaction, provider, networkId}) {
     const self = this
     this.provider = provider
+    this.networkId = networkId
     this.getAddress = (cb) => {
       if (self.address) return cb(null, self.address)
       requestAddress().then(
         address => {
-          self.address = address
-          cb(null, address)
+          const errorMatch = new Error('Address/Account received does not match the network your provider is configured for')
+          this.setAccount(address) ? cb(null, self.address) : cb(errorMatch)
         },
       error => cb(error))
     }
@@ -34,6 +36,20 @@ class UportSubprovider {
         error => cb(error)
       )
     }
+  }
+
+  setAccount(address) {
+    if (this.networkId && isMNID(address)) {
+      const mnid = decode(address)
+      if (this.networkId === mnid.network) {
+        this.address = mnid.address
+        return true
+      }
+      return false
+    }
+    // Does not force validation, if no network id given will still set address
+    this.address = isMNID(address) ? decode(address).address : address
+    return true
   }
 
   /**
