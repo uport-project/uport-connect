@@ -45,7 +45,7 @@ const sendEther = () => {
     },
     (error, txHash) => {
       if (error) { throw error }
-      globalState.txHash = txHash
+      globalState.txHashSentEth = txHash
       render()
     }
   )
