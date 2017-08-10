@@ -144,7 +144,6 @@ Primary object for frontend interactions with uPort. Bundles all neccesary funct
     * [.request(request)](#ConnectCore+request) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
     * [.contract(abi)](#ConnectCore+contract) ⇒ <code>Object</code>
     * [.sendTransaction(txobj)](#ConnectCore+sendTransaction) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.addAppParameters(txobj, callbackUrl)](#ConnectCore+addAppParameters) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
 
 <a name="new_Connect_new"></a>
 
@@ -152,19 +151,20 @@ Primary object for frontend interactions with uPort. Bundles all neccesary funct
 Instantiates a new uPort connect object.
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| appName | <code>String</code> | the name of your app |
-| [opts] | <code>Object</code> | optional parameters |
-| opts.credentials | <code>Object</code> | pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests |
-| opts.signer | <code>function</code> | signing function which will be used to sign JWT's in the credentials object |
-| opts.clientId | <code>String</code> | uport identifier for your application this will be used in the default credentials object |
-| [opts.network='kovan'] | <code>Object</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'. |
-| opts.infuraApiKey | <code>String</code> | Infura API Key (register here http://infura.io/register.html) |
-| opts.topicFactory | <code>function</code> | function which generates topics and deals with requests and response |
-| opts.uriHandler | <code>function</code> | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
-| opts.mobileUriHandler | <code>function</code> | default function to consume generated URIs for requests on mobile |
-| opts.closeUriHandler | <code>function</code> | default function called after a request receives a response, can be to close QR codes or other custom UX |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| appName | <code>String</code> |  | the name of your app |
+| [opts] | <code>Object</code> |  | optional parameters |
+| opts.credentials | <code>Object</code> |  | pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests |
+| opts.signer | <code>function</code> |  | signing function which will be used to sign JWT's in the credentials object |
+| opts.clientId | <code>String</code> |  | uport identifier for your application this will be used in the default credentials object |
+| [opts.network] | <code>Object</code> | <code>&#x27;kovan&#x27;</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'. |
+| opts.rpcUrl | <code>String</code> |  | JSON rpc url (defaults to https://ropsten.infura.io) |
+| opts.infuraApiKey | <code>String</code> |  | Infura API Key (register here http://infura.io/register.html) |
+| opts.topicFactory | <code>function</code> |  | function which generates topics and deals with requests and response |
+| opts.uriHandler | <code>function</code> |  | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
+| opts.mobileUriHandler | <code>function</code> |  | default function to consume generated URIs for requests on mobile |
+| opts.closeUriHandler | <code>function</code> |  | default function called after a request receives a response, can be to close QR codes or other custom UX |
 
 **Example**  
 ```js
@@ -324,20 +324,6 @@ const txobject = {
 
  
 ```
-<a name="ConnectCore+addAppParameters"></a>
-
-### connect.addAppParameters(txobj, callbackUrl) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Adds application specific data to a transaction object. Then uses this data
- when requests are created.
-
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - A promise which resolves with a resonse object or rejects with an error.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| txobj | <code>Object</code> | transaction object |
-| callbackUrl | <code>String</code> | application callback url |
-
 <a name="ConnectCore"></a>
 
 ## ConnectCore
@@ -360,7 +346,6 @@ Primary object for frontend interactions with uPort. ConnectCore excludes
     * [.request(request)](#ConnectCore+request) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
     * [.contract(abi)](#ConnectCore+contract) ⇒ <code>Object</code>
     * [.sendTransaction(txobj)](#ConnectCore+sendTransaction) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.addAppParameters(txobj, callbackUrl)](#ConnectCore+addAppParameters) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
 
 <a name="new_ConnectCore_new"></a>
 
@@ -368,19 +353,19 @@ Primary object for frontend interactions with uPort. ConnectCore excludes
 Instantiates a new uPort connectCore object.
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| appName | <code>String</code> | the name of your app |
-| [opts] | <code>Object</code> | optional parameters |
-| opts.credentials | <code>Object</code> | pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests |
-| opts.signer | <code>function</code> | signing function which will be used to sign JWT's in the credentials object |
-| opts.clientId | <code>String</code> | uport identifier for your application this will be used in the default credentials object |
-| opts.rpcUrl | <code>String</code> | JSON rpc url (defaults to https://ropsten.infura.io) |
-| opts.infuraApiKey | <code>String</code> | Infura API Key (register here http://infura.io/register.html) |
-| opts.topicFactory | <code>function</code> | function which generates topics and deals with requests and response |
-| opts.uriHandler | <code>function</code> | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
-| opts.mobileUriHandler | <code>function</code> | default function to consume generated URIs for requests on mobile |
-| opts.closeUriHandler | <code>function</code> | default function called after a request receives a response, can be to close QR codes or other custom UX |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| appName | <code>String</code> |  | the name of your app |
+| [opts] | <code>Object</code> |  | optional parameters |
+| opts.credentials | <code>Object</code> |  | pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests |
+| opts.signer | <code>function</code> |  | signing function which will be used to sign JWT's in the credentials object |
+| opts.clientId | <code>String</code> |  | uport identifier for your application this will be used in the default credentials object |
+| [opts.network] | <code>Object</code> | <code>&#x27;kovan&#x27;</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'. |
+| opts.infuraApiKey | <code>String</code> |  | Infura API Key (register here http://infura.io/register.html) |
+| opts.topicFactory | <code>function</code> |  | function which generates topics and deals with requests and response |
+| opts.uriHandler | <code>function</code> |  | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
+| opts.mobileUriHandler | <code>function</code> |  | default function to consume generated URIs for requests on mobile |
+| opts.closeUriHandler | <code>function</code> |  | default function called after a request receives a response, can be to close QR codes or other custom UX |
 
 **Example**  
 ```js
@@ -532,20 +517,6 @@ const txobject = {
 
  
 ```
-<a name="ConnectCore+addAppParameters"></a>
-
-### connectCore.addAppParameters(txobj, callbackUrl) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Adds application specific data to a transaction object. Then uses this data
- when requests are created.
-
-**Kind**: instance method of <code>[ConnectCore](#ConnectCore)</code>  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - A promise which resolves with a resonse object or rejects with an error.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| txobj | <code>Object</code> | transaction object |
-| callbackUrl | <code>String</code> | application callback url |
-
 <a name="UportSubprovider"></a>
 
 ## UportSubprovider

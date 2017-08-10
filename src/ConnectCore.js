@@ -287,6 +287,7 @@ class ConnectCore {
    *  @param    {Object}     txobj             transaction object
    *  @param    {String}     callbackUrl       application callback url
    *  @return   {Promise<Object, Error>}       A promise which resolves with a resonse object or rejects with an error.
+   *  @private
    */
   addAppParameters (txObject, callbackUrl) {
     const appTxObject = Object.assign({}, txObject)
