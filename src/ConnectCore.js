@@ -2,7 +2,6 @@ import TopicFactory from './topicFactory'
 import { Credentials, ContractFactory } from 'uport'
 import MobileDetect from 'mobile-detect'
 import UportSubprovider from './uportSubprovider'
-const INFURA_ROPSTEN = 'https://ropsten.infura.io'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode, decode } from 'mnid'
@@ -62,7 +61,7 @@ class ConnectCore {
    * @param       {Object}            opts.credentials       pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests
    * @param       {Function}          opts.signer            signing function which will be used to sign JWT's in the credentials object
    * @param       {String}            opts.clientId          uport identifier for your application this will be used in the default credentials object
-   * @param       {Object}            [opts.network='kovan'] network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'.
+   * @param       {Object}            [opts.network='rinkeby'] network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
    * @param       {Function}          opts.topicFactory      function which generates topics and deals with requests and response
    * @param       {Function}          opts.uriHandler        default function to consume generated URIs for requests, can be used to display QR codes or other custom UX
@@ -263,7 +262,7 @@ class ConnectCore {
    *  const txobject = {
    *    to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
    *    value: '0.1',
-   *    function: setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347'),
+   *    function: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
    *    appName: 'MyDapp'
    *  }
    *  connect.sendTransaction(txobject).then(txID => {
