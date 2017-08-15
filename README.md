@@ -100,7 +100,6 @@ The following Connect object is the primary interface you will use. All details 
     * [.request(request)](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#ConnectCore+request) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
     * [.contract(abi)](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#ConnectCore+contract) ⇒ <code>Object</code>
     * [.sendTransaction(txobj)](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#ConnectCore+sendTransaction) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.addAppParameters(txobj, callbackUrl)](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#ConnectCore+addAppParameters) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
 
 ### <a name="communication"></a> Communication
 
