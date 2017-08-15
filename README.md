@@ -33,7 +33,7 @@ For a more interactive quick start visit [developer.uport.me](https://developer.
 npm install uport-connect
 ```
 
-First we will instantiate the uPort object.
+First we will instantiate the uPort object, by default it is configured on the Rinkeby test network.
 
 ```javascript
 import { Connect } from 'uport-connect'
