@@ -180,7 +180,7 @@ describe('ConnectCore', () => {
       return uport.request({topic: errorTopic(), uri}).then(response => {
         throw new Error('uport.request Promise resolved, expected it to reject')
       }, error => {
-        expect(uriHandler.called, 'uriHandler called').to.be.truef
+        expect(uriHandler.called, 'uriHandler called').to.be.true
         expect(closeUriHandler.called, 'cloeUriHandler called').to.be.true
       })
     })
@@ -192,6 +192,21 @@ describe('ConnectCore', () => {
 
       return uport.request({topic: mockTopic(), uri}).then(response => {
         expect(pushFunc.calledOnce, 'uport.credentials.push called').to.be.true
+      }, error => {
+        throw new Error('uport.request Promise rejected, expected it to resolve')
+      })
+    })
+
+    it('don\'t send a push notification if on mobile', () => {
+      const uport = new ConnectCore('UportTests')
+      uport.pushToken = '12345'
+      uport.isOnMobile = true
+      const pushFunc = sinon.stub(uport.credentials, 'push')
+      const uriHandler = sinon.spy()
+
+      return uport.request({topic: mockTopic(), uri, uriHandler }).then(response => {
+        expect(pushFunc.calledOnce, 'uport.credentials.push called').to.be.false
+        expect(uriHandler.called, 'uriHandler called').to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
