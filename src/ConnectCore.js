@@ -214,7 +214,7 @@ class ConnectCore {
 
     if (defaultUriHandler) { uriHandler = this.uriHandler }
 
-    if (this.pushToken) {
+    if (this.pushToken && !this.isOnMobile) {
       this.credentials.push(this.pushToken, {url: uri})
       return topic
     }
