@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>FriendWallet</title>
+    <title>Uport Dapp Tutorial</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -18,13 +18,16 @@
   </head>
   <body>
     <main>
-      <header><h1 id="appName">FriendWallet</h1></header>
+      <header><h1 id="appName">Uport Dapp Tutorial</h1></header>
       <hr/>
       <section>
         <h2>Connect uPort</h2>
         <table>
           <tbody>
             <tr><td><span>uPort Id: </span><span id="uportId"></span></td></tr>
+            <tr><td><span>ETH Address: </span><span id="ethAddress"></span></td></tr>
+            <tr><td><span>ETH Balance: </span><span id="ethBalance"></span></td></tr>
+            <tr><td><span>Current Status: </span><span id="currentStatus"></span></td></tr>
           </tbody>
         </table>
         <button class="btn btn-sm btn-primary" id="connectUportBtn" onclick="uportConnect()">Connect uPort</button>
@@ -52,6 +55,26 @@
           </tbody>
         </table>
       </section>
+      <section>
+        <h2>Set Status</h2>
+        <table>
+          <thead>
+            <tr>
+              <td>Enter current status:</td>
+              <td></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="text" id="statusInput" size="40" placeholder="Feeling good..." onchange="updateState()"/></td>
+              <td><button class="btn btn-sm btn-success" onclick="setStatus()">Set Status</button></td>
+            </tr>
+            <tr>
+              <td><span>Transaction Hash(ID): </span><span id="txHashSetStatus"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
     </main>
     <script>
       // State and render functions
@@ -59,20 +82,31 @@
       const $ = (selector) => document.querySelector(selector)
       let globalState = {
         uportId: "",
-        txHash: "",
+        ethAddress: "",
+        ethBalance: "",
+        currentStatus: "",
+        statusInput: "",
+        txHashSentEth: "",
+        txHashSetStatus: "",
         sendToAddr: "",
-        sendToVal: ""};
+        sendToVal: ""
+      }
 
       const render = function () {
         $('#uportId').innerHTML = globalState.uportId;
-        $('#txHashSentEth').innerHTML = globalState.txHash;
+        $('#ethAddress').innerHTML = globalState.ethAddress;
+        $('#ethBalance').innerHTML = globalState.ethBalance;
+        $('#txHashSentEth').innerHTML = globalState.txHashSentEth;
+        $('#txHashSetStatus').innerHTML = globalState.txHashSetStatus;
         $('#sendTo').value = globalState.sendToAddr;
         $('#amount').value = globalState.sendToVal;
+        $('#currentStatus').innerHTML = globalState.currentStatus;
       }
 
       const updateState = function () {
         globalState.sendToAddr = $('#sendTo').value;
         globalState.sendToVal = $('#amount').value;
+        globalState.statusInput = $('#statusInput').value;
         console.log(globalState)
       }
 
@@ -82,6 +116,6 @@
       ////////////////////////////////////////////////
 
     </script>
-    <script type="text/javascript" src="friendwallet_step1.js"></script>
+    <script type="text/javascript" src="uport_tutorial.js"></script>
   </body>
 </html>
