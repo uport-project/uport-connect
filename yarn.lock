@@ -262,7 +262,15 @@ asap@^2.0.0, asap@~2.0.3:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.5.tgz#522765b50c3510490e52d7dcfe085ef9ba96958f"
 
-asn1.js@^4.0.0:
+asn1.js@^2.2.0:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/asn1.js/-/asn1.js-2.2.1.tgz#c8ba4dd68e84431288126230cb2045bdfa9fbfe1"
+  dependencies:
+    bn.js "^2.0.0"
+    inherits "^2.0.1"
+    minimalistic-assert "^1.0.0"
+
+asn1.js@^4.0.0, asn1.js@^4.9.1:
   version "4.9.1"
   resolved "https://registry.yarnpkg.com/asn1.js/-/asn1.js-4.9.1.tgz#48ba240b45a9280e94748990ba597d216617fd40"
   dependencies:
@@ -947,6 +955,10 @@ bn.js@4.11.6, bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.11.3, bn.js@^4.
 bn.js@=2.0.4, bn.js@^2.0.0, bn.js@^2.0.3:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-2.0.4.tgz#220a7cd677f7f1bfa93627ff4193776fe7819480"
+
+bn.js@^3.1.1, bn.js@^3.1.2:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-3.3.0.tgz#1138e577889fdc97bbdab51844f2190dfc0ae3d7"
 
 body-parser@^1.16.1:
   version "1.17.1"
@@ -1919,6 +1931,15 @@ elliptic@^3.1.0:
   resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-3.1.0.tgz#c21682ef762769b56a74201609105da11d5f60cc"
   dependencies:
     bn.js "^2.0.3"
+    brorand "^1.0.1"
+    hash.js "^1.0.0"
+    inherits "^2.0.1"
+
+elliptic@^5.1.0:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-5.2.1.tgz#fa294b6563c6ddbc9ba3dc8594687ae840858f10"
+  dependencies:
+    bn.js "^3.1.1"
     brorand "^1.0.1"
     hash.js "^1.0.0"
     inherits "^2.0.1"
@@ -3628,6 +3649,17 @@ jsontokens@^0.6.5:
     crypto "0.0.3"
     elliptic "^6.3.2"
 
+jsontokens@^0.7.6:
+  version "0.7.6"
+  resolved "https://registry.yarnpkg.com/jsontokens/-/jsontokens-0.7.6.tgz#e23dd75ea10b1028ea9d5d7512dcb249c598d4ad"
+  dependencies:
+    asn1.js "^4.9.1"
+    base64url "^2.0.0"
+    crypto "0.0.3"
+    elliptic "^6.3.2"
+    key-encoder "^1.1.6"
+    validator "^7.0.0"
+
 jsprim@^1.2.2:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/jsprim/-/jsprim-1.4.0.tgz#a3b87e40298d8c380552d8cc7628a0bb95a22918"
@@ -3756,6 +3788,14 @@ keccakjs@^0.2.0:
 kew@~0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/kew/-/kew-0.7.0.tgz#79d93d2d33363d6fdd2970b335d9141ad591d79b"
+
+key-encoder@^1.1.6:
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/key-encoder/-/key-encoder-1.1.6.tgz#0135582cd3d0a7eb792d94eca387b681e8e5a2ad"
+  dependencies:
+    asn1.js "^2.2.0"
+    bn.js "^3.1.2"
+    elliptic "^5.1.0"
 
 kind-of@^3.0.2:
   version "3.1.0"
@@ -6004,6 +6044,10 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
+tweetnacl-util@^0.15.0:
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/tweetnacl-util/-/tweetnacl-util-0.15.0.tgz#4576c1cee5e2d63d207fee52f1ba02819480bc75"
+
 tweetnacl@0.13.2:
   version "0.13.2"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.13.2.tgz#453161770469d45cd266c36404e2bc99a8fa9944"
@@ -6011,6 +6055,10 @@ tweetnacl@0.13.2:
 tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   version "0.14.5"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
+
+tweetnacl@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.0.tgz#713d8b818da42068740bf68386d0479e66fc8a7b"
 
 type-check@~0.3.2:
   version "0.3.2"
@@ -6115,14 +6163,16 @@ uport-lite@^1.0.0:
     base-x "^3.0.0"
     xmlhttprequest "^1.8.0"
 
-uport@^0.4.2:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/uport/-/uport-0.4.2.tgz#1c9632304d84ebba53e3842da9df864ce59b9082"
+uport@^0.6.0-alpha-3:
+  version "0.6.0-alpha-3"
+  resolved "https://registry.yarnpkg.com/uport/-/uport-0.6.0-alpha-3.tgz#5f927020c77c96c2899ccf920c3b15b50af4f16e"
   dependencies:
     ethjs-util "^0.1.3"
-    jsontokens "^0.6.5"
+    jsontokens "^0.7.6"
     mnid "^0.1.1"
     nets "^3.2.0"
+    tweetnacl "^1.0.0"
+    tweetnacl-util "^0.15.0"
     uport-lite "^1.0.0"
 
 url@^0.11.0:
@@ -6205,6 +6255,10 @@ validate-npm-package-license@^3.0.1:
   dependencies:
     spdx-correct "~1.0.0"
     spdx-expression-parse "~1.0.0"
+
+validator@^7.0.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/validator/-/validator-7.2.0.tgz#a63dcbaba51d4350bf8df20988e0d5a54d711791"
 
 verror@1.3.6:
   version "1.3.6"

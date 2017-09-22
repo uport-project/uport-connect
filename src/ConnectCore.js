@@ -87,6 +87,7 @@ class ConnectCore {
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
     this.pushToken = null
     this.address = null
+    this.publicEncKey = null
   }
 
   /**
@@ -152,6 +153,7 @@ class ConnectCore {
       .then(res => {
         if (res && res.pushToken) self.pushToken = res.pushToken
         self.address = res.address
+        self.publicEncKey = res.publicEncKey
         return res
       })
   }
@@ -215,7 +217,7 @@ class ConnectCore {
     if (defaultUriHandler) { uriHandler = this.uriHandler }
 
     if (this.pushToken && !this.isOnMobile) {
-      this.credentials.push(this.pushToken, {url: uri})
+      this.credentials.push(this.pushToken, this.publicEncKey, {url: uri})
       return topic
     }
 

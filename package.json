@@ -105,7 +105,7 @@
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport": "^0.4.2",
+    "uport": "^0.6.0-alpha-3",
     "web3": "^0.18.2"
   },
   "devDependencies": {
