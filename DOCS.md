@@ -197,6 +197,8 @@ Creates a request given a request object, will also always return the user's
  uPort address. Calls given uriHandler with the uri. Returns a promise to
  wait for the response.
 
+ Supports request objects of type <code>{requested: [...]}</code> for ordinary requests and <code>{verified: [...]}</code> for requests that should retrieve full attestations, including a JWT containing the actual signature. If the issuer's public key is stored, this signature can be verified with jwt-js or jsonwebtoken.
+
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 **Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a response object or rejects with an error.  
 
@@ -214,7 +216,7 @@ const req = {requested: ['name', 'country']}
      ...
  })
 
- 
+
 ```
 <a name="ConnectCore+requestAddress"></a>
 
@@ -259,7 +261,7 @@ const cred = {
    // response okay, received in uPort app
  })
 
- 
+
 ```
 <a name="ConnectCore+request"></a>
 
@@ -322,7 +324,7 @@ const txobject = {
    ...
  })
 
- 
+
 ```
 <a name="ConnectCore"></a>
 
@@ -407,7 +409,7 @@ const req = {requested: ['name', 'country']}
      ...
  })
 
- 
+
 ```
 <a name="ConnectCore+requestAddress"></a>
 
@@ -452,7 +454,7 @@ const cred = {
    // response okay, received in uPort app
  })
 
- 
+
 ```
 <a name="ConnectCore+request"></a>
 
@@ -515,7 +517,7 @@ const txobject = {
    ...
  })
 
- 
+
 ```
 <a name="UportSubprovider"></a>
 
@@ -564,4 +566,3 @@ Overrides sendAsync to caputure the following RPC calls eth_coinbase, eth_accoun
 | --- | --- | --- |
 | payload | <code>Any</code> | request payload |
 | callback | <code>function</code> | called with response or error |
-
