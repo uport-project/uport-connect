@@ -197,6 +197,11 @@ Creates a request given a request object, will also always return the user's
  uPort address. Calls given uriHandler with the uri. Returns a promise to
  wait for the response.
 
+ Supports request objects of type {requested: [...]} for ordinary requests
+ and {verified: [...]} for requests that should retrieve full attestations,
+ including a JWT containing the actual signature. If the issuer's public key
+ is stored, this signature can be verified with jwt-js or jsonwebtoken.
+
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 **Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a response object or rejects with an error.  
 
@@ -389,6 +394,11 @@ Instantiates and returns a web3 styple provider wrapped with uPort functionality
 Creates a request given a request object, will also always return the user's
  uPort address. Calls given uriHandler with the uri. Returns a promise to
  wait for the response.
+
+ Supports request objects of type {requested: [...]} for ordinary requests
+ and {verified: [...]} for requests that should retrieve full attestations,
+ including a JWT containing the actual signature. If the issuer's public key
+ is stored, this signature can be verified with jwt-js or jsonwebtoken.
 
 **Kind**: instance method of <code>[ConnectCore](#ConnectCore)</code>  
 **Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a response object or rejects with an error.  
