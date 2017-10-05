@@ -114,6 +114,11 @@ class ConnectCore {
    *  uPort address. Calls given uriHandler with the uri. Returns a promise to
    *  wait for the response.
    *
+   *  Supports request objects of type {requested: [...]} for ordinary requests
+   *  and {verified: [...]} for requests that should retrieve full attestations,
+   *  including a JWT containing the actual signature. If the issuer's public key
+   *  is stored, this signature can be verified with jwt-js or jsonwebtoken. 
+   *
    *  @example
    *  const req = {requested: ['name', 'country']}
    *  connect.requestCredentials(req).then(credentials => {
