@@ -87,6 +87,7 @@ class ConnectCore {
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
     this.pushToken = null
     this.address = null
+    this.firstReq = true
   }
 
   /**
@@ -224,7 +225,9 @@ class ConnectCore {
     // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button. should dev use uriHandler if using push notifications?
     (this.isOnMobile && this.mobileUriHandler)
       ? this.mobileUriHandler(uri)
-      : uriHandler(uri, topic.cancel)
+      : uriHandler(uri, topic.cancel, this.appName, this.firstReq)
+
+    this.firstReq = false
 
     if (defaultUriHandler && !this.isOnMobile && this.closeUriHandler) {
       return new Promise((resolve, reject) => {
