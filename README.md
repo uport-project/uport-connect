@@ -177,6 +177,27 @@ uport.requestCredentials({
 // Then all future requests will use push notifications if permission is granted.
 ```
 
+### <a name="sessions"></a> Sessions
+A session is an object that contains information about the user. The session object can be stored locally in the users browser and used when a Connect object is instantiated. This can be used so that the user don't have to scan a QR-code each time the page is reloaded in order to receive push notifications. The session object can be retrieved after a call to `requestCredentials` has been made.
+```javascript
+const session = uport.getSession()
+```
+
+This object can then be stored locally in multiple ways. An easy way to do it is through [localstorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
+```javascript
+window.localStorage.setItem('uportSession', JSON.stringify(session))
+
+const storedSession = window.localStorage.getItem('uportSession')
+```
+
+The stored session is then passed into the Connect constructor.
+```js
+const uport = new Connect('MyDApp', {
+  session: storedSession
+})
+```
+
+
 ### <a name="ethereum"></a> Ethereum Interactions and Transactions
 
 `uport-connect` can be used to create a web3 object wrapped with uPort functionality. If you already have an existing application built on ethereum using web3 then this may be the simplest uPort integration. If you want to use alternatives to web3 then `uport-connect` can create a web3 style provider wrapped with uPort functionality and can be used in any library which supports these providers, for example [ethjs](https://github.com/ethjs/ethjs). If you have no need to use web3, or want more granular control over handling request URIs, then `uport-connect` provides a contract object similar to web3 which can be used to create transactions encoded as URI requests.
