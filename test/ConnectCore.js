@@ -14,7 +14,8 @@ const FAKETX = '0x21893aaa10bb28b5893bcec44b33930c659edcd2f3f08ad9f3e69d8997bef2
 
 const publicKey = '03fdd57adec3d438ea237fe46b33ee1e016eda6b585c3e27ea66686c2ea5358479'
 const PUSH_TOKEN = 'PUSHTHIS'
-const PROFILE = {publicKey, name: 'David Chaum', address: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c'}
+const PROFILE = {publicKey, name: 'David Chaum', address: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c', publicEncKey: 'myEncKey'}
+const SESSION = {pushToken: PUSH_TOKEN, address: UPORT_ID, publicEncKey: 'myEncKey'}
 
 function mockVerifyingCredentials (receive) {
   return {
@@ -101,6 +102,17 @@ describe('ConnectCore', () => {
       try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { return }
       throw new Error('did not throw error')
     })
+
+    it('throws an error if no session is available for retreival', () => {
+      const uport = new ConnectCore('UportTests')
+      expect(uport.getSession.bind(uport)).to.throw('No session available yet')
+    })
+
+    it('consumes session object correctly', () => {
+      const uport = new ConnectCore('UportTests', {session: SESSION})
+      const ses = uport.getSession()
+      expect(ses).to.deep.equal(SESSION)
+    })
   })
 
   describe('request', () => {
@@ -186,8 +198,7 @@ describe('ConnectCore', () => {
     })
 
     it('sends a push notification if push token is available', () => {
-      const uport = new ConnectCore('UportTests')
-      uport.pushToken = '12345'
+      const uport = new ConnectCore('UportTests', {session: {pushToken: '12345' }})
       const pushFunc = sinon.stub(uport.credentials, 'push')
 
       return uport.request({topic: mockTopic(), uri}).then(response => {
@@ -198,8 +209,7 @@ describe('ConnectCore', () => {
     })
 
     it('don\'t send a push notification if on mobile', () => {
-      const uport = new ConnectCore('UportTests')
-      uport.pushToken = '12345'
+      const uport = new ConnectCore('UportTests', {session: {pushToken: '12345' }})
       uport.isOnMobile = true
       const pushFunc = sinon.stub(uport.credentials, 'push')
       const uriHandler = sinon.spy()
@@ -213,8 +223,7 @@ describe('ConnectCore', () => {
     })
 
     it('does not call default uriHandler if push notification sent', () => {
-      const uport = new ConnectCore('UportTests')
-      uport.pushToken = '12345'
+      const uport = new ConnectCore('UportTests', {session: {pushToken: '12345' }})
       const pushFunc = sinon.stub(uport.credentials, 'push')
       const uriHandlerFunc = sinon.stub(uport, 'uriHandler')
 
@@ -226,6 +235,7 @@ describe('ConnectCore', () => {
       })
     })
   })
+
 
   describe('requestCredentials', () => {
     describe('without signer', () => {
@@ -274,7 +284,7 @@ describe('ConnectCore', () => {
     })
 
     describe('with signer', () => {
-      it('requests public profile', () => {
+      it('requests public profile and saves session', () => {
         const uriHandler = sinon.spy()
         const uport = new ConnectCore('UportTests', {
           clientId: CLIENT_ID,
@@ -297,6 +307,9 @@ describe('ConnectCore', () => {
         })
         expect(uport.canSign).to.be.true
         return uport.requestCredentials().then(profile => {
+          const ses = uport.getSession()
+          expect(ses.address, 'session.address').to.equal(PROFILE.address)
+          expect(ses.publicEncKey, 'session.publicEncKey').to.equal(PROFILE.publicEncKey)
           expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
           expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
         }, error => {
@@ -397,7 +410,8 @@ describe('ConnectCore', () => {
           })
       })
       return uport.requestCredentials({notifications: true}).then(res => {
-        expect(uport.pushToken, 'uport.pushToken').to.equal(PUSH_TOKEN)
+        const ses = uport.getSession()
+        expect(ses.pushToken, 'session.pushToken').to.equal(PUSH_TOKEN)
         expect(res).to.be.deep.equal({...PROFILE, pushToken: PUSH_TOKEN})
         expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
@@ -453,6 +467,12 @@ describe('ConnectCore', () => {
       })
     })
 
+    it('returns address directly if session available', () => {
+      const uport = new ConnectCore('UportTests', {session: SESSION})
+      return uport.requestAddress().then(address => {
+        expect(address, 'uport.requestAddress address').to.equal(SESSION.address)
+      })
+    })
   })
 
   describe('getProvider', () => {

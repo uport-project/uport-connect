@@ -61,6 +61,7 @@ class ConnectCore {
    * @param       {Object}            opts.credentials       pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests
    * @param       {Function}          opts.signer            signing function which will be used to sign JWT's in the credentials object
    * @param       {String}            opts.clientId          uport identifier for your application this will be used in the default credentials object
+   * @param       {Object}            opts.session           a session object for resuming an existing connect session
    * @param       {Object}            [opts.network='rinkeby'] network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
    * @param       {Function}          opts.topicFactory      function which generates topics and deals with requests and response
@@ -85,8 +86,13 @@ class ConnectCore {
     this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
     // TODO throw error if this.network not part of network set in Credentials
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
-    this.pushToken = null
-    this.address = null
+
+    this.session = {}
+    if (opts.session) {
+      this.session.pushToken = opts.session.pushToken
+      this.session.address = opts.session.address
+      this.session.publicEncKey = opts.session.publicEncKey
+    }
   }
 
   /**
@@ -110,6 +116,17 @@ class ConnectCore {
   }
 
   /**
+   *  Returns a session object that can be used to restore a session. If passed to the
+   *  Connect constructor it removes the need of calling `requestCredentials` before
+   *  making a transaction.
+   */
+  getSession () {
+    // no address means we have not connected yet
+    if (!this.session.address) throw new Error('No session available yet')
+    return this.session
+  }
+
+  /**
    *  Creates a request given a request object, will also always return the user's
    *  uPort address. Calls given uriHandler with the uri. Returns a promise to
    *  wait for the response.
@@ -129,7 +146,7 @@ class ConnectCore {
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
   requestCredentials (request = {}, uriHandler) {
-    const self = this
+    const session = this.session
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
     return new Promise((resolve, reject) => {
@@ -152,8 +169,9 @@ class ConnectCore {
       ))
       .then(jwt => receive(jwt, topic.url))
       .then(res => {
-        if (res && res.pushToken) self.pushToken = res.pushToken
-        self.address = res.address
+        if (res && res.pushToken) session.pushToken = res.pushToken
+        session.address = res.address
+        session.publicEncKey = res.publicEncKey
         return res
       })
   }
@@ -166,6 +184,7 @@ class ConnectCore {
    *  @return   {Promise<String, Error>}                                  a promise which resolves with an address or rejects with an error.
    */
   requestAddress (uriHandler) {
+    if (this.session.address) return Promise.resolve(this.session.address)
     return this.requestCredentials({}, uriHandler).then((profile) => profile.networkAddress || profile.address)
   }
 
@@ -216,8 +235,8 @@ class ConnectCore {
 
     if (defaultUriHandler) { uriHandler = this.uriHandler }
 
-    if (this.pushToken && !this.isOnMobile) {
-      this.credentials.push(this.pushToken, {url: uri})
+    if (this.session.pushToken && !this.isOnMobile) {
+      this.credentials.push(this.session.pushToken, {url: uri})
       return topic
     }
 
