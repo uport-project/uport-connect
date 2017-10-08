@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.6.4",
+  "version": "0.6.6",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -105,8 +105,8 @@
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
     "request": "^2.75.0",
-    "uport": "^0.4.2",
     "uport-lite": "^1.0.2",
+    "uport": "^0.6.0-alpha-4",
     "web3": "^0.18.2"
   },
   "devDependencies": {

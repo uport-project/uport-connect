@@ -91,6 +91,7 @@ class ConnectCore {
     const networks = {}
     networks[this.network.id] = { rpcUrl: this.network.rpcUrl, address: this.network.registry }
     this.registry = UportLite({networks})
+    this.publicEncKey = null
   }
 
   /**
@@ -117,9 +118,9 @@ class ConnectCore {
    *  Creates a request given a request object, will also always return the user's
    *  uPort address. Calls given uriHandler with the uri. Returns a promise to
    *  wait for the response.
-   *
+   * 
    *  @example
-   *  const req = {requested: ['name', 'country']}
+   *  const req = { requested: ['name', 'country'], verified: ['GithubUser']}
    *  connect.requestCredentials(req).then(credentials => {
    *      const address = credentials.address
    *      const name = credentials.name
@@ -127,6 +128,8 @@ class ConnectCore {
    *  })
    *
    *  @param    {Object}                  [request={}]                    request object
+   *  @param    {Array}                   [request.requested]             specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile
+   *  @param    {Array}                   [request.verfied]               specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support.
    *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
@@ -156,6 +159,7 @@ class ConnectCore {
       .then(res => {
         if (res && res.pushToken) self.pushToken = res.pushToken
         self.address = res.address
+        self.publicEncKey = res.publicEncKey
         return res
       })
   }
@@ -219,7 +223,7 @@ class ConnectCore {
     if (defaultUriHandler) { uriHandler = this.uriHandler }
 
     if (this.pushToken && !this.isOnMobile) {
-      this.credentials.push(this.pushToken, {url: uri})
+      this.credentials.push(this.pushToken, this.publicEncKey, {url: uri})
       return topic
     }
 

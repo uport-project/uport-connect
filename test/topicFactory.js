@@ -3,6 +3,7 @@ import request from 'request'
 import nets from 'nets'
 import TopicFactory from '../src/topicFactory.js'
 
+
 let topicFactory
 
 describe('TopicFactory', function () {
@@ -65,6 +66,18 @@ describe('TopicFactory', function () {
       topicFactory = new TopicFactory(true)
     })
 
+    it('Creates mobile chrome specific URI only when in Chrome on iOS', () => {
+      navigator.__defineGetter__('userAgent', function(){
+        return 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Chrome/61.0.3163.79 CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1'
+      })
+      const googleTopic = topicFactory('access_token')
+      assert.equal(googleTopic.url, 'googlechrome://localhost:9876/context.html', 'Should set uri "protocol" to googleChrome')
+
+      navigator.__defineGetter__('userAgent', () => 'foo')
+      const topic = topicFactory('access_token')
+      assert.equal(topic.url, 'http://localhost:9876/context.html', 'Should set uri "protocol" to http')
+    })
+
     it('Correctly waits for data', (done) => {
       let data = '0x123456789'
       const topic = topicFactory('access_token')
@@ -86,6 +99,8 @@ describe('TopicFactory', function () {
       global.window.location.hash = '#error=' + data
       global.window.onhashchange()
     })
+
+
   })
 })
 
