@@ -573,6 +573,42 @@ describe('ConnectCore', () => {
     })
   })
 
+  describe('lookup', () => {
+    const publicKey = '278a5de700e29faae8e40e366ec5012b5ec63d36ec77e8a2417154cc1d25383f'
+    const profileA = {publicKey: `0x${publicKey}`, name: 'David Chaum'}
+    const uportAddress = '0x00521965e7bd230323c423d96c657db5b79d099f'
+    const uportMNID = '34ukSmiK1oA1C5Du8aWpkjFGALoH7nsHeDX'
+    const uportMNIDRopsten = '2oDZvNUgn77w2BKTkd9qKpMeUo8EL94QL5V'
+    const registry = (address, cb) => {
+      if (address === uportMNID) { cb(null, profileA); return }
+      cb('Error', null)
+    }
+    const uport = new ConnectCore('UportTests', {
+      network: {  id: '0x2a', registry: '0x5f8e9351dc2d238fb878b6ae43aa740d62fc9758', rpcUrl: 'https://kovan.infura.io' }
+    })
+    uport.registry = registry
+
+    it('lookups the profile for a given address using uport-lite registry', () => {
+      return uport.lookup(uportAddress).then(profile => {
+        expect(profile).to.equal(profileA)
+      })
+    })
+
+    it('lookups the profile for a given MNID using uport-lite registry', () => {
+      return uport.lookup(uportMNID).then(profile => {
+        expect(profile).to.equal(profileA)
+      })
+    })
+
+    it('throws an error if given a MNID encoded for a different network', () => {
+      return uport.lookup(uportMNIDRopsten).then(profile => {
+        throw new Error('uport.lookup Promise resolved, expected it to reject')
+      }, error => {
+        expect(error).to.match(/not encoded for configured network/)
+      })
+    })
+  })
+
   describe('contract', () => {
     const miniTokenABI = [{
       'constant': false,

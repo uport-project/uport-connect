@@ -5,6 +5,7 @@ import UportSubprovider from './uportSubprovider'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode, decode } from 'mnid'
+import UportLite from 'uport-lite'
 
 const networks = {
   'mainnet':   {  id: '0x1',
@@ -87,6 +88,9 @@ class ConnectCore {
     this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
     this.pushToken = null
     this.address = null
+    const networks = {}
+    networks[this.network.id] = { rpcUrl: this.network.rpcUrl, address: this.network.registry }
+    this.registry = UportLite({networks})
     this.publicEncKey = null
   }
 
@@ -306,6 +310,30 @@ class ConnectCore {
     appTxObject.network_id = this.network.id
     return appTxObject
   }
+
+  /**
+   *  Lookup the profile of a given uPort address, consumes both addresses and MNID
+   *  encoded addresses. Lookups are on the network configured for this Connect object.
+   *
+   *  @param    {String}     address           address or MNID address
+   *  @return   {Promise<Object, Error>}       A promise which resolves with a profile object or rejects with an error.
+   */
+   lookup (address) {
+     return new Promise((resolve, reject) => {
+       let mnid
+       if (!isMNID(address)) {
+         mnid = encode({network: this.network.id, address: address})
+       } else if (decode(address).network === this.network.id){
+         mnid = address
+       } else {
+         reject(new Error('lookup: Given address was not encoded for configured network'))
+       }
+       this.registry(mnid, (err, profile) => {
+         if (err) reject(err)
+          resolve(profile)
+       })
+     })
+   }
 }
 
 /**
