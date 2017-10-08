@@ -203,11 +203,13 @@ Creates a request given a request object, will also always return the user's
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | [request] | <code>Object</code> | <code>{}</code> | request object |
+| [request.requested] | <code>Array</code> |  | specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile |
+| [request.verfied] | <code>Array</code> |  | specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support. |
 | [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
 
 **Example**  
 ```js
-const req = {requested: ['name', 'country']}
+const req = { requested: ['name', 'country'], verified: ['GithubUser']}
  connect.requestCredentials(req).then(credentials => {
      const address = credentials.address
      const name = credentials.name
@@ -396,11 +398,13 @@ Creates a request given a request object, will also always return the user's
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | [request] | <code>Object</code> | <code>{}</code> | request object |
+| [request.requested] | <code>Array</code> |  | specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile |
+| [request.verfied] | <code>Array</code> |  | specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support. |
 | [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
 
 **Example**  
 ```js
-const req = {requested: ['name', 'country']}
+const req = { requested: ['name', 'country'], verified: ['GithubUser']}
  connect.requestCredentials(req).then(credentials => {
      const address = credentials.address
      const name = credentials.name
