@@ -22,12 +22,13 @@ const getQRDataURI = (data) => {
 /**
  *  A default QR pop over display, which injects the neccessary html
  *
- *  @param    {String}     data      data which is displayed in QR code
- *  @param    {Function}   cancel    a function called when the cancel button is clicked
+ *  @param    {String}     data       data which is displayed in QR code
+ *  @param    {Function}   cancel     a function called when the cancel button is clicked
+ *  @param    {String}     appName    name of the users app
+ *  @param    {Boolean}    introModal a flag for displaying the intro
  */
 const openQr = (data, cancel, appName, introModal) => {
   
-  // in the future can change call of action based on type of request
   let wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'uport-wrapper')
 
@@ -37,7 +38,8 @@ const openQr = (data, cancel, appName, introModal) => {
       : uportQRDisplay({qrImageUri: getQRDataURI(data), cancel})
 
   const cancelClick = (event) => { 
-    document.getElementById('uport-qr-text').innerHTML = 'Cancelling'; cancel() 
+    document.getElementById('uport-qr-text').innerHTML = 'Cancelling'; 
+    cancel();
   }
   
   const uportTransition = (event) => {
@@ -47,7 +49,7 @@ const openQr = (data, cancel, appName, introModal) => {
 
   document.body.appendChild(wrapper)
   document.getElementById('uport-qr-cancel').addEventListener('click', cancelClick)
-  document.getElementById('uport-continue-btn').addEventListener('click', uportTransition )
+  document.getElementById('uport-continue-btn').addEventListener('click', uportTransition)
 }
 
 /**
@@ -58,6 +60,13 @@ const closeQr = () => {
   document.body.removeChild(uportWrapper)
 }
 
+
+/**
+ *  The first content you will see in the modal
+ *
+ *  @param    {String}     appNamme  Name of users uPort App
+ *  @return   {Object}     populated modal
+ */
 const introModalDisplay = (appName) => {
   let content = `
     <div style="${uportModalIntroWrapper}">`
@@ -97,7 +106,6 @@ const introModalDisplay = (appName) => {
  *
  *  @param    {Object}     args
  *  @param    {String}     args.qrImageUri    a image URI for the QR code
- *  @return   {String}                        a string of html
  */
 const uportQRDisplay = ({qrImageUri}) => uportModal(`
   <div>
@@ -107,7 +115,11 @@ const uportQRDisplay = ({qrImageUri}) => uportModal(`
   </div>
 `)
 
-// An empty modal
+/**
+ *  Modal skeleton
+ *
+ *  @param    {String}     innerHTML    content of modal
+ */
 const uportModal = (innerHTML) => `
   <div id="uport-qr" style="${uportQRCSS}">
     <div style="${uportModalCSS}" class="animated fadeIn">
@@ -123,6 +135,10 @@ const uportModal = (innerHTML) => `
     ${animateCSS}
   </div>
 `
+
+/**
+ *  animateCSS CSS
+ */
 const animateCSS = `
 <style>
   @keyframes fadeIn {
@@ -139,6 +155,9 @@ const animateCSS = `
 </style>
 `
 
+/**
+ *  uportQRCSS CSS
+ */
 const uportQRCSS = `
   position:fixed;
   top: 0;
@@ -149,6 +168,9 @@ const uportQRCSS = `
   text-align:center;
 `
 
+/**
+ *  uportModalCSS CSS
+ */
 const uportModalCSS = `
   position:relative;
   top:50%;
@@ -163,11 +185,17 @@ const uportModalCSS = `
   min-width: 400px;
 `
 
+/**
+ *  uportModalHeaderCSS CSS
+ */
 const uportModalHeaderCSS = `
   width: 100%;
   height: 45px;
 `
 
+/**
+ *  uportModalHeaderCloseCSS CSS
+ */
 const uportModalHeaderCloseCSS = `
   float: right;
   height: 25px;
@@ -176,24 +204,34 @@ const uportModalHeaderCloseCSS = `
   cursor: pointer;
 `
 
-const uportModalConentCSS = `
-`
-
+/**
+ *  uportModalNewUserFooterCSS CSS
+ */
 const uportModalNewUserFooterCSS = `
   background-color: #F6F7F8;
   padding: 26px 0;
   min-height: 110px;
 `
+
+/**
+ *  uportModalNewUserFooterTitleCSS CSS
+ */
 const uportModalNewUserFooterTitleCSS = `
   font-size: 14px;
   color: #7C828B;
   font-family: Avenir;
 `
 
+/**
+ *  uportModalNewUserFooterAppStoresCSS CSS
+ */
 const uportModalNewUserFooterAppStoresCSS = `
   padding: 10px 42px;
 `
 
+/**
+ *  uportModalNewUserFooterAppStoresAndroidCSS CSS
+ */
 const uportModalNewUserFooterAppStoresAndroidCSS = `
   width: 128px;
   height: 40px;
@@ -201,34 +239,52 @@ const uportModalNewUserFooterAppStoresAndroidCSS = `
   display: inline-block;
 `
 
+/**
+ *  uportModalNewUserFooterAppStoresiOSCSS CSS
+ */
 const uportModalNewUserFooterAppStoresiOSCSS = `
   width: 128px;
   height: 40px;
   display: inline-block;
 `
 
+/**
+ *  uportModalLogo CSS
+ */
 const uportModalLogo = `
   display:inline-block;
   max-width: 50px;
   vertical-align: middle;
 `
 
+/**
+ *  uportAppName CSS
+ */
 const uportAppName = `
   font-weight: 700;
 `
 
+/**
+ *  uportQRTextWithAppName CSS
+ */
 const uportQRTextWithAppName = `
   font-size: 18px;
   color: #7C828B;
   font-family: Avenir;
 `
 
+/**
+ *  uportLogoWithBg CSS
+ */
 const uportLogoWithBg = `
   width: 60px;
   height: 60px;
   margin: 0 auto 0 auto;
 `
 
+/**
+ *  uportQRInstructions CSS
+ */
 const uportQRInstructions = `
   color: #7C828B;
   font-family: Avenir;
@@ -237,18 +293,26 @@ const uportQRInstructions = `
   margin-top: 0;
 `
 
+/**
+ *  uportModalIntroWrapper CSS
+ */
 const uportModalIntroWrapper = `
   text-align: center;
   display: inline-block;
   width: 100%;"
 `
 
+/**
+ *  uportQRIMG CSS
+ */
 const uportQRIMG = `
   z-index:102;
   margin-bottom: 35px;
 `
 
-// TODO space for logo in here already
+/**
+ *  uportModalContinueBtn CSS
+ */
 const uportModalContinueBtn = `
   text-align: center;
   padding: 17px 25px 17px 25px;
@@ -276,6 +340,9 @@ const uportModalContinueBtn = `
   -ms-transition: border-color 0.1s linear,background 0.1s linear,color 0.1s linear;
 `
 
+/**
+ *  export
+ */
 export {
   closeQr,
   openQr,
