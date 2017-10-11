@@ -28,20 +28,20 @@ const getQRDataURI = (data) => {
  *  @param    {Boolean}    introModal a flag for displaying the intro
  */
 const openQr = (data, cancel, appName, introModal) => {
-  
+
   let wrapper = document.createElement('div')
   wrapper.setAttribute('id', 'uport-wrapper')
 
-  wrapper.innerHTML = 
-    introModal 
+  wrapper.innerHTML =
+    introModal
       ? introModalDisplay(appName)
       : uportQRDisplay({qrImageUri: getQRDataURI(data), cancel})
 
-  const cancelClick = (event) => { 
-    document.getElementById('uport-qr-text').innerHTML = 'Cancelling'; 
+  const cancelClick = (event) => {
+    document.getElementById('uport-qr-text').innerHTML = 'Cancelling';
     cancel();
   }
-  
+
   const uportTransition = (event) => {
     wrapper.innerHTML = uportQRDisplay({qrImageUri: getQRDataURI(data), cancel})
     document.getElementById('uport-qr-cancel').addEventListener('click', cancelClick)
@@ -69,19 +69,23 @@ const closeQr = () => {
  */
 const introModalDisplay = (appName) => {
   let content = `
-    <div style="${uportModalIntroWrapper}">`
-      if (appName)  {
+    <div style="${uportModalIntroWrapper}">
+      <div>
+        <p id="uport-qr-text" style="${uportQRTextWithAppName}">`
+
+      if (appName && appName !== 'uport-connect-app')  {
         content +=  `
-          <div>
-            <p id="uport-qr-text" style="${uportQRTextWithAppName}">
               <span>Login Into</span>
               <span> </span>
-              <span style="${uportAppName}">${appName}</span>
-            </p>
-          </div>`
+              <span style="${uportAppName}">${appName}</span>`
+      } else {
+        content +=  `<span>Login</span>`
       }
-      content +=  `
-        <div id="uport-continue-btn" style="${uportModalContinueBtn}"> 
+
+      content += `
+            </p>
+          </div>
+        <div id="uport-continue-btn" style="${uportModalContinueBtn}">
           <span style="${uportModalLogo}">${SVG.logo}</span>
           <span>&nbsp;&nbsp;</span>
           <span>Continue with uPort</span>
@@ -92,8 +96,8 @@ const introModalDisplay = (appName) => {
     <div style="${uportModalNewUserFooterCSS}">
       <p style="${uportModalNewUserFooterTitleCSS}">New uPort User?</p>
       <div style="${uportModalNewUserFooterAppStoresCSS}">
-        <div style="${uportModalNewUserFooterAppStoresAndroidCSS}">${SVG.androidApp}</div>
-        <div style="${uportModalNewUserFooterAppStoresiOSCSS}">${SVG.appleApp}</div>
+        <a href="${googleStoreLink}" target="_blank"><div style="${uportModalNewUserFooterAppStoresAndroidCSS}">${SVG.androidApp}</div></a>
+        <a href="${apppleStoreLink}" target="_blank"><div style="${uportModalNewUserFooterAppStoresiOSCSS}">${SVG.appleApp}</div></a>
       </div>
     </div>
   `
@@ -128,7 +132,7 @@ const uportModal = (innerHTML) => `
           ${SVG.close}
         </div>
       </div>
-      <div style="${uportModalConentCSS}">
+      <div>
         ${innerHTML}
       </div>
     </div>
@@ -339,6 +343,9 @@ const uportModalContinueBtn = `
   -o-transition: border-color 0.1s linear,background 0.1s linear,color 0.1s linear;
   -ms-transition: border-color 0.1s linear,background 0.1s linear,color 0.1s linear;
 `
+
+const apppleStoreLink = 'https://itunes.apple.com/us/app/uport-id/id1123434510?mt=8'
+const googleStoreLink = 'https://play.google.com/store/apps/details?id=com.uportMobile'
 
 /**
  *  export
