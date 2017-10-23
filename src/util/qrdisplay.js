@@ -49,7 +49,9 @@ const openQr = (data, cancel, appName, introModal) => {
 
   document.body.appendChild(wrapper)
   document.getElementById('uport-qr-cancel').addEventListener('click', cancelClick)
-  document.getElementById('uport-continue-btn').addEventListener('click', uportTransition)
+  if (introModal) {
+    document.getElementById('uport-continue-btn').addEventListener('click', uportTransition)
+  }
 }
 
 /**
