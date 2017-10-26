@@ -115,7 +115,7 @@ class ConnectCore {
    *  Creates a request given a request object, will also always return the user's
    *  uPort address. Calls given uriHandler with the uri. Returns a promise to
    *  wait for the response.
-   * 
+   *
    *  @example
    *  const req = { requested: ['name', 'country'], verified: ['GithubUser']}
    *  connect.requestCredentials(req).then(credentials => {
@@ -225,9 +225,12 @@ class ConnectCore {
     }
 
     // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button. should dev use uriHandler if using push notifications?
-    (this.isOnMobile && this.mobileUriHandler)
-      ? this.mobileUriHandler(uri)
-      : uriHandler(uri, topic.cancel, this.appName, this.firstReq)
+    if (this.isOnMobile && this.mobileUriHandler) {
+      this.mobileUriHandler(uri)
+    } else {
+      uri = (uri == 'me.uport:me') ? `${uri}?callback_type=post` : `${uri}&callback_type=post`
+      uriHandler(uri, topic.cancel, this.appName, this.firstReq)  
+    }
 
     this.firstReq = false
 
