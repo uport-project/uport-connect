@@ -126,7 +126,7 @@
     "condition-circle": "^1.5.0",
     "cz-conventional-changelog": "^1.2.0",
     "eslint": "^3.2.2",
-    "eth-lightwallet": "^2.4.3",
+    "eth-lightwallet": "git+https://github.com/srirangan/eth-lightwallet",
     "ethereumjs-testrpc": "^3.0.3",
     "ethereumjs-tx": "^1.1.1",
     "istanbul": "^0.4.5",
