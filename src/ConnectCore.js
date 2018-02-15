@@ -115,7 +115,7 @@ class ConnectCore {
    *  Creates a request given a request object, will also always return the user's
    *  uPort address. Calls given uriHandler with the uri. Returns a promise to
    *  wait for the response.
-   * 
+   *
    *  @example
    *  const req = { requested: ['name', 'country'], verified: ['GithubUser']}
    *  connect.requestCredentials(req).then(credentials => {
@@ -201,6 +201,12 @@ class ConnectCore {
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
       return self.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
     })
+  }
+
+  showRequest (requestToken, uriHandler) {
+    const topic = this.topicFactory('access_token')
+    const uri = `me.uport:me?requestToken=${encodeURIComponent(requestToken)}&callback_url=${encodeURIComponent(topic.url)}`
+    return this.request({ uri, topic, uriHandler })
   }
 
   /**

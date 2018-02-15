@@ -489,6 +489,26 @@ describe('ConnectCore', () => {
     })
   })
 
+  describe('showRequest', () => {
+    const REQUEST_TOKEN = 'aRequestToken'
+    it('shows a request to the user correctly', () => {
+      const uriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', {
+        topicFactory: (name) => {
+          expect(name, 'topic name').to.equal('access_token')
+          return mockTopic('ok')
+        },
+        uriHandler
+      })
+      return uport.showRequest(REQUEST_TOKEN).then((result) => {
+        expect(result, 'uport.showRequest response').to.equal('ok')
+        expect(uriHandler.calledWith(`me.uport:me?requestToken=${REQUEST_TOKEN}&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123`), uriHandler.lastCall.args[0]).to.be.true
+      }, error => {
+        throw new Error('uport.request Promise rejected, expected it to resolve')
+      })
+    })
+  })
+
   describe('sendTransaction', () => {
     it('shows simple value url', () => {
       const uriHandler = sinon.spy()
