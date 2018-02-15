@@ -203,6 +203,13 @@ class ConnectCore {
     })
   }
 
+  /**
+   *  Shows a request created by the uport-js library
+   *
+   *  @param    {String}            requestToken                    the request to be sent to the user
+   *  @param    {Function}          [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
+   *  @return   {Promise<Object, Error>}                            a promise which resolves with a resonse object or rejects with an error.
+   */
   showRequest (requestToken, uriHandler) {
     const topic = this.topicFactory('access_token')
     const uri = `me.uport:me?requestToken=${encodeURIComponent(requestToken)}&callback_url=${encodeURIComponent(topic.url)}`
