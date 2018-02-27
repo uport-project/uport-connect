@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.7.1-alpha",
+  "version": "0.7.1",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "yarn build-es5 && yarn build-dist && yarn build-dist-prod",
     "build-es5": "./node_modules/.bin/babel src -d lib",
     "build-dist": "./node_modules/.bin/webpack --config webpack.config.js",
-    "build-dist-prod": "./node_modules/.bin/webpack --config webpack.prod-config.js",
+    "build-dist-prod": "./node_modules/.bin/wegit statbpack --config webpack.prod-config.js",
     "watch": "./node_modules/.bin/webpack --config webpack.config.js -w",
     "testrpc": "./node_modules/.bin/testrpc",
     "test": "./node_modules/.bin/mocha && npm run karma",
