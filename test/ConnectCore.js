@@ -404,6 +404,22 @@ describe('ConnectCore', () => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
+
+    it('passes the accountType param in request if initially configured with it', () => {
+      const accountType = 'general'
+      const uport = new ConnectCore('UportTests', {
+        accountType,
+        topicFactory: () => mockTopic(CREDENTIALS_JWT),
+        uriHandler: sinon.spy(),
+        credentials: mockSigningCredentials({
+            receive: () => PROFILE,
+            createRequest: (payload) => { expect(payload.accountType).to.equal(accountType) }
+          })
+      })
+      return uport.requestCredentials().then(profile => { }, error => {
+        throw new Error('uport.request Promise rejected, expected it to resolve')
+      })
+    })
   })
 
   describe('requestAddress', () => {

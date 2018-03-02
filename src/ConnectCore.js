@@ -67,6 +67,7 @@ class ConnectCore {
    * @param       {Function}          opts.uriHandler        default function to consume generated URIs for requests, can be used to display QR codes or other custom UX
    * @param       {Function}          opts.mobileUriHandler  default function to consume generated URIs for requests on mobile
    * @param       {Function}          opts.closeUriHandler   default function called after a request receives a response, can be to close QR codes or other custom UX
+   *  @param      {String}            opts.accountType       Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
    * @return      {Connect}                                  self
    */
 
@@ -74,6 +75,7 @@ class ConnectCore {
     this.appName = appName || 'uport-connect-app'
     this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
     this.provider = opts.provider
+    this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
     this.uriHandler = opts.uriHandler || defaultUriHandler
@@ -115,7 +117,7 @@ class ConnectCore {
    *  Creates a request given a request object, will also always return the user's
    *  uPort address. Calls given uriHandler with the uri. Returns a promise to
    *  wait for the response.
-   * 
+   *
    *  @example
    *  const req = { requested: ['name', 'country'], verified: ['GithubUser']}
    *  connect.requestCredentials(req).then(credentials => {
@@ -127,11 +129,13 @@ class ConnectCore {
    *  @param    {Object}                  [request={}]                    request object
    *  @param    {Array}                   [request.requested]             specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile
    *  @param    {Array}                   [request.verified]               specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support.
+   *  @param    {Boolean}                 [request.notifications]         boolean if you want to request the ability to send push notifications
    *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
   requestCredentials (request = {}, uriHandler) {
     const topic = this.topicFactory('access_token')
+    if (this.accountType) request.accountType = this.accountType
     return new Promise((resolve, reject) => {
       if (this.canSign) {
         this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
