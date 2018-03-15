@@ -131,7 +131,6 @@ class ConnectCore {
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
   requestCredentials (request = {}, uriHandler) {
-    const self = this
     const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
     return new Promise((resolve, reject) => {
@@ -154,9 +153,9 @@ class ConnectCore {
       ))
       .then(jwt => receive(jwt, topic.url))
       .then(res => {
-        if (res && res.pushToken) self.pushToken = res.pushToken
-        self.address = res.address
-        self.publicEncKey = res.publicEncKey
+        if (res && res.pushToken) this.pushToken = res.pushToken
+        this.address = res.address
+        this.publicEncKey = res.publicEncKey
         return res
       })
   }
