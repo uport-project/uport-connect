@@ -194,10 +194,9 @@ class ConnectCore {
    *  @return   {Promise<Object, Error>}                            a promise which resolves with a resonse object or rejects with an error.
    */
   attestCredentials ({sub, claim, exp}, uriHandler) {
-    const self = this
     const topic = this.topicFactory('status')
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
-      return self.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
+      return this.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
     })
   }
 
