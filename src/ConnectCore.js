@@ -126,7 +126,7 @@ class ConnectCore {
    *
    *  @param    {Object}                  [request={}]                    request object
    *  @param    {Array}                   [request.requested]             specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile
-   *  @param    {Array}                   [request.verfied]               specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support.
+   *  @param    {Array}                   [request.verified]               specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support.
    *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
