@@ -335,7 +335,7 @@ const paramsToUri = (params) => {
     pairs.push(['bytecode', params.data])
   }
 
-  const paramsAdd = ['label', 'callback_url', 'client_id']
+  const paramsAdd = ['label', 'callback_url', 'client_id', 'gasPrice']
   if (params.to === 'me') {
     pairs.push(['network_id', networkId])
   }

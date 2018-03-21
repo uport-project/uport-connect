@@ -560,6 +560,31 @@ describe('ConnectCore', () => {
       })
     })
 
+    it('shows simple url with data and gasPrice', () => {
+      const uriHandler = sinon.spy()
+      const uport = new ConnectCore('UportTests', {
+        clientId: CLIENT_ID,
+        topicFactory: (name) => {
+          expect(name).to.equal('tx')
+          return mockTopic('FAKETX')
+        },
+        uriHandler,
+        closeUriHandler: () => null
+      })
+      return uport.sendTransaction({
+        to: CONTRACT,
+        value: '0xff',
+        data: 'abcdef01',
+        gas: '0x4444',
+        gasPrice: '0x4444'
+      }).then(txhash => {
+        expect(txhash, 'uport.sendTransaction txhash').to.equal('FAKETX')
+        expect(uriHandler.calledWith(`me.uport:2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?value=255&bytecode=abcdef01&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}&gasPrice=0x4444`), uriHandler.lastCall.args[0]).to.be.true
+      }, error => {
+        throw new Error('uport.request Promise rejected, expected it to resolve')
+      })
+    })
+
     it('throws an error for contract transactions', () => {
       const uriHandler = sinon.spy(), closeUriHandler = sinon.spy()
       const uport = new ConnectCore('UportTests', { uriHandler, closeUriHandler })
