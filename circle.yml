@@ -1,6 +1,6 @@
 machine:
   node:
-    version: v7.3.0
+    version: v8.4.0
 test:
   override:
     - npm run karma-CI
