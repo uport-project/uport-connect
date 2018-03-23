@@ -134,8 +134,6 @@ class ConnectCore {
    *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
    */
   requestCredentials (request = {}, uriHandler) {
-    const self = this
-    const receive = this.credentials.receive.bind(this.credentials)
     const topic = this.topicFactory('access_token')
     if (this.accountType) request.accountType = this.accountType
     return new Promise((resolve, reject) => {
@@ -156,11 +154,11 @@ class ConnectCore {
     }).then(uri => (
         this.request({uri, topic, uriHandler})
       ))
-      .then(jwt => receive(jwt, topic.url))
+      .then(jwt => this.credentials.receive(jwt, topic.url))
       .then(res => {
-        if (res && res.pushToken) self.pushToken = res.pushToken
-        self.address = res.address
-        self.publicEncKey = res.publicEncKey
+        if (res && res.pushToken) this.pushToken = res.pushToken
+        this.address = res.address
+        this.publicEncKey = res.publicEncKey
         return res
       })
   }
@@ -200,10 +198,9 @@ class ConnectCore {
    *  @return   {Promise<Object, Error>}                            a promise which resolves with a resonse object or rejects with an error.
    */
   attestCredentials ({sub, claim, exp}, uriHandler) {
-    const self = this
     const topic = this.topicFactory('status')
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
-      return self.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
+      return this.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
     })
   }
 
