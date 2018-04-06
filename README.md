@@ -84,6 +84,26 @@ var uport = new uportconnect.Connect('MyDApp')
 
 For a more in depth quick start example follow our [tutorial for building a simple dapp](https://github.com/uport-project/uport-connect/blob/develop/tutorial/tutorial.md) or locally open the `/tutorial` folder. This simple example will show you how to use our default QR flow to connect and create transactions to send ether or interact with smart contracts.
 
+### <a name="frontend"></a> Frontend Library Specific Fixes
+Each Frontend Library React, Angular, Vue, etc... can sometimes require specific configuration settings. To prevent developers from solving the same problems twice we're going document Library specific issues on a case-by-case basis. 
+
+#### <a name="angular"></a> Angular
+When adding the `uport-connect.js` library to an Angular project please install the `crypto-browserify` module as a project dependency and create a path alias pointing `crypto` to the `crypto-browserify` module.
+
+This will fix a `crypto.createHash()` undefined error.
+
+```
+"paths": {
+  "crypto": ["../node_modules/crypto-browserify/index.js"]
+}
+```
+ 
+
+#### <a name="frontend-other"></a> Other Frontend Libraries
+Are you experiencing other Frontend Library specific issues?
+
+Let us know in <a href="https://github.com/uport-project/uport-connect/issues"> the issues</a>.
+
 ---------------------------------------------
 
 ## <a name="usage-guide"></a> Usage Guide
