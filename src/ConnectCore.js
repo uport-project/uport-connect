@@ -5,6 +5,7 @@ import UportSubprovider from './uportSubprovider'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode, decode } from 'mnid'
+import { decodeToken } from 'jsontokens'
 
 const networks = {
   'mainnet':   {  id: '0x1',
@@ -205,7 +206,7 @@ class ConnectCore {
   }
 
   /**
-   *  Create a request and returns a promise which resolves the response. This
+   *  Create a request and returns a promise which resolves the response. Thisa
    *  function is primarly is used by more specified functions in this class, which
    *  allow you to easily create the URIs and messaging server topics you need here.
    *
@@ -243,6 +244,56 @@ class ConnectCore {
         })
       })
     } else return topic
+  }
+
+
+  /**
+   *  Useful for integrating with uport-js on your server. On your server you can create signed request tokens
+   *  and credentials. Once created you can use this function to pass these tokens to the mobile app. This function
+   *  consumes a request token, a credential or an array of credentials. This function offers similar flows to the
+   *  primary uport-connect request function except you have handle getting the mobile response from your own server
+   *  and handle closing any started flows (ex. if using defaults the QR flow will open). If on mobile the entire
+   *  default flow is offered and the mobile reponse will be returned from the promise, otherwise for all other flows
+   *  the promise will return null.
+   *
+   *  @param    {Object}     request                                request object
+   *  @param    {String}     request.token                          a request token, an attestation or an array of attestations
+   *  @param    {String}     request.cbUrl                          a callback url for when sending credentials, the cb url for request token is already in the token
+   *  @param    {String}     [request.uriHandler=this.uriHandler]   function to consume URI, can be used to display QR codes or other custom UX
+   *  @return   {Promise<Object, Error>}                            promise which resolves with a response object or rejects with an error.
+   */
+  tokenRequest ({token,  cbUrl, uriHandler}) {
+    // TODO in the future topic factory polling could be more general to allow it to be used for polling here with any cbUrl
+    const singleToken = Array.isArray(token) ? token[0] : token
+    const decodedToken = decodeToken(singleToken)
+    const defaultUriHandler = !uriHandler
+    const nullPromise = new Promise((resolve, reject) => {resolve(null)})
+    let uri, topic
+
+    if (decodedToken.payload.type ===  'shareReq') {
+      topic = this.topicFactory('access_token')
+      uri = `me.uport:me?requestToken=${encodeURIComponent(token)}`
+    } else {
+      // is a credential or array of crendentials
+      topic = this.topicFactory('status')
+      const credStr = Array.isArray(token) ? `[${credentials.toString()}]` : token
+      uri = `me.uport:add?attestations=${encodeURIComponent(credStr)}&callback_url=${encodeURIComponent(cbUrl)}`
+    }
+
+    uriHandler = defaultUriHandler ? this.uriHandler : uriHandler
+
+    if (this.isOnMobile && this.mobileUriHandler) {
+      this.mobileUriHandler(uri)
+      return this.request({uri, topic, uriHandler})
+    }
+
+    if (this.pushToken && !this.isOnMobile) {
+      this.credentials.push(this.pushToken, {url: uri})
+    } else {
+      uriHandler(uri, topic.cancel)
+    }
+
+    return nullPromise
   }
 
   /**
