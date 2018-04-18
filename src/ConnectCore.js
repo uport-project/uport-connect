@@ -139,7 +139,7 @@ class ConnectCore {
     return new Promise((resolve, reject) => {
       if (this.canSign) {
         this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
-          resolve(`me.uport:me?requestToken=${encodeURIComponent(requestToken)}`)
+          resolve(`https://id.uport.me/me?requestToken=${encodeURIComponent(requestToken)}`)
         )
       } else {
         if (request.requested && request.requested.length > 0) {
@@ -200,7 +200,7 @@ class ConnectCore {
   attestCredentials ({sub, claim, exp}, uriHandler) {
     const topic = this.topicFactory('status')
     return this.credentials.attest({ sub, claim, exp }).then(jwt => {
-      return this.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
+      return this.request({uri: `https://id.uport.me/add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
     })
   }
 
@@ -325,7 +325,7 @@ const paramsToUri = (params) => {
   }
   const networkId = params.network_id || this.network.id
   params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: networkId, address: params.to})
-  let uri = `me.uport:${params.to}`
+  let uri = `https://id.uport.me/${params.to}`
   const pairs = []
   if (params.value) {
     pairs.push(['value', parseInt(params.value, 16)])
