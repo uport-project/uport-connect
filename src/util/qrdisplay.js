@@ -188,7 +188,8 @@ const uportModalCSS = `
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 12px 24px 0 rgba(0,0,0,0.1);
-  min-width: 400px;
+  width: 400px;
+  max-width: 100%;
 `
 
 /**
@@ -232,7 +233,9 @@ const uportModalNewUserFooterTitleCSS = `
  *  uportModalNewUserFooterAppStoresCSS CSS
  */
 const uportModalNewUserFooterAppStoresCSS = `
-  padding: 10px 42px;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: center;
 `
 
 /**
@@ -241,8 +244,8 @@ const uportModalNewUserFooterAppStoresCSS = `
 const uportModalNewUserFooterAppStoresAndroidCSS = `
   width: 128px;
   height: 40px;
-  margin-right: 20px;
-  display: inline-block;
+  margin: 0 10px;
+  display: block;
 `
 
 /**

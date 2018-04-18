@@ -88,8 +88,7 @@ class Autosigner {
 
   static parse (uri) {
     let parsedUri = url.parse(uri)
-    // url.parse does not retain base58 encoding
-    let address = uri.match(/:(?:(?!\?).)*/)[0].slice(1)
+    let address = parsedUri.pathname.slice(1)
 
     if (address !== 'me') {
       address = isMNID(address) ? decode(address).address : address
