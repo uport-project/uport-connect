@@ -188,7 +188,7 @@ const uportModalCSS = `
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 12px 24px 0 rgba(0,0,0,0.1);
-  width: 400px;
+  min-width: 400px;
   max-width: 100%;
 `
 
