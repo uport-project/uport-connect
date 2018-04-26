@@ -84,9 +84,9 @@ class ConnectCore {
     this.clientId = opts.clientId
     this.network = configNetwork(opts.network)
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
-    this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
+    this.credentials = opts.credentials || new Credentials({did: this.did, address: this.clientId, signer: opts.signer, privateKey: opts.privateKey, networks: credentialsNetwork})
     // TODO throw error if this.network not part of network set in Credentials
-    this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
+    this.canSign = !!this.credentials.signer && !!this.credentials.did
     this.pushToken = null
     this.address = null
     this.firstReq = true
@@ -138,7 +138,7 @@ class ConnectCore {
     if (this.accountType) request.accountType = this.accountType
     return new Promise((resolve, reject) => {
       if (this.canSign) {
-        this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
+        this.credentials.requestDisclosure({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
           resolve(`https://id.uport.me/me?requestToken=${encodeURIComponent(requestToken)}`)
         )
       } else {
@@ -154,7 +154,7 @@ class ConnectCore {
     }).then(uri => (
         this.request({uri, topic, uriHandler})
       ))
-      .then(jwt => this.credentials.receive(jwt, topic.url))
+      .then(jwt => this.credentials.authenticate(jwt, topic.url))
       .then(res => {
         if (res && res.pushToken) this.pushToken = res.pushToken
         this.address = res.address
