@@ -17,7 +17,7 @@ The uPort technology primarily consists of smart contracts, developer libraries,
 
 For more information about our system and other products visit [uport.me](https://www.uport.me). View our [whitepaper draft](http://whitepaper.uport.me/uPort_whitepaper_DRAFT20170221.pdf) if interested in understanding all the components of our identity system, how they interact and for the background of why many choices were made. Please be aware this document is rapidly changing at the moment. Our uPort mobile app is currently in a limited alpha release, you can [sign up here](https://www.uport.me/signup) for IOS or Android. If you are interested in partnering with uPort [please reach out here](https://www.uport.me/partners).
 
-For any questions or library support reach out to the [uPort team on gitter](https://gitter.im/uport-project/Lobby) or create a [Github issue](https://github.com/uport-project/uport-connect/issues).
+For any questions or library support reach out to the [uPort team on riot](https://chat.uport.me/#/login) or create a [Github issue](https://github.com/uport-project/uport-connect/issues).
 
 ---------------------------------------------
 
@@ -348,7 +348,7 @@ $ (cd node_modules/uport-connect && npm install babel-cli && npm run prepublish)
 
 ## <a name="contribute"></a> Contributing
 
-Code, test and documentation contributions are welcomed and encouraged. Please read the guidelines below and reach out on [gitter](https://gitter.im/uport-project/Lobby) or create an [issue](https://github.com/uport-project/uport-connect/issues) if any contribution is more than trivial. We can help you see where/if it fits into our roadmap and if we are likely to accept. We are also looking to add references to projects using `uport-connect` with example implementations and use cases.
+Code, test and documentation contributions are welcomed and encouraged. Please read the guidelines below and reach out on our [riot](https://chat.uport.me/#/login) or create an [issue](https://github.com/uport-project/uport-connect/issues) if any contribution is more than trivial. We can help you see where/if it fits into our roadmap and if we are likely to accept. We are also looking to add references to projects using `uport-connect` with example implementations and use cases.
 
 #### <a name="bugs"></a> Reporting Bugs
 
