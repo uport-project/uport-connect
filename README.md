@@ -15,7 +15,7 @@ The uPort technology primarily consists of smart contracts, developer libraries,
 
 `uport-connect` is the client side library that allows you interact with user's uPort identities through the mobile app. It handles the communication channel between your app and the uPort mobile app, which can vary depending on the environment which your application runs. Over this communication channel you can create requests for a user's data, share credentials and generate transactions to be signed in the user's mobile app.
 
-For more information about our system and other products visit [uport.me](https://www.uport.me). View our [whitepaper draft](http://whitepaper.uport.me/uPort_whitepaper_DRAFT20170221.pdf) if interested in understanding all the components of our identity system, how they interact and for the background of why many choices were made. Please be aware this document is rapidly changing at the moment. Our uPort mobile app is currently in a limited alpha release, you can [sign up here](https://www.uport.me/signup) for IOS or Android. If you are interested in partnering with uPort [please reach out here](https://www.uport.me/partners).
+For more information about our system and other products visit [uport.me](https://www.uport.me). View our [protocol specs](https://github.com/uport-project/specs/) if interested in understanding some of the lower level details.
 
 For any questions or library support reach out to the [uPort team on riot](https://chat.uport.me/#/login) or create a [Github issue](https://github.com/uport-project/uport-connect/issues).
 
@@ -85,7 +85,7 @@ var uport = new uportconnect.Connect('MyDApp')
 For a more in depth quick start example follow our [tutorial for building a simple dapp](https://github.com/uport-project/uport-connect/blob/develop/tutorial/tutorial.md) or locally open the `/tutorial` folder. This simple example will show you how to use our default QR flow to connect and create transactions to send ether or interact with smart contracts.
 
 ### <a name="frontend"></a> Frontend Library Specific Fixes
-Each Frontend Library React, Angular, Vue, etc... can sometimes require specific configuration settings. To prevent developers from solving the same problems twice we're going document Library specific issues on a case-by-case basis. 
+Each Frontend Library React, Angular, Vue, etc... can sometimes require specific configuration settings. To prevent developers from solving the same problems twice we're going document Library specific issues on a case-by-case basis.
 
 #### <a name="angular"></a> Angular
 When adding the `uport-connect.js` library to an Angular project please install the `crypto-browserify` module as a project dependency and create a path alias pointing `crypto` to the `crypto-browserify` module.
@@ -97,7 +97,7 @@ This will fix a `crypto.createHash()` undefined error.
   "crypto": ["../node_modules/crypto-browserify/index.js"]
 }
 ```
- 
+
 
 #### <a name="frontend-other"></a> Other Frontend Libraries
 Are you experiencing other Frontend Library specific issues?
