@@ -37,16 +37,19 @@ const configNetwork = (net = DEFAULTNETWORK) => {
   throw new Error(`Network configuration object or network string required`)
 }
 
-/**
-*  Primary object for frontend interactions with uPort. ConnectCore excludes
-*  some functionality found in Connect for a more customizable and lightweight integration.
-*  It does not provide any web3 functionality althought you can still use getProvider
-*  to get a provider to use with web3 or other libraries. It removes all default
-*  QR injection functionality. Your can choose how you want to handle the UX and/or
-*  QR generation and use any QR library you choose. For example, if used in a
-*  mobile native app QR generation is not even necessary.
-*
-*/
+const connectTransport = (uri, {data}) => {
+  if (/access_token/.test(uri)) {
+    transport.qr.send()(uri)
+    // return closeQR ??
+    return Promise.resolve({data})
+  } else {
+    return  transport.qr.chasquiSend()(uri).then(res => ({res, data}))
+  }
+}
+
+const simpleRequest = () =>  `https://id.uport.me/me`
+const txRequest = (txObj) => message.util.paramsToQueryString(`me.uport:${txObj.to}`, txObj)
+
 
 class Connect {
 
@@ -71,20 +74,18 @@ class Connect {
 
   constructor (appName, opts = {}) {
     this.appName = appName || 'uport-connect-app'
-    this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
+    this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')  //Not used right now
     this.provider = opts.provider
     this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
-    this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
-    this.uriHandler = opts.uriHandler || openQr
-    this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
-    this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
-    this.clientId = opts.clientId
     this.network = configNetwork(opts.network)
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
     this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
     this.address = null
     this.firstReq = true
+    // Transports
+    this.transport = opts.transport || connectTransport
+    this.mobileTransport = opts.mobileTransport || transport.url.send()
   }
 
   /**
@@ -108,51 +109,30 @@ class Connect {
   }
 
   /**
-   *  Creates a request for only the address of the uPort identity. Calls given
-   *  uriHandler with the uri. Returns a promise to wait for the response.
-   *
-   *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
-   *  @return   {Promise<String, Error>}                                  a promise which resolves with an address or rejects with an error.
+   *  Creates a request for only the address/id of the uPort identity.
    */
-  requestAddress (uriHandler) {
-    return this.requestCredentials({}, uriHandler).then((profile) => profile.networkAddress || profile.address)
-  }
+   requestAddress () {
+     return this.request(simpleRequest())
+   }
 
-  /**
-   *  Create a request and returns a promise which resolves the response. This
-   *  function is primarly is used by more specified functions in this class, which
-   *  allow you to easily create the URIs and messaging server topics you need here.
-   *
-   *  @param    {Object}     request                                request object
-   *  @param    {String}     request.uri                            uPort URI
-   *  @param    {String}     request.topic                          messaging server topic object
-   *  @param    {String}     [request.uriHandler=this.uriHandler]   function to consume URI, can be used to display QR codes or other custom UX
-   *  @return   {Promise<Object, Error>}                            promise which resolves with a response object or rejects with an error.
-   */
-  request ({uri, topic, uriHandler}) {
-    const defaultUriHandler = !uriHandler
 
-    if (defaultUriHandler) { uriHandler = this.uriHandler }
+   // NOTE interface, some are cancellable?, maybe just allow devs to pass in cancel func instead?
+  //  TODO Name? request, transport? send?
+   /**
+     *  Send a request URI string to a uport client
+     *
+     *  @param    {String}     uri            a request URI to send to a uport client
+     *  @param    {String}     id             id of request you are looking for a response for
+     *  @param    {Object}     [opts]         optional parameters for a callback
+     *  @param    {String}     opts.callback  callback TODO ref specs here for cb, data, type and diff between signed and unsigned req
+     *  @param    {String}     opts.data
+     *  @param    {String}     opts.type
+     *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
+     */
+   request (uri, id, {callback, data, type} = {}) {
+     return this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data})
+   }
 
-    // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button. should dev use uriHandler if using push notifications?
-    (this.isOnMobile && this.mobileUriHandler)
-      ? this.mobileUriHandler(uri)
-      : uriHandler(uri, topic.cancel, this.appName, this.firstReq)
-
-    this.firstReq = false
-
-    if (defaultUriHandler && !this.isOnMobile && this.closeUriHandler) {
-      return new Promise((resolve, reject) => {
-        topic.then(res => {
-          this.closeUriHandler()
-          resolve(res)
-        }, error => {
-          this.closeUriHandler()
-          reject(error)
-        })
-      })
-    } else return topic
-  }
 
   /**
   *  Builds and returns a contract object which can be used to interact with
@@ -162,12 +142,11 @@ class Connect {
   *  a transtaction ID.
   *
   *  @param    {Object}       abi                                   contract ABI
-  *  @param    {Function}     [request.uriHandler=this.uriHandler]  function to consume uri, can be used to display QR codes or other custom UX
   *  @return   {Object}                                             contract object
   */
   contract (abi) {
-    const txObjectHandler = (methodTxObject, uriHandler) => this.sendTransaction(methodTxObject, uriHandler)
-    return new ContractFactory(txObjectHandler)(abi)
+    const txObjectHandler = (methodTxObject) => this.sendTransaction(methodTxObject)
+    return ContractFactory(txObjectHandler)(abi)
   }
 
   /**
@@ -187,14 +166,11 @@ class Connect {
    *  })
    *
    *  @param    {Object}     txobj                                  transaction object, can also be wrapped using addAppParameters
-   *  @param    {Function}   [request.uriHandler=this.uriHandler]   function to consume uri, can be used to display QR codes or other custom UX
    *  @return   {Promise<Object, Error>}                            A promise which resolves with a resonse object or rejects with an error.
    */
-  sendTransaction (txobj, uriHandler) {
-    const topic = this.topicFactory('tx')
-    let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
-    return this.request({uri, topic, uriHandler})
-  }
+   sendTransaction (txObj) {
+     return this.request(txRequest(txObj))
+   }
 }
 
 /**
@@ -208,17 +184,6 @@ function isMobile () {
   if (typeof navigator !== 'undefined') {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
-}
-
-/**
- *  Consumes a URI. Used by default when called on a mobile device. Assigns the window
- *  to the URI which will bring up a dialog to open the URI in the uPort app.
- *
- *  @param    {String}     uri    A uPort URI
- *  @private
- */
-function mobileUriHandler (uri) {
-  window.location.assign(uri)
 }
 
 export default Connect
