@@ -58,8 +58,6 @@ class ConnectCore {
    * const uPort = new ConnectCore('Mydapp')
    * @param       {String}            appName                the name of your app
    * @param       {Object}            [opts]                 optional parameters
-   * @param       {Object}            opts.credentials       pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests
-   * @param       {Function}          opts.signer            signing function which will be used to sign JWT's in the credentials object
    * @param       {String}            opts.clientId          uport identifier for your application this will be used in the default credentials object
    * @param       {Object}            [opts.network='rinkeby'] network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
@@ -86,12 +84,8 @@ class ConnectCore {
     this.network = configNetwork(opts.network)
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
     this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
-    // TODO throw error if this.network not part of network set in Credentials
-    this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
-    this.pushToken = null
     this.address = null
     this.firstReq = true
-    this.publicEncKey = null
   }
 
   /**
@@ -115,56 +109,6 @@ class ConnectCore {
   }
 
   /**
-   *  Creates a request given a request object, will also always return the user's
-   *  uPort address. Calls given uriHandler with the uri. Returns a promise to
-   *  wait for the response.
-   *
-   *  @example
-   *  const req = { requested: ['name', 'country'], verified: ['GithubUser']}
-   *  connect.requestCredentials(req).then(credentials => {
-   *      const address = credentials.address
-   *      const name = credentials.name
-   *      ...
-   *  })
-   *
-   *  @param    {Object}                  [request={}]                    request object
-   *  @param    {Array}                   [request.requested]             specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile
-   *  @param    {Array}                   [request.verified]               specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support.
-   *  @param    {Boolean}                 [request.notifications]         boolean if you want to request the ability to send push notifications
-   *  @param    {Function}                [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
-   *  @return   {Promise<Object, Error>}                                  a promise which resolves with a response object or rejects with an error.
-   */
-  requestCredentials (request = {}, uriHandler) {
-    const topic = this.topicFactory('access_token')
-    if (this.accountType) request.accountType = this.accountType
-    return new Promise((resolve, reject) => {
-      if (this.canSign) {
-        this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
-          resolve(`me.uport:me?requestToken=${encodeURIComponent(requestToken)}`)
-        )
-      } else {
-        if (request.requested && request.requested.length > 0) {
-          return reject(new Error('Specific data can not be requested without a signer configured'))
-        }
-        // TODO remove once enabled in mobile app
-        if (request.notifications) {
-          return reject(new Error('Notifications rights can not currently be requested without a signer configured'))
-        }
-        resolve(paramsToUri(this.addAppParameters({ to: 'me' }, topic.url)))
-      }
-    }).then(uri => (
-        this.request({uri, topic, uriHandler})
-      ))
-      .then(jwt => this.credentials.receive(jwt, topic.url))
-      .then(res => {
-        if (res && res.pushToken) this.pushToken = res.pushToken
-        this.address = res.address
-        this.publicEncKey = res.publicEncKey
-        return res
-      })
-  }
-
-  /**
    *  Creates a request for only the address of the uPort identity. Calls given
    *  uriHandler with the uri. Returns a promise to wait for the response.
    *
@@ -173,36 +117,6 @@ class ConnectCore {
    */
   requestAddress (uriHandler) {
     return this.requestCredentials({}, uriHandler).then((profile) => profile.networkAddress || profile.address)
-  }
-
-  /**
-   *  Consumes a credential object and generates a signed JWT. Creates a request
-   *  URI with the JWT. Calls given uriHandler with the URI. Returns a promise to wait
-   *  for the response. Throws error if no signer and/or app identifier is set.
-   *  Will not always receive a response, response is only a status.
-   *
-   *  @example
-   *  const cred = {
-   *    sub: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347'
-   *    claim: {'email': 'hello@uport.me'}
-   *    exp: '1300819380'
-   *  }
-   *  connect.attestCredentials(cred).then(res => {
-   *    // response okay, received in uPort app
-   *  })
-   *
-   *  @param    {Object}            credential                      credential object
-   *  @param    {String}            credential.sub                  subject of this credential
-   *  @param    {Object}            credential.claim                statement(s) which this credential claims, contructed as {key: 'value', ...}
-   *  @param    {String}            credential.exp                  expiry time of this credential
-   *  @param    {Function}          [uriHandler=this.uriHandler]    function to consume uri, can be used to display QR codes or other custom UX
-   *  @return   {Promise<Object, Error>}                            a promise which resolves with a resonse object or rejects with an error.
-   */
-  attestCredentials ({sub, claim, exp}, uriHandler) {
-    const topic = this.topicFactory('status')
-    return this.credentials.attest({ sub, claim, exp }).then(jwt => {
-      return this.request({uri: `me.uport:add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
-    })
   }
 
   /**
@@ -220,11 +134,6 @@ class ConnectCore {
     const defaultUriHandler = !uriHandler
 
     if (defaultUriHandler) { uriHandler = this.uriHandler }
-
-    if (this.pushToken && !this.isOnMobile) {
-      this.credentials.push(this.pushToken, this.publicEncKey, {url: uri})
-      return topic
-    }
 
     // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button. should dev use uriHandler if using push notifications?
     (this.isOnMobile && this.mobileUriHandler)
