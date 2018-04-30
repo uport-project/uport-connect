@@ -1,11 +1,10 @@
-import TopicFactory from './topicFactory'
 import { Credentials, ContractFactory } from 'uport'
 import MobileDetect from 'mobile-detect'
 import UportSubprovider from './uportSubprovider'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode, decode } from 'mnid'
-import { openQr, closeQr } from './util/qrdisplay'
+import { transport, message } from 'uport-core'
 
 const networks = {
   'mainnet':   {  id: '0x1',
@@ -196,67 +195,6 @@ class Connect {
     let uri = paramsToUri(this.addAppParameters(txobj, topic.url))
     return this.request({uri, topic, uriHandler})
   }
-
-  /**
-   *  Adds application specific data to a transaction object. Then uses this data
-   *  when requests are created.
-   *
-   *  @param    {Object}     txobj             transaction object
-   *  @param    {String}     callbackUrl       application callback url
-   *  @return   {Promise<Object, Error>}       A promise which resolves with a resonse object or rejects with an error.
-   *  @private
-   */
-  addAppParameters (txObject, callbackUrl) {
-    const appTxObject = Object.assign({}, txObject)
-    if (callbackUrl) {
-      appTxObject.callback_url = callbackUrl
-    }
-    if (this.appName) {
-      appTxObject.label = this.appName
-    }
-    if (this.clientId) {
-      appTxObject.client_id = this.clientId
-    }
-    appTxObject.network_id = this.network.id
-    return appTxObject
-  }
-}
-
-/**
- *  Consumes a params object and creates URI for uPort mobile.
- *
- *  @param    {Object}     params    A object of params known to uPort
- *  @return   {Strings}              A uPort mobile URI
- *  @private
- */
-const paramsToUri = (params) => {
-  if (!params.to) {
-    throw new Error('Contract creation is not supported by uportProvider')
-  }
-  const networkId = params.network_id || this.network.id
-  params.to = isMNID(params.to) || params.to === 'me' ? params.to : encode({network: networkId, address: params.to})
-  let uri = `https://id.uport.me/${params.to}`
-  const pairs = []
-  if (params.value) {
-    pairs.push(['value', parseInt(params.value, 16)])
-  }
-  if (params.function) {
-    pairs.push(['function', params.function])
-  } else if (params.data) {
-    pairs.push(['bytecode', params.data])
-  }
-
-  const paramsAdd = ['label', 'callback_url', 'client_id', 'gasPrice']
-  if (params.to === 'me') {
-    pairs.push(['network_id', networkId])
-  }
-
-  paramsAdd.map(param => {
-    if (params[param]) {
-      pairs.push([param, params[param]])
-    }
-  })
-  return `${uri}?${pairs.map(kv => `${kv[0]}=${encodeURIComponent(kv[1])}`).join('&')}`
 }
 
 /**
