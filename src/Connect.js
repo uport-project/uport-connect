@@ -5,7 +5,9 @@ import UportSubprovider from './uportSubprovider'
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode, decode } from 'mnid'
 import { transport, message } from 'uport-core'
+import PubSub from 'pubsub-js'
 
+//TODO Import network configs from other repos and move config network to
 const networks = {
   'mainnet':   {  id: '0x1',
                   registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6',
@@ -49,6 +51,14 @@ const connectTransport = (uri, {data}) => {
 
 const simpleRequest = () =>  `https://id.uport.me/me`
 const txRequest = (txObj) => message.util.paramsToQueryString(`me.uport:${txObj.to}`, txObj)
+const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
+const parseResponse = (resObj) => {
+  if (isJWT(resObj.res)) {
+    return this.verifyResponse(resObj.res).then(res => ({id, res, data: resObj.data}))
+  } else {
+    return Promise.resolve(Object.assign({id}, resObj))
+  }
+}
 
 
 class Connect {
@@ -86,6 +96,11 @@ class Connect {
     // Transports
     this.transport = opts.transport || connectTransport
     this.mobileTransport = opts.mobileTransport || transport.url.send()
+    this.PubSub = PubSub
+    this.onloadResponse = transport.url.getResponse()
+    transport.url.listenResponse((err, res) => {
+      if (res) this.PubSub.publish(res.id, {res: res.res, data: res.data})
+    })
   }
 
   /**
@@ -110,10 +125,34 @@ class Connect {
 
   /**
    *  Creates a request for only the address/id of the uPort identity.
+   *
+   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
    */
-   requestAddress () {
-     return this.request(simpleRequest())
+   requestAddress (id='addressReq') {
+     this.request(simpleRequest(), id)
    }
+
+ // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
+ /**
+  *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is avaialable. Listen instead, if looking for multiple responses of same id.
+  *
+  *  @param    {String}    id             id of request you are looking for a response for
+  *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
+  */
+  onResponse(id) {
+    if (this.onloadResponse && this.onloadResponse.id === id) {
+      const onloadResponse = this.onloadResponse
+      this.onloadResponse = null
+      return parseResponse(onloadResponse)
+    }
+
+    return new Promise((resolve, reject) => {
+      this.PubSub.subscribe(id, (msg, res) => {
+        this.PubSub.unsubscribe(id)
+        parseResponse(res).then(res => {resolve(res)}, err => {reject(err)})
+      })
+    })
+  }
 
 
    // NOTE interface, some are cancellable?, maybe just allow devs to pass in cancel func instead?
@@ -130,7 +169,7 @@ class Connect {
      *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
      */
    request (uri, id, {callback, data, type} = {}) {
-     return this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data})
+     this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
    }
 
 
@@ -165,11 +204,11 @@ class Connect {
    *    ...
    *  })
    *
-   *  @param    {Object}     txobj                                  transaction object, can also be wrapped using addAppParameters
-   *  @return   {Promise<Object, Error>}                            A promise which resolves with a resonse object or rejects with an error.
+   *  @param    {Object}    txObj
+   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
    */
-   sendTransaction (txObj) {
-     return this.request(txRequest(txObj))
+   sendTransaction (txObj, id='txReq') {
+     this.request(txRequest(txObj), id)
    }
 }
 
