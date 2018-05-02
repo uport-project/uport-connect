@@ -6651,7 +6651,7 @@ request-progress@^2.0.1:
   dependencies:
     throttleit "^1.0.0"
 
-request@>=2.42.0, request@^2.54.0, request@^2.65.0, request@^2.74.0, request@^2.75.0, request@^2.81.0:
+request@>=2.42.0, request@^2.54.0, request@^2.65.0, request@^2.74.0, request@^2.81.0:
   version "2.85.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.85.0.tgz#5a03615a47c61420b3eb99b7dba204f83603e1fa"
   dependencies:
