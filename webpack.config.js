@@ -13,8 +13,8 @@ let libraryName = 'uportconnect'
 
 // Final Config
 module.exports = {
-  entry: {'uport-connect': './src/index.js',
-          'uport-connect-core': './src/indexCore.js'},
+  entry: {'uport-connect': './lib/index.js',
+          'uport-connect-core': './lib/indexCore.js'},
   output: {
     filename: 'dist/[name].js',
     library: libraryName,
@@ -24,15 +24,15 @@ module.exports = {
   devtool: 'source-map',
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        exclude: /(node_modules)/,
-        loader: 'babel-loader'
-      },
-      {
-        test: /\.json$/,
-        loader: 'json-loader'
-      }
+      // {
+      //   test: /\.js$/,
+      //   exclude: /(node_modules)/,
+      //   loader: 'babel-loader'
+      // },
+      // {
+      //   test: /\.json$/,
+      //   loader: 'json-loader'
+      // }
     ]
   },
   node: {
@@ -43,7 +43,7 @@ module.exports = {
   },
   resolve: {
     modules: [ './src', 'node_modules' ],
-    extensions: ['.js', '.json']
+    extensions: ['.js']
   },
   plugins: [
     globalsPlugin
