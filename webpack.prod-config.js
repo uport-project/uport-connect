@@ -7,8 +7,8 @@ let libraryName = 'uportconnect'
 
 // Final Config
 module.exports = {
-  entry: {'uport-connect': './src/index.js',
-          'uport-connect-core': './src/indexCore.js'},
+  entry: {'uport-connect': './lib/index.js',
+          'uport-connect-core': './lib/indexCore.js'},
   devtool: 'source-map',
   output: {
     filename: 'dist/[name].min.js',
@@ -18,15 +18,15 @@ module.exports = {
   },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        exclude: /(node_modules)/,
-        loader: 'babel-loader'
-      },
-      {
-        test: /\.json$/,
-        loader: 'json-loader'
-      }
+      // {
+      //   test: /\.js$/,
+      //   exclude: /(node_modules)/,
+      //   loader: 'babel-loader'
+      // },
+      // {
+      //   test: /\.json$/,
+      //   loader: 'json-loader'
+      // }
     ]
   },
   node: {
@@ -37,15 +37,12 @@ module.exports = {
   },
   resolve: {
     modules: [ './src', 'node_modules' ],
-    extensions: ['.js', '.json']
+    extensions: ['.js']
   },
   plugins: [
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true
     }),
     new webpack.DefinePlugin({
       'process.env': { NODE_ENV: JSON.stringify('production') }

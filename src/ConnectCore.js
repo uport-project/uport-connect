@@ -2,6 +2,8 @@ import TopicFactory from './topicFactory'
 import { Credentials, ContractFactory } from 'uport'
 import MobileDetect from 'mobile-detect'
 import UportSubprovider from './uportSubprovider'
+import Push from 'uport-core/lib/transport/push'
+
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode, decode } from 'mnid'
@@ -84,9 +86,9 @@ class ConnectCore {
     this.clientId = opts.clientId
     this.network = configNetwork(opts.network)
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
-    this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
+    this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, privateKey: opts.privateKey, networks: credentialsNetwork})
     // TODO throw error if this.network not part of network set in Credentials
-    this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
+    this.canSign = !!this.credentials.signer && !!this.credentials.did
     this.pushToken = null
     this.address = null
     this.firstReq = true
@@ -138,7 +140,7 @@ class ConnectCore {
     if (this.accountType) request.accountType = this.accountType
     return new Promise((resolve, reject) => {
       if (this.canSign) {
-        this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
+        this.credentials.requestDisclosure({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
           resolve(`https://id.uport.me/me?requestToken=${encodeURIComponent(requestToken)}`)
         )
       } else {
@@ -154,11 +156,14 @@ class ConnectCore {
     }).then(uri => (
         this.request({uri, topic, uriHandler})
       ))
-      .then(jwt => this.credentials.receive(jwt, topic.url))
+      .then(jwt => this.credentials.authenticate(jwt, topic.url))
       .then(res => {
-        if (res && res.pushToken) this.pushToken = res.pushToken
         this.address = res.address
         this.publicEncKey = res.publicEncKey
+        if (res && res.pushToken) {
+          this.pushToken = res.pushToken
+          this.push = Push.send(res.pushToken, res.publicEncKey)
+        }
         return res
       })
   }
@@ -219,17 +224,19 @@ class ConnectCore {
     const defaultUriHandler = !uriHandler
 
     if (defaultUriHandler) { uriHandler = this.uriHandler }
-
-    if (this.pushToken && !this.isOnMobile) {
-      this.credentials.push(this.pushToken, this.publicEncKey, {url: uri})
-      return topic
-    }
-
     // TODO consider UI for push notifications, maybe a popup explaining, then a loading symbol waiting for a response, a retry and a cancel button. should dev use uriHandler if using push notifications?
-    (this.isOnMobile && this.mobileUriHandler)
-      ? this.mobileUriHandler(uri)
-      : uriHandler(uri, topic.cancel, this.appName, this.firstReq)
 
+    if (this.push && !this.isOnMobile) {
+      this.push(uri)
+      return topic
+    } 
+    
+    if (this.isOnMobile && this.mobileUriHandler) {
+      this.mobileUriHandler(uri)
+    } else {
+      uriHandler(uri, topic.cancel, this.appName, this.firstReq)
+    }
+    
     this.firstReq = false
 
     if (defaultUriHandler && !this.isOnMobile && this.closeUriHandler) {
