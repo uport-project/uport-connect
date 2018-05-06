@@ -52,6 +52,7 @@ class Connect {
     })
     // TODO need a nicer way configure resolvers, lines below should be temporary
     // TODO would be nice to have some uncoupled funct for parsing/verifying in uport-core-js rather than require config a credential object, nice to require aud either here
+    this.credentials = new Credentials()
     UportDIDResolver(UportLite({ networks: network.config.networkToNetworkSet(this.network) }))
     EthrDIDResolver(opts.ethrConfig || {})
     this.verifyResponse = (res) => {
@@ -72,8 +73,16 @@ class Connect {
   getProvider () {
   // TODO remove defaults, fix import
   const subProvider = new provider.default({
-    requestAddress: this.requestAddress.bind(this),
-    sendTransaction: this.sendTransaction.bind(this),
+    requestAddress: () => {
+      this.requestAddress('addressReqProvider')
+      // TODO can this be parsed to readable name (ie nad) address or network address or mnid
+      return this.onResponse('addressReqProvider').then(res => decode(res.res.payload.nad).address)
+    },
+    sendTransaction: (txObj) => {
+      txObj.bytecode = txObj.data
+      this.sendTransaction(txObj, 'txReqProvider')
+      return this.onResponse('txReqProvider')
+    },
     provider: this.provider,
     networkId: this.network.id
   })
@@ -81,6 +90,7 @@ class Connect {
   return subProvider
   }
 
+// TODO where to return MNID and where to return address, should this be named differently, will return entire response obj now, not just address
  /**
   *  Creates a request for only the address/id of the uPort identity.
   *
@@ -173,16 +183,16 @@ class Connect {
    *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
    */
    sendTransaction (txObj, id='txReq') {
+     const txRequest = (txObj) => message.util.paramsToQueryString(`https://id.uport.me/${isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})}`, txObj)
      this.request(txRequest(txObj), id)
    }
 }
 
 const simpleRequest = () =>  `https://id.uport.me/me`
-// TODO change url
-const txRequest = (txObj) => message.util.paramsToQueryString(`me.uport:${txObj.to}`, txObj)
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
 const connectTransport = (uri, {data}) => {
+  // This will change if all request URIs are JWTs, then check for chasqui callback, or allow some other config. 
   if (/access_token/.test(uri)) {
     transport.qr.send()(uri)
     // return closeQR ??
