@@ -5,10 +5,12 @@ category: "reference"
 type: "content"
 ---
 
+
+
 <a name="Connect"></a>
 
 ## Connect
-**Kind**: global class
+**Kind**: global class  
 
 * [Connect](#Connect)
     * [new Connect(appName, [opts])](#new_Connect_new)
@@ -24,7 +26,7 @@ type: "content"
 ### new Connect(appName, [opts])
 Instantiates a new uPort Connect object.
 
-**Returns**: <code>[Connect](#Connect)</code> - self
+**Returns**: <code>[Connect](#Connect)</code> - self  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -40,7 +42,7 @@ Instantiates a new uPort Connect object.
 | opts.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none" |
 | opts.ethrConfig | <code>Object</code> |  | Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver) |
 
-**Example**
+**Example**  
 ```js
 import { Connect } from 'uport-connect'
 const uPort = new ConnectCore('Mydapp')
@@ -54,14 +56,14 @@ Instantiates and returns a web3 styple provider wrapped with uPort functionality
  overrides eth_sendTransaction to start the send transaction flow to pass the
  transaction to the uPort app.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>
-**Returns**: <code>UportSubprovider</code> - A web3 style provider wrapped with uPort functionality
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Returns**: <code>UportSubprovider</code> - A web3 style provider wrapped with uPort functionality  
 <a name="Connect+requestAddress"></a>
 
 ### connect.requestAddress([id])
 Creates a request for only the address/id of the uPort identity.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -72,8 +74,8 @@ Creates a request for only the address/id of the uPort identity.
 ### connect.onResponse(id) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
 Get response by id of earlier request, returns promise which resolves when first reponse with given id is avaialable. Listen instead, if looking for multiple responses of same id.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise resolves once valid response for given id is avaiable, otherwise rejects with error
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise resolves once valid response for given id is avaiable, otherwise rejects with error  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -84,8 +86,8 @@ Get response by id of earlier request, returns promise which resolves when first
 ### connect.request(uri, id, [opts]) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
 Send a request URI string to a uport client
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise resolves once valid response for given id is avaiable, otherwise rejects with error
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise resolves once valid response for given id is avaiable, otherwise rejects with error  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -105,8 +107,8 @@ Builds and returns a contract object which can be used to interact with
  call the uirHandler with the URI, and return a promise which resolves with
  a transtaction ID.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>
-**Returns**: <code>Object</code> - contract object
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Returns**: <code>Object</code> - contract object  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -119,14 +121,14 @@ Given a transaction object, similarly defined as the web3 transaction object,
  it creates a URI which is passes to the uirHandler. It will create request
  and returns a promise which resolves with the transaction id.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | txObj | <code>Object</code> |  |  |
 | [id] | <code>String</code> | <code>&#x27;addressReq&#x27;</code> | string to identify request, later used to get response |
 
-**Example**
+**Example**  
 ```js
 const txobject = {
    to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
@@ -138,5 +140,5 @@ const txobject = {
    ...
  })
 
-
+ 
 ```
