@@ -1,3 +1,10 @@
+---
+title: "uPort Connect Usage Guide"
+index: 4
+category: "guides"
+type: "content"
+---
+
 ## <a name="usage-guide"></a> Usage Guide
 
 The following Connect object is the primary interface you will use. All details and additional documentation can be found in [our docs](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md).

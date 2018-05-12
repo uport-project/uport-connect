@@ -1,3 +1,9 @@
+---
+title: "How to integrate uPort"
+index: 4
+category: "guides"
+type: "content"
+---
 
 # How to integrate uPort into your dapp
 
