@@ -1,7 +1,7 @@
 ---
 title: "How to integrate uPort"
-index: 4
-category: "guides"
+index: 0
+category: "tutorials"
 type: "content"
 ---
 

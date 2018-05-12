@@ -1,7 +1,7 @@
 ---
 title: "uPort Connect Usage Guide"
 index: 4
-category: "guides"
+category: "tutorials"
 type: "content"
 ---
 
