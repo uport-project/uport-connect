@@ -14,7 +14,7 @@
 The uPort technology primarily consists of smart contracts, developer libraries, and a mobile app. uPort identities are fully owned and controlled by the creator, and don't rely on centralized third-parties for creation, control or validation. In the current implementation of the system this is achievable by having the mobile app act as the primary secure container for data related to your identity and for a set of keys which allow you sign transactions, grant authorization and sign credentials. The identity is anchored in the blockchain with an identifier and public data is stored in IPFS.
 
 `uport-connect` is the client side library that allows you interact with user's uPort identities through the mobile app. It handles the communication channel between your app and the uPort mobile app, which can vary depending on the environment which your application runs. Over this communication channel you can create requests for a user's data, share credentials and generate transactions to be signed in the user's mobile app.
-f
+
 For more information about our system and other products visit [uport.me](https://www.uport.me). View our [protocol specs](https://github.com/uport-project/specs/) if interested in understanding some of the lower level details.
 
 For any questions or library support reach out to the [uPort team on riot](https://chat.uport.me/#/login) or create a [Github issue](https://github.com/uport-project/uport-connect/issues).
