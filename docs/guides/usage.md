@@ -1,13 +1,13 @@
 ---
-title: "uPort Connect Usage Guide"
+title: "Uport-connect Client-side How-to"
 index: 4
 category: "tutorials"
 type: "content"
 ---
 
-## <a name="usage-guide"></a> Usage Guide
+# <a name="usage-guide"></a> Usage Guide
 
-The following Connect object is the primary interface you will use. All details and additional documentation can be found in [our docs](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md).
+The following Connect object is the primary interface you will use. All details and additional documentation can be found in [our docs](https://github.com/uport-project/uport-connect/blob/develop/doc/reference/index.md).
 
 * [Connect](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#Connect) ⇐ <code>[ConnectCore](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#ConnectCore)</code>
     * [new Connect(appName, [opts])](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#new_Connect_new)
@@ -20,11 +20,11 @@ The following Connect object is the primary interface you will use. All details 
     * [.contract(abi)](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#ConnectCore+contract) ⇒ <code>Object</code>
     * [.sendTransaction(txobj)](https://github.com/uport-project/uport-connect/blob/develop/DOCS.md#ConnectCore+sendTransaction) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
 
-### <a name="communication"></a> Communication
+# <a name="communication"></a> Communication
 
 This library manages communication between your application and the mobile app. This communication channel differs depending on the environment in which your app runs and the parameters which you specify. In general, communication consist of a request and a response. This library helps you encode all supported requests. The mobile app understands requests encoded as Uniform Resource Identifier's (URI) with a set of params. These URIs are the strings which must be communicated to the mobile device. All functions which create a request will call a `uriHandler` function which consumes this URI string. This `uriHandler` allows both default and custom means of display and communication.
 
-#### <a name="default-qr"></a> Default QR flow
+## <a name="default-qr"></a> Default QR flow
 
 When the library is loaded on a non-mobile device the library will use QR codes to pass information to the mobile application. To receive a response the library will query a messaging server. You will be able to run your own messaging server or utilize other communication channels, but by default this is provided. We provide a default QR-code display function, which injects a `<div>` containing the QR-code into the DOM. Any function which makes a request to the mobile app will bring up this QR flow.
 
@@ -63,7 +63,7 @@ const uriHandler = (uri) => {
 }
 ```
 
-#### <a name="default-mobile"></a> Default Mobile Requests
+## <a name="default-mobile"></a> Default Mobile Requests
 
 By default `uport-connect` will detect if the library is loaded on a mobile device. When on a mobile device it will call the default `mobileUriHandler` function which consumes a URI encoded request. When on a mobile device it assumes that the uPort app is on the same device, it will set the window URL to the request URI which will bring up a prompt to open that URI in the uPort app. To return a response the mobile app will call a URL which encodes the response and return control to the calling app. There is also a great deal of flexibility with the `mobileUriHandler`, the following options may be useful.
 
@@ -85,7 +85,7 @@ const uport = new Connect('MyDApp', {
 // Then set a default uriHandler or pass a uriHandler for each function which makes a request
 ```
 
-#### <a name="push-notifications"></a> Push Notifications
+## <a name="push-notifications"></a> Push Notifications
 
 An alternative means to communicate with a user's uPort app is through push notifications. This requires an initializing request using one of the flow above, then all requests can be made with push notifications. Using push notification requests requires requesting an additional permission from a uPort user. Thus only use push notifications when you believe it improve your app's user experience and/or your application has some limiting factor that necessitates use. (for example requests which are too large to place in a QR code).
 
@@ -96,11 +96,11 @@ uport.requestCredentials({
 // Then all future requests will use push notifications if permission is granted.
 ```
 
-### <a name="ethereum"></a> Ethereum Interactions and Transactions
+# <a name="ethereum"></a> Ethereum Interactions and Transactions
 
 `uport-connect` can be used to create a web3 object wrapped with uPort functionality. If you already have an existing application built on ethereum using web3 then this may be the simplest uPort integration. If you want to use alternatives to web3 then `uport-connect` can create a web3 style provider wrapped with uPort functionality and can be used in any library which supports these providers, for example [ethjs](https://github.com/ethjs/ethjs). If you have no need to use web3, or want more granular control over handling request URIs, then `uport-connect` provides a contract object similar to web3 which can be used to create transactions encoded as URI requests.
 
-#### <a name="web3"></a> Using with web3
+## <a name="web3"></a> Using with web3
 
 We provide a convenience method to create a uPort enabled version of the web3 object:
 
@@ -117,7 +117,7 @@ The following calls will initiate a uPort request, by default this will show a Q
 * `web3.eth.sendTransaction(txObj)` - returns a transaction hash
 * `myContract.myMethod()` - returns a transaction hash
 
-#### <a name="provider"></a> Using a provider
+## <a name="provider"></a> Using a provider
 
 Create a web3 style provider to use with web3 or other libraries which support these providers. Intercepts the same RPC calls as defined above for the web3 object.
 
@@ -125,7 +125,7 @@ Create a web3 style provider to use with web3 or other libraries which support t
 const uportProvider = uport.getProvider()
 ```
 
-#### <a name="contracts"></a> Contract Object (without web3)
+## <a name="contracts"></a> Contract Object (without web3)
 
 Primary reasons to use this object include; 1) You don't want/need to use web3 2) Using a web3 object will use your default URI handler for every request, if you want different URI handling for different contracts or different contract function calls then you should use this. Each contract function call consumes a `uriHandler` function.
 
