@@ -1,5 +1,5 @@
 ---
-title: "How to integrate uPort"
+title: "How to integrate Uport-Connect"
 index: 0
 category: "tutorials"
 type: "content"
@@ -26,13 +26,13 @@ npm install
 npm run build-dist
 ```
 
-We will be working in the directory `uport-connect/tutorial`.
+We will be working in the directory `uport-connect/examples/integration-tutorial`.
 
-Make sure you have the uPort application installed on your mobile device. An iOS beta developer version of the app is currently available through TestFlight. To receive instructions on how to acquire the app please enter your details at the following url <https://uport.me/signup>.
+Make sure you have the uPort application installed on your mobile device.
 
 We've created a simple HTML file `uport_tutorial.html` that you can find [here](https://github.com/uport-project/uport-connect/blob/develop/tutorial/uport_tutorial.html). It contains a section for connecting your uPort, one section for a transfer of Ether from your uPort address to another address and a section that sets a simple status message in a smart contract.
 
-In order to test the dapp, all you need to do is open the file `uport_tutorial.html` in a browser. There is a file `uport_tutorial.js` that will contain the JavaScript integration code.
+In order to test the dapp, all you need to do is open the file `uport_tutorial.html` in a browser. There is a file `index.js` that will contain the JavaScript integration code.
 
 Consider the necessary code to set up the `web3` object with the uPort provider:
 
