@@ -35,7 +35,7 @@ class Connect {
     // Config
     this.appName = appName || 'uport-connect-app'
     this.network = network.config.network(opts.network)
-    this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')  //Not used right now
+    this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')  //TODO Not used right now, still needed?
     this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
     this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
@@ -57,7 +57,7 @@ class Connect {
     EthrDIDResolver(opts.ethrConfig || {})
     this.verifyResponse = (res) => {
       const decodedToken = decodeJWT(res).payload
-      return verifyJWT(res, {callbackUrl: decodedToken.aud}).then(this.credentials.processDisclosurePayload)
+      return verifyJWT(res, {audience: decodedToken.aud}).then(this.credentials.processDisclosurePayload)
     }
   }
 
@@ -159,7 +159,7 @@ class Connect {
   *  @return   {Object}                                             contract object
   */
   contract (abi) {
-    const txObjectHandler = (methodTxObject) => this.sendTransaction(methodTxObject)
+    const txObjectHandler = (methodTxObject, id) => this.sendTransaction(methodTxObject, id)
     return ContractFactory(txObjectHandler)(abi)
   }
 
@@ -186,14 +186,17 @@ class Connect {
      const txRequest = (txObj) => message.util.paramsToQueryString(`https://id.uport.me/${isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})}`, txObj)
      this.request(txRequest(txObj), id)
    }
+
 }
+
+
 
 const simpleRequest = () =>  `https://id.uport.me/me`
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
 const connectTransport = (uri, {data}) => {
-  // This will change if all request URIs are JWTs, then check for chasqui callback, or allow some other config. 
-  if (/access_token/.test(uri)) {
+  // This will change if all request URIs are JWTs, then check for chasqui callback, or allow some other config.
+  if (/requestToken/.test(uri)) {
     transport.qr.send()(uri)
     // return closeQR ??
     return Promise.resolve({data})
@@ -201,6 +204,7 @@ const connectTransport = (uri, {data}) => {
     return  transport.qr.chasquiSend()(uri).then(res => ({res, data}))
   }
 }
+
 
 /**
  *  Detects if this library is called on a mobile device or tablet.
