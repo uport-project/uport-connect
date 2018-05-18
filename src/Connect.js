@@ -13,6 +13,7 @@ import { verifyJWT,  decodeJWT } from 'did-jwt'
 import UportLite from 'uport-lite'
 
 class Connect {
+
   /**
    * Instantiates a new uPort Connect object.
    *
@@ -52,22 +53,21 @@ class Connect {
     transport.url.listenResponse((err, res) => {
       if (res) this.PubSub.publish(res.id, {res: res.res, data: res.data}) // TODO pass errors
     })
-    // TODO need a nicer way configure resolvers, lines below should be temporary
-    // TODO would be nice to have some uncoupled funct for parsing/verifying in uport-core-js rather than require config a credential object, nice to require aud either here
-    this.credentials = new Credentials()
-    UportDIDResolver(UportLite({ networks: network.config.networkToNetworkSet(this.network) }))
-    EthrDIDResolver(opts.ethrConfig || {})
-    this.verifyResponse = (res) => {
-      const decodedToken = decodeJWT(res).payload
-      return verifyJWT(res, {audience: decodedToken.aud}).then(this.credentials.processDisclosurePayload)
-    }
 
     this.mnid = null // Add this.mnid
     this.doc = null // Add this.doc
     this.keypair = null // Add this.keypair
 
     // Load any existing state if any
-    if (this.storage) this.getState()
+    if (this.storage)  this.getState()
+    if (!this.keypair) this.keypair = Credentials.createIdentity()
+    this.setState()
+
+    // TODO need a nicer way configure resolvers, lines below should be temporary
+    // TODO would be nice to have some uncoupled funct for parsing/verifying in uport-core-js rather than require config a credential object, nice to require aud either here
+    this.registry = UportLite({ networks: network.config.networkToNetworkSet(this.network) })
+    this.credentials = new Credentials(Object.assign(this.keypair, {registry: this.registry, ethrConfig: opts.ethrConfig}))
+    this.verifyResponse = this.credentials.verifyProfile  //TODO verify profile name confusing
   }
 
  /**
@@ -106,7 +106,7 @@ class Connect {
   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
   */
   requestAddress (id='addressReq') {
-   this.request(simpleRequest(), id)
+    this.credentials.requestDisclosure().then(jwt => {this.request(tokenRequest(jwt), id)})
   }
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
@@ -158,7 +158,6 @@ class Connect {
    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
   }
 
-
  /**
   *  Builds and returns a contract object which can be used to interact with
   *  a given contract. Similar to web3.eth.contract but with promises. Once specifying .at(address)
@@ -198,7 +197,6 @@ class Connect {
      this.request(txRequest(txObj), id)
    }
 
-
  /**
   *  Serializes persistant state of Connect object to string. Persistant state includes following
   *  keys and values; address, mnid, did, doc, firstReq, keypair. You can save this string how you
@@ -217,7 +215,6 @@ class Connect {
     }
     return JSON.stringify(connectJSONState)
   }
-
 
   /**
    *  Given string of serialized Connect state, it restores that given state to the Connect
@@ -246,9 +243,8 @@ class Connect {
   }
 }
 
-
-
-const simpleRequest = () =>  `https://id.uport.me/me`
+// TODO handle appended urls differently or more clearly
+const tokenRequest = (jwt) =>  `https://id.uport.me/me?requestToken=${jwt}`
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
 const connectTransport = (uri, {data}) => {
