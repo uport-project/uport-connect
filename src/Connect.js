@@ -4,6 +4,7 @@ import HttpProvider from 'web3/lib/web3/httpprovider' // Can use http provider f
 import { isMNID, encode, decode } from 'mnid'
 import { transport, message, network, provider } from 'uport-core'
 import PubSub from 'pubsub-js'
+import store from  'store'
 
 // Remove this after or find a better place for it
 import UportDIDResolver from 'uport-did-resolver'
@@ -39,6 +40,7 @@ class Connect {
     this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
     this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
+    this.storage = opts.storage || true
     // State
     this.address = null
     this.firstReq = true
@@ -63,6 +65,9 @@ class Connect {
     this.mnid = null // Add this.mnid
     this.doc = null // Add this.doc
     this.keypair = null // Add this.keypair
+
+    // Load any existing state if any
+    if (this.storage) this.getState()
   }
 
  /**
@@ -123,12 +128,14 @@ class Connect {
     if (this.onloadResponse && this.onloadResponse.id === id) {
       const onloadResponse = this.onloadResponse
       this.onloadResponse = null
+      if (this.storage) this.setState()
       return parseResponse(onloadResponse)
     }
 
     return new Promise((resolve, reject) => {
       this.PubSub.subscribe(id, (msg, res) => {
         this.PubSub.unsubscribe(id)
+        if (this.storage) this.setState()
         parseResponse(res).then(res => {resolve(res)}, err => {reject(err)})
       })
     })
@@ -226,6 +233,16 @@ class Connect {
     this.doc = state.doc
     this.firstReq = state.firstReq
     this.keypair = state.keypair
+  }
+
+  getState() {
+    const connectState = store.get('connectState')
+    if (connectState) this.deserialize(connectState)
+  }
+
+  setState() {
+    const connectState = this.serialize()
+    store.set('connectState', connectState)
   }
 }
 
