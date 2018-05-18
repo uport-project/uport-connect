@@ -46,7 +46,7 @@ class Connect {
     this.address = null
     this.firstReq = true
     // Transports
-    this.transport = opts.transport || connectTransport
+    this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send()
     this.PubSub = PubSub
     this.onloadResponse = transport.url.getResponse()
@@ -106,7 +106,7 @@ class Connect {
   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
   */
   requestAddress (id='addressReq') {
-    this.credentials.requestDisclosure().then(jwt => {this.request(tokenRequest(jwt), id)})
+    this.credentials.requestDisclosure({callbackUrl: transport.chasqui.genCallback()}).then(jwt => {this.request(tokenRequest(jwt), id)})
   }
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
@@ -247,17 +247,15 @@ class Connect {
 const tokenRequest = (jwt) =>  `https://id.uport.me/me?requestToken=${jwt}`
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
-const connectTransport = (uri, {data}) => {
-  // This will change if all request URIs are JWTs, then check for chasqui callback, or allow some other config.
-  if (/requestToken/.test(uri)) {
+const connectTransport = (appName) => (uri, {data}) => {
+  if (transport.chasqui.isChasquiCallback(uri))
+    return  transport.qr.chasquiSend({appName})(uri, callback).then(res => ({res, data}))
+  } else {
     transport.qr.send()(uri)
     // return closeQR ??
     return Promise.resolve({data})
-  } else {
-    return  transport.qr.chasquiSend()(uri).then(res => ({res, data}))
   }
 }
-
 
 /**
  *  Detects if this library is called on a mobile device or tablet.
