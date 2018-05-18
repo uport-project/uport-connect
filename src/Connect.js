@@ -59,6 +59,10 @@ class Connect {
       const decodedToken = decodeJWT(res).payload
       return verifyJWT(res, {audience: decodedToken.aud}).then(this.credentials.processDisclosurePayload)
     }
+
+    this.mnid = null // Add this.mnid
+    this.doc = null // Add this.doc
+    this.keypair = null // Add this.keypair
   }
 
  /**
@@ -187,6 +191,42 @@ class Connect {
      this.request(txRequest(txObj), id)
    }
 
+
+ /**
+  *  Serializes persistant state of Connect object to string. Persistant state includes following
+  *  keys and values; address, mnid, did, doc, firstReq, keypair. You can save this string how you
+  *  like and then restore it's state with the deserialize function.
+  *
+  *  @return   {String}   JSON string
+  */
+  serialize() {
+    const connectJSONState = {
+      address: this.address,
+      mnid: this.mnid,
+      did: this.did,
+      doc: this.doc,
+      firstReq: this.firstReq,
+      keypair: this.keypair
+    }
+    return JSON.stringify(connectJSONState)
+  }
+
+
+  /**
+   *  Given string of serialized Connect state, it restores that given state to the Connect
+   *  object which it was called on.
+   *
+   *  @param    {String}    str      serialized Connect state
+   */
+  deserialize(str) {
+    const state = JSON.parse(str)
+    this.address = state.address
+    this.mnid = state.mnid
+    this.did = state.did
+    this.doc = state.doc
+    this.firstReq = state.firstReq
+    this.keypair = state.keypair
+  }
 }
 
 
