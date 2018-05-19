@@ -243,13 +243,13 @@ class Connect {
   }
 }
 
-// TODO handle appended urls differently or more clearly
-const tokenRequest = (jwt) =>  `https://id.uport.me/me?requestToken=${jwt}`
+// TODO this simple function should be some where in uportcore and/or js to make this more clear
+const tokenRequest = (jwt) =>  `https://id.uport.me/req/${jwt}`
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
 const connectTransport = (appName) => (uri, {data}) => {
   if (transport.chasqui.isChasquiCallback(uri)) {
-    return  transport.qr.chasquiSend({appName})(uri, callback).then(res => ({res, data}))
+    return  transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
   } else {
     transport.qr.send()(uri)
     // return closeQR ??

@@ -103,7 +103,7 @@
     "qs": "^6.2.1",
     "store": "^2.0.12",
     "uport": "^0.7.0-alpha-2",
-    "uport-core": "0.0.18",
+    "uport-core": "0.0.24",
     "uport-did-resolver": "0.0.2",
     "uport-lite": "^1.0.2"
   },
