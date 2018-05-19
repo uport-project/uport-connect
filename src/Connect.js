@@ -193,8 +193,8 @@ class Connect {
    *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
    */
    sendTransaction (txObj, id='txReq') {
-     const txRequest = (txObj) => message.util.paramsToQueryString(`https://id.uport.me/${isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})}`, txObj)
-     this.request(txRequest(txObj), id)
+     txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
+     this.credentials.txRequest(txObj, {callbackUrl: transport.chasqui.genCallback()}).then(jwt => this.request(tokenRequest(txObj), id))
    }
 
  /**
@@ -248,7 +248,7 @@ const tokenRequest = (jwt) =>  `https://id.uport.me/me?requestToken=${jwt}`
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
 const connectTransport = (appName) => (uri, {data}) => {
-  if (transport.chasqui.isChasquiCallback(uri))
+  if (transport.chasqui.isChasquiCallback(uri)) {
     return  transport.qr.chasquiSend({appName})(uri, callback).then(res => ({res, data}))
   } else {
     transport.qr.send()(uri)
