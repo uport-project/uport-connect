@@ -1,36 +1,21 @@
-'use strict';
+const path = require('path');
 
-// Webpack
-const webpack = require('webpack')
-
-// Plugin Setup
-const globalsPlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true')),
-  'process.env': { 'NODE_ENV': JSON.stringify('development') }
-})
-
-let libraryName = 'uportconnect'
-
-// Final Config
 module.exports = {
-  entry: {'uport-connect': './src/connect.js'},
+  entry: './src/Connect.js',
   output: {
-    filename: 'dist/[name].js',
-    library: libraryName,
+    filename: 'uport-connect.js',
+    path: path.resolve(__dirname, 'dist'),
+    library: 'uportconnect',
+    libraryExport: 'default',
     libraryTarget: 'umd',
     umdNamedDefine: true
   },
-  devtool: 'source-map',
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
         loader: 'babel-loader'
-      },
-      {
-        test: /\.json$/,
-        loader: 'json-loader'
       }
     ]
   },
@@ -39,20 +24,5 @@ module.exports = {
     fs: 'empty',
     net: 'empty',
     tls: 'empty'
-  },
-  resolve: {
-    modules: [ './src', 'node_modules' ],
-    extensions: ['.js', '.json']
-  },
-  plugins: [
-    globalsPlugin
-    // new webpack.SourceMapDevToolPlugin({
-    //   filename: outputFile + '.map',
-    //   append: false,
-    //   module: true,
-    //   columns: true,
-    //   lineToLine: true
-    // })
-
-  ]
-}
+  }
+};
