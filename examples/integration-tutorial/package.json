@@ -10,6 +10,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "uport-connect": "latest",
-    "web3": "latest"
+    "web3": "0.19.0"
   }
 }
