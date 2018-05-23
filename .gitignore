@@ -28,11 +28,7 @@ coverage
 lib
 dist
 
-#Docs
-docs
-
 .DS_Store
-
 
 integration-test/Connect.js
 
