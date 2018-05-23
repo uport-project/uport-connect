@@ -1,3 +1,12 @@
+---
+title: "Uport Connect"
+index: 4
+category: "reference"
+type: "content"
+---
+
+
+
 ## Modules
 
 <dl>

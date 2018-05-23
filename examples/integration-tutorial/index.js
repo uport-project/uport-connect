@@ -17,11 +17,12 @@ const statusInstance = StatusContract.at('0x70A804cCE17149deB6030039798701a38667
 
 // uPort connect
 const uportConnect = function () {
+
   web3.eth.getCoinbase((error, address) => {
     if (error) { throw error }
     globalState.ethAddress = address
 
-    // This one is for display purposes - MNID encoding includes network 
+    // This one is for display purposes - MNID encoding includes network
     globalState.uportId = window.uportconnect.MNID.encode({network: '0x4', address: address})
 
     statusInstance.getStatus.call(globalState.ethAddress, (err, st) => {
@@ -56,7 +57,7 @@ const sendEther = () => {
 const setStatus = () => {
 
   const newStatusMessage = globalState.statusInput
-  
+
   statusInstance.updateStatus(newStatusMessage,
                            (error, txHash) => {
                              if (error) { throw error }
