@@ -1,11 +1,11 @@
 ---
-title: "Uport-connect Communication and Transactions"
+title: "Communication and Transactions"
 index: 2
 category: "tutorials"
 type: "content"
 ---
 
-# <a name="usage-guide"></a> Uport-Connect Communication and Transactions tutorial
+# <a name="usage-guide"></a> Communication and Transactions how-to
 
 The following Connect object is the primary interface you will use. All details and additional documentation can be found in [our docs](https://github.com/uport-project/uport-connect/blob/develop/doc/reference/index.md).
 

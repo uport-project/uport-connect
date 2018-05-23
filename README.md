@@ -25,7 +25,7 @@ For any questions or library support reach out to the [uPort team on riot](https
 
 For additional documentation on all functionality [visit our docs](https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md). For a quick start continue below.
 
-For a more interactive quick start visit [developer.uport.me](https://developer.uport.me)
+For a more interactive quick start visit [developer.uport.me](https://developer.uport.me/gettingstarted)
 
 ### <a name="quick-start"></a> Quick Start
 
