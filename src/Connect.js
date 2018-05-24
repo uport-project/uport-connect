@@ -22,14 +22,9 @@ class Connect {
    * const uPort = new ConnectCore('Mydapp')
    * @param       {String}            appName                the name of your app
    * @param       {Object}            [opts]                 optional parameters
-   * @param       {String}            opts.clientId          uport identifier for your application this will be used in the default credentials object
    * @param       {Object}            [opts.network='rinkeby'] network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
-   * @param       {Function}          opts.topicFactory      function which generates topics and deals with requests and response
-   * @param       {Function}          opts.uriHandler        default function to consume generated URIs for requests, can be used to display QR codes or other custom UX
-   * @param       {Function}          opts.mobileUriHandler  default function to consume generated URIs for requests on mobile
-   * @param       {Function}          opts.closeUriHandler   default function called after a request receives a response, can be to close QR codes or other custom UX
-   * @param       {String}            opts.accountType       Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
+   * TODO write params in
    * @param       {Object}            opts.ethrConfig        Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
    * @return      {Connect}                                  self
    */
@@ -41,7 +36,7 @@ class Connect {
     this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
     this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
-    this.storage = opts.storage || true
+    this.storage = opts.storage === undefined ? true : opts.storage
     // State
     this.address = null
     this.firstReq = true
@@ -49,14 +44,15 @@ class Connect {
     this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send()
     this.PubSub = PubSub
-    this.onloadResponse = transport.url.getResponse()
+    this.onloadResponse = transport.url.getResponse
     transport.url.listenResponse((err, res) => {
       if (res) this.PubSub.publish(res.id, {res: res.res, data: res.data}) // TODO pass errors
     })
 
+    // TODO
     this.mnid = null // Add this.mnid
     this.doc = null // Add this.doc
-    this.keypair = null // Add this.keypair
+    // TODO did?
 
     // Load any existing state if any
     if (this.storage)  this.getState()
@@ -80,23 +76,24 @@ class Connect {
   *  @return          {UportSubprovider}    A web3 style provider wrapped with uPort functionality
   */
   getProvider () {
-  // TODO remove defaults, fix import
-  const subProvider = new provider.default({
-    requestAddress: () => {
-      this.requestAddress('addressReqProvider')
-      // TODO can this be parsed to readable name (ie nad) address or network address or mnid
-      return this.onResponse('addressReqProvider').then(res => decode(res.res.payload.nad).address)
-    },
-    sendTransaction: (txObj) => {
-      txObj.bytecode = txObj.data
-      this.sendTransaction(txObj, 'txReqProvider')
-      return this.onResponse('txReqProvider')
-    },
-    provider: this.provider,
-    networkId: this.network.id
-  })
-  if (this.address) subProvider.setAccount(this.address)
-  return subProvider
+    // TODO remove defaults, fix import
+    const subProvider = new provider.default({
+      requestAddress: () => {
+        this.requestAddress('addressReqProvider')
+        // TODO can this be parsed to readable name (ie nad) address or network address or mnid
+        return this.onResponse('addressReqProvider').then(res => decode(res.res.payload.nad).address)
+      },
+      sendTransaction: (txObj) => {
+        txObj.bytecode = txObj.data
+        this.sendTransaction(txObj, 'txReqProvider')
+        return this.onResponse('txReqProvider')
+      },
+      provider: this.provider,
+      networkId: this.network.id
+    })
+    // TODO make sure address/mnid/did consistent here throught out
+    if (this.address) subProvider.setAccount(this.address)
+    return subProvider
   }
 
 // TODO where to return MNID and where to return address, should this be named differently, will return entire response obj now, not just address
@@ -106,7 +103,9 @@ class Connect {
   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
   */
   requestAddress (id='addressReq') {
-    this.credentials.requestDisclosure({callbackUrl: transport.chasqui.genCallback()}).then(jwt => {this.request(tokenRequest(jwt), id)})
+    // TODO callback could be window
+    const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
+    this.credentials.requestDisclosure({callbackUrl}).then(jwt => {this.request(tokenRequest(jwt), id)})
   }
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
@@ -117,6 +116,7 @@ class Connect {
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   onResponse(id) {
+    // TODO set storage
     const parseResponse = (resObj) => {
       if (isJWT(resObj.res)) {
         return this.verifyResponse(resObj.res).then(res => ({id, res, data: resObj.data}))
@@ -155,6 +155,9 @@ class Connect {
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   request (uri, id, {callback, data, type} = {}) {
+    //TODO It requires and id
+    // TODO it accepts both a token or uri
+    // TODO first request
    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
   }
 
@@ -169,6 +172,7 @@ class Connect {
   *  @return   {Object}                                             contract object
   */
   contract (abi) {
+    // Have default id? by method name??
     const txObjectHandler = (methodTxObject, id) => this.sendTransaction(methodTxObject, id)
     return ContractFactory(txObjectHandler)(abi)
   }
@@ -194,6 +198,7 @@ class Connect {
    */
    sendTransaction (txObj, id='txReq') {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
+    //  TODO chasqui vs window callback
      this.credentials.txRequest(txObj, {callbackUrl: transport.chasqui.genCallback()}).then(jwt => this.request(tokenRequest(txObj), id))
    }
 
@@ -254,6 +259,16 @@ const connectTransport = (appName) => (uri, {data}) => {
     transport.qr.send()(uri)
     // return closeQR ??
     return Promise.resolve({data})
+  }
+}
+
+
+const windowCallback = () => {
+  const md = new MobileDetect(navigator.userAgent)
+  if( md.userAgent() === 'Chrome' && md.os() === 'iOS' ) {
+    return `googlechrome:${window.location.href.substring(window.location.protocol.length)}`
+  } else {
+    return  window.location.href
   }
 }
 
