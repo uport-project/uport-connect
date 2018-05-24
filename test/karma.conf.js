@@ -40,7 +40,6 @@ module.exports = function (config) {
     browserNoActivityTimeout: 10000,
     autoWatch: true,
     // override to true for CI
-    singleRun: true,
     colors: true,
   });
 };
