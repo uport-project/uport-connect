@@ -50,9 +50,10 @@ class Connect {
     })
 
     // TODO
+    this.did = null
     this.mnid = null // Add this.mnid
     this.doc = null // Add this.doc
-    // TODO did?
+    // ? this.address
 
     // Load any existing state if any
     if (this.storage)  this.getState()
@@ -63,7 +64,7 @@ class Connect {
     // TODO would be nice to have some uncoupled funct for parsing/verifying in uport-core-js rather than require config a credential object, nice to require aud either here
     this.registry = UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     this.credentials = new Credentials(Object.assign(this.keypair, {registry: this.registry, ethrConfig: opts.ethrConfig}))
-    this.verifyResponse = this.credentials.verifyProfile  //TODO verify profile name confusing
+    this.verifyResponse = this.credentials.verifyProfile.bind(this.credentials)  //TODO verify profile name confusing
   }
 
  /**
@@ -116,10 +117,13 @@ class Connect {
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   onResponse(id) {
-    // TODO set storage
+    // TODO storage set, but add did and address
     const parseResponse = (resObj) => {
       if (isJWT(resObj.res)) {
-        return this.verifyResponse(resObj.res).then(res => ({id, res, data: resObj.data}))
+        return this.verifyResponse(resObj.res).then(res => {
+            this.did = res.address
+            return {id, res, data: resObj.data}
+        })
       } else {
         return Promise.resolve(Object.assign({id}, resObj))
       }
@@ -129,14 +133,21 @@ class Connect {
       const onloadResponse = this.onloadResponse
       this.onloadResponse = null
       if (this.storage) this.setState()
-      return parseResponse(onloadResponse)
+      return parseResponse(onloadResponse).then(res => {
+        if (this.storage) this.setState()
+        return res
+      })
     }
 
     return new Promise((resolve, reject) => {
       this.PubSub.subscribe(id, (msg, res) => {
         this.PubSub.unsubscribe(id)
-        if (this.storage) this.setState()
-        parseResponse(res).then(res => {resolve(res)}, err => {reject(err)})
+        parseResponse(res).then(res => {
+          if (this.storage) this.setState()
+          resolve(res)
+        }, err => {
+          reject(err)
+        })
       })
     })
   }
@@ -155,9 +166,9 @@ class Connect {
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   request (uri, id, {callback, data, type} = {}) {
-    //TODO It requires and id
     // TODO it accepts both a token or uri
     // TODO first request
+   if (!id) throw new Error('Requires request id')
    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
   }
 
@@ -210,6 +221,7 @@ class Connect {
   *  @return   {String}   JSON string
   */
   serialize() {
+    // TODO these are redundant vals, just store did maybe
     const connectJSONState = {
       address: this.address,
       mnid: this.mnid,
