@@ -5,51 +5,51 @@ import { isMNID, encode, decode } from 'mnid'
 import { transport, message, network, provider } from 'uport-core'
 import PubSub from 'pubsub-js'
 import store from  'store'
-
-// Remove this after or find a better place for it
-import UportDIDResolver from 'uport-did-resolver'
-import EthrDIDResolver from 'ethr-did-resolver'
-import { verifyJWT,  decodeJWT } from 'did-jwt'
 import UportLite from 'uport-lite'
 
 class Connect {
-
   /**
    * Instantiates a new uPort Connect object.
    *
    * @example
-   * import { Connect } from 'uport-connect'
-   * const uPort = new ConnectCore('Mydapp')
-   * @param       {String}            appName                the name of your app
-   * @param       {Object}            [opts]                 optional parameters
-   * @param       {Object}            [opts.network='rinkeby'] network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
-   * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
-   * TODO write params in
-   * @param       {Object}            opts.ethrConfig        Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
-   * @return      {Connect}                                  self
+   * import  Connect  from 'uport-connect'
+   * const connect = new Connect('MydappName')
+   *
+   * @param    {String}      appName                      The name of your app
+   * @param    {Object}      [opts]                       optional parameters
+   * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
+   * @param    {Object}      [opts.provider=HttpProvider] Provider used as a base provider to be wrapped with uPort connect functionality
+   * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
+   * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Boolean}     [opts.storage=true]          When true, object state will be written to local storage on each state cz-conventional-change
+   * @param    {Function}    [opts.transport]             Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Function}    [opts.mobileTransport]       Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
+   * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
+   * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
+   * @return   {Connect}                                   self
    */
   constructor (appName, opts = {}) {
     // Config
     this.appName = appName || 'uport-connect-app'
     this.network = network.config.network(opts.network)
-    this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')  //TODO Not used right now, still needed?
     this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
     this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.storage = opts.storage === undefined ? true : opts.storage
-    // State
-    this.address = null
-    this.firstReq = true
     // Transports
     this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send()
-    this.PubSub = PubSub
     this.onloadResponse = transport.url.getResponse
+    this.PubSub = PubSub
     transport.url.listenResponse((err, res) => {
       if (res) this.PubSub.publish(res.id, {res: res.res, data: res.data}) // TODO pass errors
     })
 
     // TODO
+    // State
+    this.address = null
+    this.firstReq = true
     this.did = null
     this.mnid = null // Add this.mnid
     this.doc = null // Add this.doc
@@ -58,13 +58,12 @@ class Connect {
     // Load any existing state if any
     if (this.storage)  this.getState()
     if (!this.keypair) this.keypair = Credentials.createIdentity()
-    this.setState()
-
-    // TODO need a nicer way configure resolvers, lines below should be temporary
-    // TODO would be nice to have some uncoupled funct for parsing/verifying in uport-core-js rather than require config a credential object, nice to require aud either here
-    this.registry = UportLite({ networks: network.config.networkToNetworkSet(this.network) })
-    this.credentials = new Credentials(Object.assign(this.keypair, {registry: this.registry, ethrConfig: opts.ethrConfig}))
-    this.verifyResponse = this.credentials.verifyProfile.bind(this.credentials)  //TODO verify profile name confusing
+    if (this.storage)this.setState()
+    // Credential (uport-js) config for verification
+    this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
+    // TODO can resolver configs not be passed through
+    this.credentials = new Credentials(Object.assign(this.keypair, {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }))
+    this.verifyResponse = this.credentials.verifyProfile.bind(this.credentials)
   }
 
  /**
@@ -104,7 +103,6 @@ class Connect {
   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
   */
   requestAddress (id='addressReq') {
-    // TODO callback could be window
     const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
     this.credentials.requestDisclosure({callbackUrl}).then(jwt => {this.request(tokenRequest(jwt), id)})
   }
@@ -165,11 +163,10 @@ class Connect {
   *  @param    {String}     opts.type
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
-  request (uri, id, {callback, data, type} = {}) {
-    // TODO it accepts both a token or uri
-    // TODO first request
-   if (!id) throw new Error('Requires request id')
-   this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
+  request (req, id, {callback, data, type} = {}) {
+    const uri = isJWT(req) ? tokenRequest(req) : req
+    if (!id) throw new Error('Requires request id')
+    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
   }
 
  /**
@@ -183,7 +180,7 @@ class Connect {
   *  @return   {Object}                                             contract object
   */
   contract (abi) {
-    // Have default id? by method name??
+    //TODO Have default id? by method name??
     const txObjectHandler = (methodTxObject, id) => this.sendTransaction(methodTxObject, id)
     return ContractFactory(txObjectHandler)(abi)
   }
@@ -249,32 +246,53 @@ class Connect {
     this.keypair = state.keypair
   }
 
+  /**
+   *  Gets uPort connect state from browser localStorage and sets on object
+   */
   getState() {
     const connectState = store.get('connectState')
     if (connectState) this.deserialize(connectState)
   }
 
+  /**
+   *  Writes serialized uPort connect state to browswer localStorage
+   */
   setState() {
     const connectState = this.serialize()
     store.set('connectState', connectState)
   }
 }
 
-// TODO this simple function should be some where in uportcore and/or js to make this more clear
-const tokenRequest = (jwt) =>  `https://id.uport.me/req/${jwt}`
-const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
-
+/**
+ *  A transport created for uport connect. Bundles transport functionality from uport-core-js. If given a request
+ *  which uses the message server Chasqui to relay responses, it will by default poll chasqui and return response.
+ *  If given a request which specifies another callback to receive the response, for example your own server, it will
+ *  show the request in the default QR modal and then instantly return. You can then handle how to get the response
+ *  specific to your implementation.
+ *
+ *  @param    {String}       appName                 App name to displayed in QR code pop over modal
+ *  @return   {Function}                             a configured transport function
+ *  @param    {String}       uri                     a uport client request URI
+ *  @param    {Object}       [config={}]             an optional config object
+ *  @param    {String}       config.data             additional data to be returned later with response
+ *  @return   {Promise<Object, Error>}               a function to close the QR modal
+ */
 const connectTransport = (appName) => (uri, {data}) => {
   if (transport.chasqui.isChasquiCallback(uri)) {
     return  transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
   } else {
     transport.qr.send()(uri)
-    // return closeQR ??
+    // TODO return close QR func?
     return Promise.resolve({data})
   }
 }
 
-
+/**
+ *  Gets current window url and formats as request callback
+ *
+ *  @return   {String}   Returns window url formatted as callback
+ *  @private
+ */
 const windowCallback = () => {
   const md = new MobileDetect(navigator.userAgent)
   if( md.userAgent() === 'Chrome' && md.os() === 'iOS' ) {
@@ -296,5 +314,9 @@ function isMobile () {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
 }
+
+// TODO this simple function should be some where in uportcore and/or js to make this more clear
+const tokenRequest = (jwt) =>  `https://id.uport.me/req/${jwt}`
+const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
 export default Connect
