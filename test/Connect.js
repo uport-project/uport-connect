@@ -23,7 +23,6 @@ describe('Connect', () => {
     it('sets defaults', () => {
       const uport = new Connect('test app')
       expect(uport.appName).to.equal('test app')
-      expect(uport.infuraApiKey).to.equal('test-app')
       expect(uport.network.id).to.equal('0x4')
       // expect(uport.accountType).to.equal('') TODO What will be the default?
       expect(uport.transport).to.be.a('function')
