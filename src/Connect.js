@@ -104,7 +104,7 @@ class Connect {
   */
   requestAddress (id='addressReq') {
     const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
-    this.credentials.requestDisclosure({callbackUrl}).then(jwt => {this.request(tokenRequest(jwt), id)})
+    this.credentials.requestDisclosure({callbackUrl}).then(jwt => {this.request(message.util.tokenRequest(jwt), id)})
   }
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
@@ -117,7 +117,7 @@ class Connect {
   onResponse(id) {
     // TODO storage set, but add did and address
     const parseResponse = (resObj) => {
-      if (isJWT(resObj.res)) {
+      if (message.util.isJWT(resObj.res)) {
         return this.verifyResponse(resObj.res).then(res => {
             this.did = res.address
             return {id, res, data: resObj.data}
@@ -151,7 +151,7 @@ class Connect {
   }
 
    // NOTE interface, some are cancellable?, maybe just allow devs to pass in cancel func instead?
-  //  TODO Name? request, transport? send?
+  //  TODO Name? request, transport or send?
  /**
   *  Send a request URI string to a uport client
   *
@@ -164,31 +164,31 @@ class Connect {
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   request (req, id, {callback, data, type} = {}) {
-    const uri = isJWT(req) ? tokenRequest(req) : req
+    const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
     if (!id) throw new Error('Requires request id')
     this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
   }
 
  /**
   *  Builds and returns a contract object which can be used to interact with
-  *  a given contract. Similar to web3.eth.contract but with promises. Once specifying .at(address)
-  *  you can call the contract functions with this object. It will create a request,
-  *  call the uirHandler with the URI, and return a promise which resolves with
-  *  a transtaction ID.
+  *  a given contract. Similar to web3.eth.contract. Once specifying .at(address)
+  *  you can call the contract functions with this object. It will create a transaction
+  *  sign request and send it. Functionality limited to function calls which require sending
+  *  a transaction, as these are the only calls which require interaciton with a uPort client.
+  *  For reading and/or events use web3 alongside or a similar library.
   *
   *  @param    {Object}       abi                                   contract ABI
   *  @return   {Object}                                             contract object
   */
   contract (abi) {
-    //TODO Have default id? by method name??
+    //TODO could have default id as method name instead of txReq?
     const txObjectHandler = (methodTxObject, id) => this.sendTransaction(methodTxObject, id)
     return ContractFactory(txObjectHandler)(abi)
   }
 
   /**
-   *  Given a transaction object, similarly defined as the web3 transaction object,
-   *  it creates a URI which is passes to the uirHandler. It will create request
-   *  and returns a promise which resolves with the transaction id.
+   *  Given a transaction object (similarly defined as the web3 transaction object)
+   *  it creates a transaction sign request and sends it.
    *
    *  @example
    *  const txobject = {
@@ -197,8 +197,9 @@ class Connect {
    *    function: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
    *    appName: 'MyDapp'
    *  }
-   *  connect.sendTransaction(txobject).then(txID => {
-   *    ...
+   *  connect.sendTransaction(txobject, 'setStatus')
+   *  connect.onResponse('setStatus').then(res => {
+   *    const txId = res.res
    *  })
    *
    *  @param    {Object}    txObj
@@ -206,8 +207,8 @@ class Connect {
    */
    sendTransaction (txObj, id='txReq') {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
-    //  TODO chasqui vs window callback
-     this.credentials.txRequest(txObj, {callbackUrl: transport.chasqui.genCallback()}).then(jwt => this.request(tokenRequest(txObj), id))
+     const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
+     this.credentials.txRequest(txObj, {callbackUrl}).then(jwt => this.request(message.util.tokenRequest(txObj), id))
    }
 
  /**
@@ -232,9 +233,10 @@ class Connect {
 
   /**
    *  Given string of serialized Connect state, it restores that given state to the Connect
-   *  object which it was called on.
+   *  object which it was called on. You can get the serialized state of a connect object
+   *  by calling the serialize() function.
    *
-   *  @param    {String}    str      serialized Connect state
+   *  @param    {String}    str      serialized uPort Connect state
    */
   deserialize(str) {
     const state = JSON.parse(str)
@@ -247,7 +249,7 @@ class Connect {
   }
 
   /**
-   *  Gets uPort connect state from browser localStorage and sets on object
+   *  Gets uPort connect state from browser localStorage and sets on this object
    */
   getState() {
     const connectState = store.get('connectState')
@@ -255,7 +257,7 @@ class Connect {
   }
 
   /**
-   *  Writes serialized uPort connect state to browswer localStorage
+   *  Writes serialized uPort connect state to browser localStorage at key 'connectState'
    */
   setState() {
     const connectState = this.serialize()
@@ -264,18 +266,18 @@ class Connect {
 }
 
 /**
- *  A transport created for uport connect. Bundles transport functionality from uport-core-js. If given a request
- *  which uses the message server Chasqui to relay responses, it will by default poll chasqui and return response.
- *  If given a request which specifies another callback to receive the response, for example your own server, it will
- *  show the request in the default QR modal and then instantly return. You can then handle how to get the response
- *  specific to your implementation.
+ *  A transport created for uport connect. Bundles transport functionality from uport-core-js. This implements the
+ *  default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
+ *  responses, it will by default poll Chasqui and return response. If given a request which specifies another
+ *  callback to receive the response, for example your own server, it will show the request in the default QR
+ *  modal and then instantly return. You can then handle how to get the response specific to your implementation.
  *
  *  @param    {String}       appName                 App name to displayed in QR code pop over modal
- *  @return   {Function}                             a configured transport function
- *  @param    {String}       uri                     a uport client request URI
- *  @param    {Object}       [config={}]             an optional config object
- *  @param    {String}       config.data             additional data to be returned later with response
- *  @return   {Promise<Object, Error>}               a function to close the QR modal
+ *  @return   {Function}                             Configured connectTransport function
+ *  @param    {String}       uri                     uPort client request URI
+ *  @param    {Object}       [config={}]             Optional config object
+ *  @param    {String}       config.data             Additional data to be returned later with response
+ *  @return   {Promise<Object, Error>}               Function to close the QR modal
  */
 const connectTransport = (appName) => (uri, {data}) => {
   if (transport.chasqui.isChasquiCallback(uri)) {
@@ -314,9 +316,5 @@ function isMobile () {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
 }
-
-// TODO this simple function should be some where in uportcore and/or js to make this more clear
-const tokenRequest = (jwt) =>  `https://id.uport.me/req/${jwt}`
-const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 
 export default Connect
