@@ -73,6 +73,10 @@ class Connect {
   *  overrides eth_sendTransaction to start the send transaction flow to pass the
   *  transaction to the uPort app.
   *
+  *  @example
+  *  const uportProvider = connect.getProvider()
+  *  const web3 = new Web3(uportProvider)
+  *
   *  @return          {UportSubprovider}    A web3 style provider wrapped with uPort functionality
   */
   getProvider () {
@@ -97,8 +101,16 @@ class Connect {
   }
 
 // TODO where to return MNID and where to return address, should this be named differently, will return entire response obj now, not just address
+// TODO requestID? requestAddress? return mnid, address, did in response??
  /**
   *  Creates a request for only the address/id of the uPort identity.
+  *
+  *  @example
+  *  connect.requestAddress()
+  *
+  *  connect.onResponse('addressReq').then(res => {
+  *    const id = res.res
+  *  })
   *
   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
   */
@@ -109,9 +121,9 @@ class Connect {
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
  /**
-  *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is avaialable. Listen instead, if looking for multiple responses of same id.
+  *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is available. Listen instead, if looking for multiple responses of same id.
   *
-  *  @param    {String}    id             id of request you are looking for a response for
+  *  @param    {String}    id             id of request you are waiting for a response for
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   onResponse(id) {
@@ -150,23 +162,22 @@ class Connect {
     })
   }
 
-   // NOTE interface, some are cancellable?, maybe just allow devs to pass in cancel func instead?
   //  TODO Name? request, transport or send?
  /**
-  *  Send a request URI string to a uport client
+  *  Send a request URI string to a uport client.
   *
-  *  @param    {String}     uri            a request URI to send to a uport client
-  *  @param    {String}     id             id of request you are looking for a response for
-  *  @param    {Object}     [opts]         optional parameters for a callback
-  *  @param    {String}     opts.callback  callback TODO ref specs here for cb, data, type and diff between signed and unsigned req
-  *  @param    {String}     opts.data
-  *  @param    {String}     opts.type
-  *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
+  *  @param    {String}     uri               a request URI to send to a uport client
+  *  @param    {String}     id                id of request you are looking for a response for
+  *  @param    {Object}     [opts]            optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md]
+  *  @param    {String}     opts.redirectUrl  If on mobile client, the url you want to the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token.
+  *  @param    {String}     opts.data         A string of any data you want later returned with response. It may be contextual to the original request.
+  *  @param    {String}     opts.type         Type specifies the callback action. 'post' to send response to callback in request token or 'redirect' to send response in redirect url.
+  *  @param    {Function}   opts.cancel       When using the default QR, but handling the response yourself, this function will be called when a users closes the request modal.
   */
-  request (req, id, {callback, data, type} = {}) {
+  request (req, id, {redirectUrl, data, type, cancel} = {}) {
     const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
     if (!id) throw new Error('Requires request id')
-    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback, type}) : this.transport(uri, {data}).then(res => { this.PubSub.publish(id, res)})
+    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback: redirectUrl, type}) : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
   }
 
  /**
@@ -279,11 +290,11 @@ class Connect {
  *  @param    {String}       config.data             Additional data to be returned later with response
  *  @return   {Promise<Object, Error>}               Function to close the QR modal
  */
-const connectTransport = (appName) => (uri, {data}) => {
+const connectTransport = (appName) => (uri, {data, cancel}) => {
   if (transport.chasqui.isChasquiCallback(uri)) {
     return  transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
   } else {
-    transport.qr.send()(uri)
+    transport.qr.send()(uri, {cancel})
     // TODO return close QR func?
     return Promise.resolve({data})
   }
