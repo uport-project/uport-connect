@@ -103,7 +103,7 @@
     "pubsub-js": "^1.6.0",
     "qs": "^6.2.1",
     "store": "^2.0.12",
-    "uport": "^0.7.0-alpha-2",
+    "uport": "^0.7.0-alpha-3",
     "uport-core": "0.0.25",
     "uport-did-resolver": "0.0.2",
     "uport-lite": "^1.0.2"
