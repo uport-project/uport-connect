@@ -336,19 +336,56 @@ describe('Connect', () => {
 
 
   describe('sendTransaction', () => {
-    // TODO will finish once available in uport-js
-    it('call request with request uri including transaction jwt', () => {
+    const txObj = {to: "2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6", function: "updateStatus(string 'hello')"}
+    const txObjAddress = {to: '0x71845bbfe5ddfdb919e780febfff5eda62a30fdc', function: "updateStatus(string 'hello')"}
+
+    it('call request with request uri including transaction jwt', (done) => {
+      const request = (uri) => {
+        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
+        const jwt = getURLJWT(uri)
+        expect(isJWT(jwt)).to.be.true
+        done()
+      }
+      const uport = new Connect('testApp')
+      uport.request = request
+      uport.sendTransaction(txObj)
     })
 
-    it('encodes transaction address as mnid with network id', () => {
+    it('encodes transaction address as mnid with network id if not mnid', (done) => {
+      const request = (uri) => {
+        const jwt = getURLJWT(uri)
+        const decoded = decodeJWT(jwt)
+        expect(decoded.payload.to).to.equal('2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6')
+        done()
+      }
+      const uport = new Connect('testApp')
+      uport.request = request
+      uport.sendTransaction(txObjAddress)
     })
 
-    it('sets chasqui as callback if not on mobile', () => {
+    it('sets chasqui as callback if not on mobile', (done) => {
+        const request = (uri) => {
+          const jwt = message.util.getURLJWT(uri)
+          const decoded = decodeJWT(jwt)
+          expect(/chasqui/.test(decoded.payload.callback)).to.be.true
+          done()
+        }
+        const uport = new Connect('testApp')
+        uport.request = request
+        uport.sendTransaction(txObj)
     })
 
     it('sets this window as callback if on mobile', () => {
+      const request = (uri) => {
+        const jwt = message.util.getURLJWT(uri)
+        const decoded = decodeJWT(jwt)
+        expect(/localhost/.test(decoded.payload.callback)).to.be.true
+        done()
+      }
+      const uport = new Connect('testApp', {isMobile: true})
+      uport.request = request
+      uport.sendTransaction(txObj)
     })
-
   })
 
 

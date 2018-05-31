@@ -219,7 +219,7 @@ class Connect {
    sendTransaction (txObj, id='txReq') {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
      const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
-     this.credentials.txRequest(txObj, {callbackUrl}).then(jwt => this.request(message.util.tokenRequest(txObj), id))
+     this.credentials.txRequest(txObj, {callbackUrl}).then(jwt => this.request(message.util.tokenRequest(jwt), id))
    }
 
  /**
