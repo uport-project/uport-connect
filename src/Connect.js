@@ -289,6 +289,7 @@ class Connect {
  *  @param    {Object}       [config={}]             Optional config object
  *  @param    {String}       config.data             Additional data to be returned later with response
  *  @return   {Promise<Object, Error>}               Function to close the QR modal
+ *  @private
  */
 const connectTransport = (appName) => (uri, {data, cancel}) => {
   if (transport.chasqui.isChasquiCallback(uri)) {

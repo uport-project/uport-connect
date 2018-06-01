@@ -8,25 +8,6 @@ source: "https://github.com/uport-project/uport-connect/blob/develop/docs/refere
 
 
 
-## Classes
-
-<dl>
-<dt><a href="#Connect">Connect</a></dt>
-<dd></dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#connectTransport">connectTransport(appName, uri, [config])</a> ⇒ <code>function</code> | <code>Promise.&lt;Object, Error&gt;</code></dt>
-<dd><p>A transport created for uport connect. Bundles transport functionality from uport-core-js. This implements the
- default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
- responses, it will by default poll Chasqui and return response. If given a request which specifies another
- callback to receive the response, for example your own server, it will show the request in the default QR
- modal and then instantly return. You can then handle how to get the response specific to your implementation.</p>
-</dd>
-</dl>
-
 <a name="Connect"></a>
 
 ## Connect
@@ -219,21 +200,3 @@ Gets uPort connect state from browser localStorage and sets on this object
 Writes serialized uPort connect state to browser localStorage at key 'connectState'
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
-<a name="connectTransport"></a>
-
-## connectTransport(appName, uri, [config]) ⇒ <code>function</code> &#124; <code>Promise.&lt;Object, Error&gt;</code>
-A transport created for uport connect. Bundles transport functionality from uport-core-js. This implements the
- default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
- responses, it will by default poll Chasqui and return response. If given a request which specifies another
- callback to receive the response, for example your own server, it will show the request in the default QR
- modal and then instantly return. You can then handle how to get the response specific to your implementation.
-
-**Kind**: global function  
-**Returns**: <code>function</code> - Configured connectTransport function<code>Promise.&lt;Object, Error&gt;</code> - Function to close the QR modal  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| appName | <code>String</code> |  | App name to displayed in QR code pop over modal |
-| uri | <code>String</code> |  | uPort client request URI |
-| [config] | <code>Object</code> | <code>{}</code> | Optional config object |
-| config.data | <code>String</code> |  | Additional data to be returned later with response |

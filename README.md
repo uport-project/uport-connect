@@ -8,12 +8,13 @@
 
 [Quick Start](#quick-start) | [Tutorial and Examples](#tutorials) | [Usage Guide](#usage-guide) | [Development Guide](#development-guide) | [Contributing](#contribute)
 
+
 # <a name="introduction"></a> Introduction
 
 **uPort** is a system for self-sovereign digital identity anchored in Ethereum.
-The uPort technology primarily consists of smart contracts, developer libraries, and a mobile app. uPort identities are fully owned and controlled by the creator, and don't rely on centralized third-parties for creation, control or validation. In the current implementation of the system this is achievable by having the mobile app act as the primary secure container for data related to your identity and for a set of keys which allow you sign transactions, grant authorization and sign credentials. The identity is anchored in the blockchain with an identifier and public data is stored in IPFS.
+The uPort technology primarily consists of smart contracts, developer libraries, microservices and uPort clients including our mobile app. uPort identities are fully owned and controlled by the creator, and don't rely on centralized third-parties for creation, control or validation. In the current implementation of the system this is achievable by having the mobile app act as the primary secure container for data related to your identity and for a set of keys which allow you sign transactions, grant authorization and sign credentials. The identity is anchored in the blockchain with an identifier and public data is stored in IPFS.
 
-`uport-connect` is the client side library that allows you interact with user's uPort identities through the mobile app. It handles the communication channel between your app and the uPort mobile app, which can vary depending on the environment which your application runs. Over this communication channel you can create requests for a user's data, share credentials and generate transactions to be signed in the user's mobile app.
+`uport-connect` is the client side library that allows you interact with user's uPort identities through a uPort client, primarily the mobile app. It handles the communication channel between your app and a uPort client, which can vary depending on the environment which your application runs. Over this communication channel you can send requests for a user's data, share credentials, generate transactions to be signed by a user and relay requests you originally created on your server with [uport-js](https://github.com/uport-project/uport-js). This library offers the default quick start implementation to integrate with uPort, but if it doesn't offer exactly what you need, you may be interested in using [uport-core-js](https://github.com/uport-project/uport-core-js) and [uport-js](https://github.com/uport-project/uport-js) instead.
 
 For more information about our system and other products visit [uport.me](https://www.uport.me). View our [protocol specs](https://github.com/uport-project/specs/) if interested in understanding some of the lower level details.
 
@@ -23,9 +24,7 @@ For any questions or library support reach out to the [uPort team on riot](https
 
 ## <a name="getting-started"></a>Getting started with uPort
 
-For additional documentation on all functionality [visit our docs](https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md). For a quick start continue below.
-
-For a more interactive quick start visit [developer.uport.me](https://developer.uport.me/gettingstarted)
+For additional documentation on all functionality [visit our docs](https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md). For a more interactive intro visit [developer.uport.me](https://developer.uport.me/gettingstarted). For a quick start continue below.
 
 ### <a name="quick-start"></a> Quick Start
 
@@ -36,27 +35,82 @@ npm install uport-connect
 First we will instantiate the uPort object, by default it is configured on the Rinkeby test network.
 
 ```javascript
-import { Connect } from 'uport-connect'
-
-const uport = new Connect('MyDApp')
+import Connect from 'uport-connect'
+const uport = new Connect('MyDAppName')
 ```
 
-To ask the user for their credentials use `requestCredentials()`. With no additional params this will return a user's public profile.
+To request the ID and address of user use `requestAddress()`:
 
 ```javascript
-uport.requestCredentials().then((credentials) => {
-  console.log(credentials)
+uport.requestAddress()
+uport.onResponse('addressReq').then(payload => {
+  const address = payload.res.address
+  // or
+  // const address = uport.address
+  // const doc = uport.doc
+  // TODO Show whats in the doc
 })
 ```
 
-If all we want is the address of the connected user we can use `requestAddress()`:
+To send a request token you created on your server or elsewhere use `request()`:
 
 ```javascript
-uport.requestAddress().then((address) => {
-  console.log(address)
+const requestToken = `eyJ0eXAiOiJKV1QiLCJhbG...`
+uport.request(token, 'myRequestID')
+uport.onResponse('myRequestId').then(payload => {
+  // Response is available now, handle as necessary to your implementation
+  // If the response was returned your server, you may poll for it now
 })
 ```
 
+To create a transaction request use `contract()` or `sendTransaction()`:
+
+```javascript
+const abi = [{"constant": false,"inputs": [{"name": "status","type": "string"}],"name": "updateStatus","outputs": [],"type": "function"}]
+const contractAddress = '0x71845bbfe5ddfdb919e780febfff5eda62a30fdc'
+const statusContract = uport.contract(abi).at(contractAddress)
+
+statusContract.updateStatus('hello', 'updateStatusReq')
+uport.onResponse('updateStatusReq').then(payload => {
+  const txId = payload.res
+})
+```
+
+```javascript
+const txObj = {
+  address: '0x71845bbfe5ddfdb919e780febfff5eda62a30fdc',
+  value: 1 * 1.0e18
+}
+uport.sendTransaction(txObj, 'ethSendReq')
+uport.onResponse('ethSendReq').then(payload => {
+  const txId = payload.res
+})
+```
+### <a name="quick-start"></a> Quick Start with Provider (web3)
+
+Get provider and instantiate web3 or other provider supported library.
+
+```javascript
+const provider = uport.getProvider()
+const web3 = new Web3(provider)
+```
+
+To request the address of user:
+
+```javascript
+web3.eth.getCoinbase((error, address) => { ... })
+```
+
+To call contract:
+```javascript
+const statusContract = web3.eth.contract(abi).at(contractAddress)
+statusContract.updateStatus('hello', (error, txHash) => { ... })
+```
+
+To send transaction:
+```javascript
+web3.eth.sendTransaction(txObj, (error, txHash) => {...})
+```
 ### <a name="browser-quick-start"></a> Browser Window Quick Start
 
 For use directly in the browser you can reference the uport-connect distribution files from a number of places. They can be found in our npm package in the 'dist' folder or you can build them locally from this repo.
@@ -76,8 +130,8 @@ To see all available dist files on unpkg, vist [unpkg.com/uport-connect/dist/](h
 Then to instantiate the uPort object from the browser window object:
 
 ```js
-var uportconnect = window.uportconnect
-var uport = new uportconnect.Connect('MyDApp')
+var Connect = window.uportconnect
+var uport = new Connect('MyDApp')
 ```
 
 ### <a name="tutorials"></a> Tutorial and Examples
