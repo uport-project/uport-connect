@@ -25,7 +25,7 @@ The following Connect object is the primary interface you will use. All details 
 
 This library manages communication between your application and the mobile app. This communication channel differs depending on the environment in which your app runs and the parameters which you specify. In general, communication consist of a request and a response. This library helps you encode all supported requests. The mobile app understands requests encoded as Uniform Resource Identifier's (URI) with a set of params. These URIs are the strings which must be communicated to the mobile device. All functions which create a request will call a `uriHandler` function which consumes this URI string. This `uriHandler` allows both default and custom means of display and communication.
 
-## Default QR floww
+## Default QR flow
 
 When the library is loaded on a non-mobile device the library will use QR codes to pass information to the mobile application. To receive a response the library will query a messaging server. You will be able to run your own messaging server or utilize other communication channels, but by default this is provided. We provide a default QR-code display function, which injects a `<div>` containing the QR-code into the DOM. Any function which makes a request to the mobile app will bring up this QR flow.
 
@@ -126,7 +126,7 @@ Create a web3 style provider to use with web3 or other libraries which support t
 const uportProvider = uport.getProvider()
 ```
 
-## Contract Object (without web3)
+## Using without web3
 
 Primary reasons to use this object include; 1) You don't want/need to use web3 2) Using a web3 object will use your default URI handler for every request, if you want different URI handling for different contracts or different contract function calls then you should use this. Each contract function call consumes a `uriHandler` function.
 
