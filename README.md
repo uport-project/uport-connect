@@ -82,7 +82,7 @@ var uport = new uportconnect.Connect('MyDApp')
 
 ### <a name="tutorials"></a> Tutorial and Examples
 
-For a more in depth quick start example follow our [tutorial for building a simple dapp](https://github.com/uport-project/uport-connect/blob/develop/tutorial/tutorial.md) or locally open the `/tutorial` folder. This simple example will show you how to use our default QR flow to connect and create transactions to send ether or interact with smart contracts.
+For a more in depth quick start example follow our [tutorial for building a simple dapp](https://github.com/uport-project/uport-connect/blob/develop/tutorial/tutorial.md) or locally open the `/examples` folder. This simple example will show you how to use our default QR flow to connect and create transactions to send ether or interact with smart contracts.
 
 ---------------------------------------------
 
