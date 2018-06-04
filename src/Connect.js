@@ -90,9 +90,9 @@ class Connect {
 
       },
       sendTransaction: (txObj) => {
-        txObj.bytecode = txObj.data
+        delete txObj['from']
         this.sendTransaction(txObj, 'txReqProvider')
-        return this.onResponse('txReqProvider')
+        return this.onResponse('txReqProvider').then(payload => payload.res)
       },
       provider: this.provider,
       networkId: this.network.id
@@ -175,6 +175,7 @@ class Connect {
   *  @param    {Function}   opts.cancel       When using the default QR, but handling the response yourself, this function will be called when a users closes the request modal.
   */
   request (req, id, {redirectUrl, data, type, cancel} = {}) {
+    console.log(req)
     const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
     if (!id) throw new Error('Requires request id')
     this.isOnMobile ? this.mobileTransport(uri, {id, data, callback: redirectUrl, type}) : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
