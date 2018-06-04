@@ -48,12 +48,11 @@ class Connect {
 
     // TODO
     // State
-    this.address = null
-    this.firstReq = true
     this.did = null
-    this.mnid = null // Add this.mnid
-    this.doc = null // Add this.doc
-    // ? this.address
+    this.mnid = null
+    this.address = null
+    this.firstReq = true // Add firstReq?
+    // this.doc = null // Add this.doc?
 
     // Load any existing state if any
     if (this.storage)  this.getState()
@@ -84,8 +83,11 @@ class Connect {
     const subProvider = new provider.default({
       requestAddress: () => {
         this.requestAddress('addressReqProvider')
-        // TODO can this be parsed to readable name (ie nad) address or network address or mnid
-        return this.onResponse('addressReqProvider').then(res => decode(res.res.payload.nad).address)
+        return this.onResponse('addressReqProvider').then(payload => {
+          this.setDID(payload.res.address)
+          return this.address
+        })
+
       },
       sendTransaction: (txObj) => {
         txObj.bytecode = txObj.data
@@ -95,7 +97,6 @@ class Connect {
       provider: this.provider,
       networkId: this.network.id
     })
-    // TODO make sure address/mnid/did consistent here throught out
     if (this.address) subProvider.setAccount(this.address)
     return subProvider
   }
@@ -127,11 +128,10 @@ class Connect {
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   onResponse(id) {
-    // TODO storage set, but add did and address
     const parseResponse = (resObj) => {
       if (message.util.isJWT(resObj.res)) {
         return this.verifyResponse(resObj.res).then(res => {
-            this.did = res.address
+            this.setDID(res.address)
             return {id, res, data: resObj.data}
         })
       } else {
@@ -193,8 +193,12 @@ class Connect {
   */
   contract (abi) {
     //TODO could have default id as method name instead of txReq?
-    const txObjectHandler = (methodTxObject, id) => this.sendTransaction(methodTxObject, id)
-    return ContractFactory(txObjectHandler)(abi)
+    const txObjHandler = (txObj, id) => {
+      txObj.fn = txObj.function
+      delete txObj['function']
+      return this.sendTransaction(txObj, id)
+    }
+    return ContractFactory(txObjHandler.bind(this))(abi)
   }
 
   /**
@@ -235,7 +239,7 @@ class Connect {
       address: this.address,
       mnid: this.mnid,
       did: this.did,
-      doc: this.doc,
+      // doc: this.doc,
       firstReq: this.firstReq,
       keypair: this.keypair
     }
@@ -254,7 +258,7 @@ class Connect {
     this.address = state.address
     this.mnid = state.mnid
     this.did = state.did
-    this.doc = state.doc
+    // this.doc = state.doc
     this.firstReq = state.firstReq
     this.keypair = state.keypair
   }
@@ -267,12 +271,21 @@ class Connect {
     if (connectState) this.deserialize(connectState)
   }
 
-  /**
-   *  Writes serialized uPort connect state to browser localStorage at key 'connectState'
-   */
+    /**
+     *  Writes serialized uPort connect state to browser localStorage at key 'connectState'
+     */
   setState() {
     const connectState = this.serialize()
     store.set('connectState', connectState)
+  }
+
+  /**
+   * Set DID on object, also sets decoded mnid and address
+   */
+  setDID(did) {
+    this.did = did
+    this.mnid = did.replace('did:ethr:', '').replace('did:uport:', '')
+    this.address = decode(this.mnid).address
   }
 }
 
