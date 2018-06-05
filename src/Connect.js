@@ -186,7 +186,7 @@ class Connect {
   *  a given contract. Similar to web3.eth.contract. Once specifying .at(address)
   *  you can call the contract functions with this object. It will create a transaction
   *  sign request and send it. Functionality limited to function calls which require sending
-  *  a transaction, as these are the only calls which require interaciton with a uPort client.
+  *  a transaction, as these are the only calls which require interaction with a uPort client.
   *  For reading and/or events use web3 alongside or a similar library.
   *
   *  @param    {Object}       abi                                   contract ABI
