@@ -1,4 +1,5 @@
 import { Credentials, ContractFactory } from 'uport'
+import { verifyJWT } from 'did-jwt'
 import MobileDetect from 'mobile-detect'
 import HttpProvider from 'web3/lib/web3/httpprovider' // Can use http provider from ethjs in the future.
 import { isMNID, encode, decode } from 'mnid'
@@ -52,7 +53,7 @@ class Connect {
     this.mnid = null
     this.address = null
     this.firstReq = true // Add firstReq?
-    // this.doc = null // Add this.doc?
+    this.doc = null
 
     // Load any existing state if any
     if (this.storage)  this.getState()
@@ -62,7 +63,12 @@ class Connect {
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     // TODO can resolver configs not be passed through
     this.credentials = new Credentials(Object.assign(this.keypair, {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }))
-    this.verifyResponse = this.credentials.verifyProfile.bind(this.credentials)
+    this.verifyResponse = (token) => {
+      return verifyJWT(token, {audience: this.credentials.did}).then(res => {
+        this.doc = res.doc
+        return this.credentials.processDisclosurePayload(res)
+      })
+    }
   }
 
  /**
@@ -240,7 +246,7 @@ class Connect {
       address: this.address,
       mnid: this.mnid,
       did: this.did,
-      // doc: this.doc,
+      doc: this.doc,
       firstReq: this.firstReq,
       keypair: this.keypair
     }
@@ -259,7 +265,7 @@ class Connect {
     this.address = state.address
     this.mnid = state.mnid
     this.did = state.did
-    // this.doc = state.doc
+    this.doc = state.doc
     this.firstReq = state.firstReq
     this.keypair = state.keypair
   }
