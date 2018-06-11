@@ -128,14 +128,19 @@ class Connect {
   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
   */
   onResponse(id) {
-    const parseResponse = (resObj) => {
-      if (message.util.isJWT(resObj.res)) {
-        return this.verifyResponse(resObj.res).then(res => {
+    const parseResponse = (payload) => {
+      if (message.util.isJWT(payload.res)) {
+        const jwt = payload.res
+        const decoded = decode(jwt)
+        if (decoded.payload.claim){
+          return Promise.resolve(Object.assign({id}, payload))
+        }
+        return this.verifyResponse(jwt).then(res => {
             this.setDID(res.address)
-            return {id, res, data: resObj.data}
+            return {id, res, data: payload.data}
         })
       } else {
-        return Promise.resolve(Object.assign({id}, resObj))
+        return Promise.resolve(Object.assign({id}, payload))
       }
     }
 
