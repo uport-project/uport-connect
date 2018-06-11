@@ -1,68 +1,357 @@
-import ConnectCore from './ConnectCore'
-import Web3 from 'web3'
-import { openQr, closeQr } from './util/qrdisplay'
+import { Credentials, ContractFactory } from 'uport'
+import { verifyJWT, decodeJWT } from 'did-jwt'
+import MobileDetect from 'mobile-detect'
+import HttpProvider from 'web3/lib/web3/httpprovider' // Can use http provider from ethjs in the future.
+import { isMNID, encode, decode } from 'mnid'
+import { transport, message, network, provider } from 'uport-core'
+import PubSub from 'pubsub-js'
+import store from  'store'
+import UportLite from 'uport-lite'
 
-/**
-*  Primary object for frontend interactions with uPort. Bundles all neccesary functionality.
-*  @extends ConnectCore
-*
-*/
-class Connect extends ConnectCore {
-
+class Connect {
   /**
-   * Instantiates a new uPort connect object.
+   * Instantiates a new uPort Connect object.
    *
    * @example
-   * import { Connect } from 'uport-connect'
-   * const uPort = new Connect('Mydapp')
-   * @param       {String}            appName                the name of your app
-   * @param       {Object}            [opts]                 optional parameters
-   * @param       {Object}            opts.credentials       pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests
-   * @param       {Function}          opts.signer            signing function which will be used to sign JWT's in the credentials object
-   * @param       {String}            opts.clientId          uport identifier for your application this will be used in the default credentials object
-   * @param       {Object}            [opts.network='kovan'] network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'.
-   * @param       {String}            opts.rpcUrl            JSON rpc url (defaults to https://ropsten.infura.io)
-   * @param       {String}            opts.infuraApiKey      Infura API Key (register here http://infura.io/register.html)
-   * @param       {Function}          opts.topicFactory      function which generates topics and deals with requests and response
-   * @param       {Function}          opts.uriHandler        default function to consume generated URIs for requests, can be used to display QR codes or other custom UX
-   * @param       {Function}          opts.mobileUriHandler  default function to consume generated URIs for requests on mobile
-   * @param       {Function}          opts.closeUriHandler   default function called after a request receives a response, can be to close QR codes or other custom UX
-   * @return      {Connect}                                  self
+   * import  Connect  from 'uport-connect'
+   * const connect = new Connect('MydappName')
+   *
+   * @param    {String}      appName                      The name of your app
+   * @param    {Object}      [opts]                       optional parameters
+   * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
+   * @param    {Object}      [opts.provider=HttpProvider] Provider used as a base provider to be wrapped with uPort connect functionality
+   * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
+   * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Boolean}     [opts.storage=true]          When true, object state will be written to local storage on each state cz-conventional-change
+   * @param    {Function}    [opts.transport]             Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Function}    [opts.mobileTransport]       Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
+   * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
+   * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
+   * @return   {Connect}                                   self
    */
-
   constructor (appName, opts = {}) {
-    super(appName, opts)
-    this.uriHandler = opts.uriHandler || openQr
-    this.mobileUriHandler = opts.mobileUriHandler || mobileUriHandler
-    this.closeUriHandler = opts.closeUriHandler || (this.uriHandler === openQr ? closeQr : undefined)
+    // Config
+    this.appName = appName || 'uport-connect-app'
+    this.network = network.config.network(opts.network)
+    this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
+    this.accountType = opts.accountType
+    this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
+    this.storage = opts.storage === undefined ? true : opts.storage
+    // Transports
+    this.transport = opts.transport || connectTransport(appName)
+    this.mobileTransport = opts.mobileTransport || transport.url.send()
+    this.onloadResponse = transport.url.getResponse
+    this.PubSub = PubSub
+    transport.url.listenResponse((err, res) => {
+      if (res) this.PubSub.publish(res.id, {res: res.res, data: res.data}) // TODO pass errors
+    })
+
+    // TODO
+    // State
+    this.did = null
+    this.mnid = null
+    this.address = null
+    this.firstReq = true // Add firstReq?
+    this.doc = null
+
+    // Load any existing state if any
+    if (this.storage)  this.getState()
+    if (!this.keypair) this.keypair = Credentials.createIdentity()
+    if (this.storage)this.setState()
+    // Credential (uport-js) config for verification
+    this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
+    // TODO can resolver configs not be passed through
+    this.credentials = new Credentials(Object.assign(this.keypair, {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }))
+    this.verifyResponse = (token) => {
+      return verifyJWT(token, {audience: this.credentials.did}).then(res => {
+        this.doc = res.doc
+        return this.credentials.processDisclosurePayload(res)
+      })
+    }
   }
 
  /**
-  *  Instantiates and returns a web3 object wrapped with uPort functionality. For
-  *  more details see uportSubprovider and getProvider in connectCore.
+  *  Instantiates and returns a web3 styple provider wrapped with uPort functionality.
+  *  For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
+  *  to start a get address flow or to return an already received address. It also
+  *  overrides eth_sendTransaction to start the send transaction flow to pass the
+  *  transaction to the uPort app.
   *
-  *  @return          {web3}    A uPort web3 object
+  *  @example
+  *  const uportProvider = connect.getProvider()
+  *  const web3 = new Web3(uportProvider)
+  *
+  *  @return          {UportSubprovider}    A web3 style provider wrapped with uPort functionality
   */
-  getWeb3 () {
-    const provider = this.getProvider()
-    const web3 = new Web3()
-    web3.setProvider(provider)
-    // Work around to issue with web3 requiring a from parameter. This isn't actually used.
-    web3.eth.defaultAccount = '0xB42E70a3c6dd57003f4bFe7B06E370d21CDA8087'
-    return web3
+  getProvider () {
+    // TODO remove defaults, fix import
+    const subProvider = new provider.default({
+      requestAddress: () => {
+        this.requestAddress('addressReqProvider')
+        return this.onResponse('addressReqProvider').then(payload => {
+          this.setDID(payload.res.address)
+          return this.address
+        })
+
+      },
+      sendTransaction: (txObj) => {
+        delete txObj['from']
+        this.sendTransaction(txObj, 'txReqProvider')
+        return this.onResponse('txReqProvider').then(payload => payload.res)
+      },
+      provider: this.provider,
+      networkId: this.network.id
+    })
+    if (this.address) subProvider.setAccount(this.address)
+    return subProvider
+  }
+
+// TODO where to return MNID and where to return address, should this be named differently, will return entire response obj now, not just address
+// TODO requestID? requestAddress? return mnid, address, did in response??
+ /**
+  *  Creates a request for only the address/id of the uPort identity.
+  *
+  *  @example
+  *  connect.requestAddress()
+  *
+  *  connect.onResponse('addressReq').then(res => {
+  *    const id = res.res
+  *  })
+  *
+  *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
+  */
+  requestAddress (id='addressReq') {
+    const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
+    this.credentials.requestDisclosure({callbackUrl}).then(jwt => {this.request(message.util.tokenRequest(jwt), id)})
+  }
+
+ // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
+ /**
+  *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is available. Listen instead, if looking for multiple responses of same id.
+  *
+  *  @param    {String}    id             id of request you are waiting for a response for
+  *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
+  */
+  onResponse(id) {
+    const parseResponse = (payload) => {
+      if (message.util.isJWT(payload.res)) {
+        const jwt = payload.res
+        const decoded = decode(jwt)
+        if (decoded.payload.claim){
+          return Promise.resolve(Object.assign({id}, payload))
+        }
+        return this.verifyResponse(jwt).then(res => {
+            this.setDID(res.address)
+            return {id, res, data: payload.data}
+        })
+      } else {
+        return Promise.resolve(Object.assign({id}, payload))
+      }
+    }
+
+    if (this.onloadResponse && this.onloadResponse.id === id) {
+      const onloadResponse = this.onloadResponse
+      this.onloadResponse = null
+      if (this.storage) this.setState()
+      return parseResponse(onloadResponse).then(res => {
+        if (this.storage) this.setState()
+        return res
+      })
+    }
+
+    return new Promise((resolve, reject) => {
+      this.PubSub.subscribe(id, (msg, res) => {
+        this.PubSub.unsubscribe(id)
+        parseResponse(res).then(res => {
+          if (this.storage) this.setState()
+          resolve(res)
+        }, err => {
+          reject(err)
+        })
+      })
+    })
+  }
+
+  //  TODO Name? request, transport or send?
+ /**
+  *  Send a request URI string to a uport client.
+  *
+  *  @param    {String}     uri               a request URI to send to a uport client
+  *  @param    {String}     id                id of request you are looking for a response for
+  *  @param    {Object}     [opts]            optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md]
+  *  @param    {String}     opts.redirectUrl  If on mobile client, the url you want to the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token.
+  *  @param    {String}     opts.data         A string of any data you want later returned with response. It may be contextual to the original request.
+  *  @param    {String}     opts.type         Type specifies the callback action. 'post' to send response to callback in request token or 'redirect' to send response in redirect url.
+  *  @param    {Function}   opts.cancel       When using the default QR, but handling the response yourself, this function will be called when a users closes the request modal.
+  */
+  request (req, id, {redirectUrl, data, type, cancel} = {}) {
+    console.log(req)
+    const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
+    if (!id) throw new Error('Requires request id')
+    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback: redirectUrl, type}) : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
+  }
+
+ /**
+  *  Builds and returns a contract object which can be used to interact with
+  *  a given contract. Similar to web3.eth.contract. Once specifying .at(address)
+  *  you can call the contract functions with this object. It will create a transaction
+  *  sign request and send it. Functionality limited to function calls which require sending
+  *  a transaction, as these are the only calls which require interaction with a uPort client.
+  *  For reading and/or events use web3 alongside or a similar library.
+  *
+  *  @param    {Object}       abi                                   contract ABI
+  *  @return   {Object}                                             contract object
+  */
+  contract (abi) {
+    //TODO could have default id as method name instead of txReq?
+    const txObjHandler = (txObj, id) => {
+      txObj.fn = txObj.function
+      delete txObj['function']
+      return this.sendTransaction(txObj, id)
+    }
+    return ContractFactory(txObjHandler.bind(this))(abi)
+  }
+
+  /**
+   *  Given a transaction object (similarly defined as the web3 transaction object)
+   *  it creates a transaction sign request and sends it.
+   *
+   *  @example
+   *  const txobject = {
+   *    to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
+   *    value: '0.1',
+   *    function: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
+   *    appName: 'MyDapp'
+   *  }
+   *  connect.sendTransaction(txobject, 'setStatus')
+   *  connect.onResponse('setStatus').then(res => {
+   *    const txId = res.res
+   *  })
+   *
+   *  @param    {Object}    txObj
+   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
+   */
+   sendTransaction (txObj, id='txReq') {
+     txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
+     const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
+     this.credentials.txRequest(txObj, {callbackUrl}).then(jwt => this.request(message.util.tokenRequest(jwt), id))
+   }
+
+ /**
+  *  Serializes persistant state of Connect object to string. Persistant state includes following
+  *  keys and values; address, mnid, did, doc, firstReq, keypair. You can save this string how you
+  *  like and then restore it's state with the deserialize function.
+  *
+  *  @return   {String}   JSON string
+  */
+  serialize() {
+    // TODO these are redundant vals, just store did maybe
+    const connectJSONState = {
+      address: this.address,
+      mnid: this.mnid,
+      did: this.did,
+      doc: this.doc,
+      firstReq: this.firstReq,
+      keypair: this.keypair
+    }
+    return JSON.stringify(connectJSONState)
+  }
+
+  /**
+   *  Given string of serialized Connect state, it restores that given state to the Connect
+   *  object which it was called on. You can get the serialized state of a connect object
+   *  by calling the serialize() function.
+   *
+   *  @param    {String}    str      serialized uPort Connect state
+   */
+  deserialize(str) {
+    const state = JSON.parse(str)
+    this.address = state.address
+    this.mnid = state.mnid
+    this.did = state.did
+    this.doc = state.doc
+    this.firstReq = state.firstReq
+    this.keypair = state.keypair
+  }
+
+  /**
+   *  Gets uPort connect state from browser localStorage and sets on this object
+   */
+  getState() {
+    const connectState = store.get('connectState')
+    if (connectState) this.deserialize(connectState)
+  }
+
+    /**
+     *  Writes serialized uPort connect state to browser localStorage at key 'connectState'
+     */
+  setState() {
+    const connectState = this.serialize()
+    store.set('connectState', connectState)
+  }
+
+  /**
+   * Set DID on object, also sets decoded mnid and address
+   */
+  setDID(did) {
+    this.did = did
+    this.mnid = did.replace('did:ethr:', '').replace('did:uport:', '')
+    this.address = decode(this.mnid).address
   }
 }
 
-// TODO may want to make mobileUriHandler available for ConnectCore.
 /**
- *  Consumes a URI. Used by default when called on a mobile device. Assigns the window
- *  to the URI which will bring up a dialog to open the URI in the uPort app.
+ *  A transport created for uport connect. Bundles transport functionality from uport-core-js. This implements the
+ *  default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
+ *  responses, it will by default poll Chasqui and return response. If given a request which specifies another
+ *  callback to receive the response, for example your own server, it will show the request in the default QR
+ *  modal and then instantly return. You can then handle how to get the response specific to your implementation.
  *
- *  @param    {String}     uri    A uPort URI
+ *  @param    {String}       appName                 App name to displayed in QR code pop over modal
+ *  @return   {Function}                             Configured connectTransport function
+ *  @param    {String}       uri                     uPort client request URI
+ *  @param    {Object}       [config={}]             Optional config object
+ *  @param    {String}       config.data             Additional data to be returned later with response
+ *  @return   {Promise<Object, Error>}               Function to close the QR modal
  *  @private
  */
-function mobileUriHandler (uri) {
-  window.location.assign(uri)
+const connectTransport = (appName) => (uri, {data, cancel}) => {
+  if (transport.chasqui.isChasquiCallback(uri)) {
+    return  transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
+  } else {
+    transport.qr.send()(uri, {cancel})
+    // TODO return close QR func?
+    return Promise.resolve({data})
+  }
+}
+
+/**
+ *  Gets current window url and formats as request callback
+ *
+ *  @return   {String}   Returns window url formatted as callback
+ *  @private
+ */
+const windowCallback = () => {
+  const md = new MobileDetect(navigator.userAgent)
+  if( md.userAgent() === 'Chrome' && md.os() === 'iOS' ) {
+    return `googlechrome:${window.location.href.substring(window.location.protocol.length)}`
+  } else {
+    return  window.location.href
+  }
+}
+
+/**
+ *  Detects if this library is called on a mobile device or tablet.
+ *
+ *  @param    {Object}     params    A object of params known to uPort
+ *  @return   {Boolean}              Returns true if on mobile or tablet, false otherwise.
+ *  @private
+ */
+function isMobile () {
+  if (typeof navigator !== 'undefined') {
+    return !!(new MobileDetect(navigator.userAgent).mobile())
+  } else return false
 }
 
 export default Connect
