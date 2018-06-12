@@ -41,13 +41,12 @@ class Connect {
     // Transports
     this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send()
-    this.onloadResponse = transport.url.getResponse
+    this.onloadResponse = transport.url.getResponse()
     this.PubSub = PubSub
-    transport.url.listenResponse((err, res) => {
-      if (res) this.PubSub.publish(res.id, {res: res.res, data: res.data}) // TODO pass errors
+    transport.url.listenResponse((err, payload) => {
+      if (payload) this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
     })
 
-    // TODO
     // State
     this.did = null
     this.mnid = null
@@ -135,9 +134,10 @@ class Connect {
   */
   onResponse(id) {
     const parseResponse = (payload) => {
+      if (payload.error) return Promise.reject(Object.assign({id}, payload))
       if (message.util.isJWT(payload.res)) {
         const jwt = payload.res
-        const decoded = decode(jwt)
+        const decoded = decodeJWT(jwt)
         if (decoded.payload.claim){
           return Promise.resolve(Object.assign({id}, payload))
         }
