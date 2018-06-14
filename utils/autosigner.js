@@ -64,14 +64,14 @@ class Autosigner {
     this.web3.eth.getTransactionCount(this.address, (err, nonce) => {
       if (err) cb(err)
       let txObj = {
-        gasPrice: new BN('10000000000000'),
-        gas: new BN('5000000'),
+         gasPrice: new BN(1000000000000),
+         gasLimit: new BN(3000000),
         nonce: nonce
       }
       if (params.to) { txObj.to = params.to }
       if (params.value) { txObj.value = this.web3.toHex(params.value) }
       if (params.data) { txObj.data = params.data }
-      cb(null, sign(params, privateKey))
+      cb(null, sign(txObj, privateKey))
     })
   }
 
