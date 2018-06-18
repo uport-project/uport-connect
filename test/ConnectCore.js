@@ -25,7 +25,8 @@ function mockVerifyingCredentials (receive) {
 
 function mockSigningCredentials ({createRequest, receive}) {
   return {
-    settings: {signer: (data, cb) => cb(null, 'SIGNATURE'), address: CLIENT_ID},
+    did: CLIENT_ID,
+    signer: (data, cb) => cb(null, 'SIGNATURE'),
     createRequest: (payload) => new Promise((resolve, reject) => resolve(createRequest(payload))),
     receive: (jwt) => new Promise((resolve) => resolve(receive(jwt)))
   }
@@ -79,22 +80,22 @@ describe('ConnectCore', () => {
       const uport = new ConnectCore('test app', {clientId: CLIENT_ID, signer})
       expect(uport.credentials).to.be.an.instanceof(Credentials)
       expect(uport.clientId, 'uport.clientId').to.equal(CLIENT_ID)
-      expect(uport.credentials.settings.address, 'uport.credentials.settings.address').to.equal(CLIENT_ID)
-      expect(uport.credentials.settings.signer).to.equal(signer)
+      // expect(uport.credentials.settings.address, 'uport.credentials.settings.address').to.equal(CLIENT_ID)
+      expect(uport.credentials.signer).to.equal(signer)
       expect(uport.canSign, 'uport.canSign').to.be.true
     })
 
     it('configures the network in connect and in credentials give a supported string', () => {
       const uport = new ConnectCore('test app', {network: 'mainnet'})
       expect(uport.network.id, 'uport.network.id').to.equal('0x1')
-      expect('0x1' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x1').to.be.true
+      // expect('0x1' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x1').to.be.true
     })
 
     it('configures the network in connect and in credentials given a well formed network config object', () => {
       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
       const uport = new ConnectCore('test app', {network: netConfig})
       expect(uport.network.id, 'uport.network.id').to.equal('0x5')
-      expect('0x5' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x5').to.be.true
+      // expect('0x5' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x5').to.be.true
     })
 
     it('throws error if the network config object is not well formed ', () => {
@@ -188,7 +189,7 @@ describe('ConnectCore', () => {
     it('sends a push notification if push token is available', () => {
       const uport = new ConnectCore('UportTests')
       uport.pushToken = '12345'
-      const pushFunc = sinon.stub(uport.credentials, 'push')
+      const pushFunc = sinon.stub(uport, 'push').callsFake(() => () => {})
 
       return uport.request({topic: mockTopic(), uri}).then(response => {
         expect(pushFunc.calledOnce, 'uport.credentials.push called').to.be.true
@@ -201,7 +202,7 @@ describe('ConnectCore', () => {
       const uport = new ConnectCore('UportTests')
       uport.pushToken = '12345'
       uport.isOnMobile = true
-      const pushFunc = sinon.stub(uport.credentials, 'push')
+      const pushFunc = sinon.stub(uport, 'push').callsFake(() => () => {})
       const uriHandler = sinon.spy()
 
       return uport.request({topic: mockTopic(), uri, uriHandler }).then(response => {
@@ -215,7 +216,7 @@ describe('ConnectCore', () => {
     it('does not call default uriHandler if push notification sent', () => {
       const uport = new ConnectCore('UportTests')
       uport.pushToken = '12345'
-      const pushFunc = sinon.stub(uport.credentials, 'push')
+      const pushFunc = sinon.stub(uport, 'push').callsFake(() => () => {})
       const uriHandlerFunc = sinon.stub(uport, 'uriHandler')
 
       return uport.request({topic: mockTopic(), uri}).then(response => {
@@ -237,12 +238,12 @@ describe('ConnectCore', () => {
             expect(name, 'topic name').to.equal('access_token')
             return mockTopic(CREDENTIALS_JWT)
           },
-          uriHandler,
-          credentials: mockVerifyingCredentials((jwt) => {
-            expect(jwt).to.equal(CREDENTIALS_JWT)
-            return PROFILE
-          })
+          uriHandler
         })
+        uport.verify = (jwt) => {
+            expect(jwt).to.equal(CREDENTIALS_JWT)
+            return Promise.resolve(PROFILE)
+        }
         expect(uport.canSign).to.be.false
         return uport.requestCredentials().then(profile => {
           expect(uriHandler.calledWith(`https://id.uport.me/me?network_id=0x4&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
@@ -283,18 +284,17 @@ describe('ConnectCore', () => {
             return mockTopic(CREDENTIALS_JWT)
           },
           uriHandler,
-          credentials: mockSigningCredentials(
-            {
-              receive: (jwt) => {
-                expect(jwt).to.equal(CREDENTIALS_JWT)
-                return PROFILE
-              },
+          credentials: mockSigningCredentials({
               createRequest: (payload) => {
                 expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123', network_id: '0x4' })
                 return REQUEST_TOKEN
               }
             })
         })
+        uport.verify = (jwt) => {
+            expect(jwt).to.equal(CREDENTIALS_JWT)
+            return Promise.resolve(PROFILE)
+        }
         expect(uport.canSign).to.be.true
         return uport.requestCredentials().then(profile => {
           expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
@@ -315,23 +315,23 @@ describe('ConnectCore', () => {
           return mockTopic(CREDENTIALS_JWT)
         },
         uriHandler,
-        credentials: mockSigningCredentials(
-          {
-            receive: (jwt) => {
-              expect(jwt).to.equal(CREDENTIALS_JWT)
-              return PROFILE
-            },
+        credentials: mockSigningCredentials({
             createRequest: (payload) => {
               expect(payload).to.be.deep.equal({ callbackUrl: 'https://chasqui.uport.me/api/v1/topic/123', network_id: '0x2a' })
               return REQUEST_TOKEN
             }
           })
       })
+      uport.verify = (jwt) => {
+          expect(jwt).to.equal(CREDENTIALS_JWT)
+          return Promise.resolve(PROFILE)
+      }
       expect(uport.canSign).to.be.true
       return uport.requestCredentials().then(profile => {
         expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
         expect(uriHandler.calledWith(`https://id.uport.me/me?requestToken=${REQUEST_TOKEN}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
+        console.log(error)
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
@@ -345,12 +345,7 @@ describe('ConnectCore', () => {
           return mockTopic(CREDENTIALS_JWT)
         },
         uriHandler,
-        credentials: mockSigningCredentials(
-          {
-            receive: (jwt) => {
-              expect(jwt).to.equal(CREDENTIALS_JWT)
-              return PROFILE
-            },
+        credentials: mockSigningCredentials({
             createRequest: (payload) => {
               expect(payload).to.be.deep.equal({
                 requested: ['phone'],
@@ -362,6 +357,10 @@ describe('ConnectCore', () => {
             }
           })
       })
+      uport.verify = (jwt) => {
+          expect(jwt).to.equal(CREDENTIALS_JWT)
+          return Promise.resolve(PROFILE)
+      }
       expect(uport.canSign).to.be.true
       return uport.requestCredentials({requested: ['phone'], notifications: true}).then(profile => {
         expect(profile, 'uport.requestCredentials profile').to.equal(PROFILE)
@@ -380,12 +379,7 @@ describe('ConnectCore', () => {
           return mockTopic(CREDENTIALS_JWT)
         },
         uriHandler,
-        credentials: mockSigningCredentials(
-          {
-            receive: (jwt) => {
-              expect(jwt).to.equal(CREDENTIALS_JWT)
-              return {...PROFILE, pushToken: PUSH_TOKEN}
-            },
+        credentials: mockSigningCredentials({
             createRequest: (payload) => {
               expect(payload).to.be.deep.equal({
                 notifications: true,
@@ -396,6 +390,10 @@ describe('ConnectCore', () => {
             }
           })
       })
+      uport.verify = (jwt) => {
+          expect(jwt).to.equal(CREDENTIALS_JWT)
+          return Promise.resolve({...PROFILE, pushToken: PUSH_TOKEN})
+      }
       return uport.requestCredentials({notifications: true}).then(res => {
         expect(uport.pushToken, 'uport.pushToken').to.equal(PUSH_TOKEN)
         expect(res).to.be.deep.equal({...PROFILE, pushToken: PUSH_TOKEN})
@@ -412,11 +410,14 @@ describe('ConnectCore', () => {
         topicFactory: () => mockTopic(CREDENTIALS_JWT),
         uriHandler: sinon.spy(),
         credentials: mockSigningCredentials({
-            receive: () => PROFILE,
             createRequest: (payload) => { expect(payload.accountType).to.equal(accountType) }
           })
       })
+      uport.verify = (jwt) => {
+          return Promise.resolve(PROFILE)
+      }
       return uport.requestCredentials().then(profile => { }, error => {
+        console.log(error)
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
     })
@@ -431,12 +432,12 @@ describe('ConnectCore', () => {
           expect(name, 'topic name').to.equal('access_token')
           return mockTopic(CREDENTIALS_JWT)
         },
-        uriHandler,
-        credentials: mockVerifyingCredentials(jwt => {
-          expect(jwt).to.equal(CREDENTIALS_JWT)
-          return PROFILE
-        })
+        uriHandler
       })
+      uport.verify = (jwt) => {
+          expect(jwt).to.equal(CREDENTIALS_JWT)
+          return Promise.resolve(PROFILE)
+      }
       return uport.requestAddress().then(address => {
         expect(address, 'uport.requestAddress address').to.equal(UPORT_ID)
         expect(uriHandler.calledWith(`https://id.uport.me/me?network_id=0x4&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
@@ -455,12 +456,12 @@ describe('ConnectCore', () => {
           expect(name, 'topic name').to.equal('access_token')
           return mockTopic(CREDENTIALS_JWT)
         },
-        uriHandler,
-        credentials: mockVerifyingCredentials(jwt => {
-          expect(jwt).to.equal(CREDENTIALS_JWT)
-          return {...PROFILE, networkAddress: KOVAN_ADDRESS}
-        })
+        uriHandler
       })
+      uport.verify = (jwt) => {
+        expect(jwt).to.equal(CREDENTIALS_JWT)
+        return Promise.resolve({...PROFILE, networkAddress: KOVAN_ADDRESS})
+      }
       return uport.requestAddress().then(address => {
         expect(address, 'uport.requestAddress address').to.equal(KOVAN_ADDRESS)
         expect(uriHandler.calledWith(`https://id.uport.me/me?network_id=0x2a&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
