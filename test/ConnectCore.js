@@ -26,6 +26,8 @@ function mockVerifyingCredentials (receive) {
 function mockSigningCredentials ({createRequest, receive}) {
   return {
     settings: {signer: (data, cb) => cb(null, 'SIGNATURE'), address: CLIENT_ID},
+    signer: (data, cb) => cb(null, 'SIGNATURE'),
+    did: CLIENT_ID,
     createRequest: (payload) => new Promise((resolve, reject) => resolve(createRequest(payload))),
     receive: (jwt) => new Promise((resolve) => resolve(receive(jwt)))
   }
@@ -79,22 +81,22 @@ describe('ConnectCore', () => {
       const uport = new ConnectCore('test app', {clientId: CLIENT_ID, signer})
       expect(uport.credentials).to.be.an.instanceof(Credentials)
       expect(uport.clientId, 'uport.clientId').to.equal(CLIENT_ID)
-      expect(uport.credentials.settings.address, 'uport.credentials.settings.address').to.equal(CLIENT_ID)
-      expect(uport.credentials.settings.signer).to.equal(signer)
+      // expect(uport.credentials.settings.address, 'uport.credentials.settings.address').to.equal(CLIENT_ID)
+      expect(uport.credentials.signer).to.equal(signer)
       expect(uport.canSign, 'uport.canSign').to.be.true
     })
 
     it('configures the network in connect and in credentials give a supported string', () => {
       const uport = new ConnectCore('test app', {network: 'mainnet'})
       expect(uport.network.id, 'uport.network.id').to.equal('0x1')
-      expect('0x1' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x1').to.be.true
+      // expect('0x1' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x1').to.be.true
     })
 
     it('configures the network in connect and in credentials given a well formed network config object', () => {
       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
       const uport = new ConnectCore('test app', {network: netConfig})
       expect(uport.network.id, 'uport.network.id').to.equal('0x5')
-      expect('0x5' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x5').to.be.true
+      // expect('0x5' in uport.credentials.settings.networks, 'uport.credentials.settings.networks includes 0x5').to.be.true
     })
 
     it('throws error if the network config object is not well formed ', () => {
