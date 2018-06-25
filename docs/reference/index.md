@@ -169,7 +169,7 @@ Instantiates a new uPort connect object.
 | opts.clientId | <code>String</code> |  | uport identifier for your application this will be used in the default credentials object |
 | [opts.network] | <code>Object</code> | <code>&#x27;kovan&#x27;</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'. |
 | opts.rpcUrl | <code>String</code> |  | JSON rpc url (defaults to https://ropsten.infura.io) |
-| opts.infuraApiKey | <code>String</code> |  | Infura API Key (register here http://infura.io/register.html) |
+| opts.infuraApiKey | <code>String</code> |  | Infura API Key (register here https://infura.io/signup) |
 | opts.topicFactory | <code>function</code> |  | function which generates topics and deals with requests and response |
 | opts.uriHandler | <code>function</code> |  | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
 | opts.mobileUriHandler | <code>function</code> |  | default function to consume generated URIs for requests on mobile |
