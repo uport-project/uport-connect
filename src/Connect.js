@@ -27,7 +27,7 @@ class Connect {
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
    * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
    * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
-   * @return   {Connect}                                   self
+   * @return   {Connect}                                  self
    */
   constructor (appName, opts = {}) {
     // Config
@@ -102,6 +102,7 @@ class Connect {
 
 // TODO where to return MNID and where to return address, should this be named differently, will return entire response obj now, not just address
 // TODO requestID? requestAddress? return mnid, address, did in response??
+// TODO add account option, param
  /**
   *  Creates a request for only the address/id of the uPort identity.
   *
@@ -115,8 +116,8 @@ class Connect {
   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
   */
   requestAddress (id='addressReq') {
-    const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
-    this.credentials.requestDisclosure({callbackUrl}).then(jwt => {this.request(message.util.tokenRequest(jwt), id)})
+    this.credentials.requestDisclosure({callbackUrl: this.genCallback()})
+                    .then(jwt => this.request(jwt, id))
   }
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
@@ -183,7 +184,7 @@ class Connect {
     console.log(req)
     const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
     if (!id) throw new Error('Requires request id')
-    this.isOnMobile ? this.mobileTransport(uri, {id, data, callback: redirectUrl, type}) : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
+    this.isOnMobile ? this.mobileTransport(uri, {id, data, redirectUrl, type}) : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
   }
 
  /**
@@ -228,9 +229,85 @@ class Connect {
    */
    sendTransaction (txObj, id='txReq') {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
-     const callbackUrl = this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
-     this.credentials.txRequest(txObj, {callbackUrl}).then(jwt => this.request(message.util.tokenRequest(jwt), id))
+     this.credentials.txRequest(txObj, {callbackUrl: this.genCallback()})
+                     .then(jwt => this.request(jwt, id))
    }
+
+  //  TODO this name is confusing
+  /**
+ *  Request uPort client/user to sign a claim or list of claims
+ *
+ *  @example
+ *  const unsignedClaim = {
+ *    claim: {
+ *      "Citizen of city X": {
+ *        "Allowed to vote": true,
+ *        "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
+ *      }
+ *    },
+ *    sub: "2oTvBxSGseWFqhstsEHgmCBi762FbcigK5u"
+ *  }
+ *  credentials.createVerificationRequest(unsignedClaim).then(jwt => {
+ *    ...
+ *  })
+ *
+ *  @param    {Object}      reqObj                 object with request params
+ *  @param    {Object}      reqObj.unsignedClaim   an object that is an unsigned claim which you want the user to attest
+ *  @param    {String}      reqObj.sub             the DID which the unsigned claim is about
+ *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
+ */
+  createVerificationRequest(reqObj, id='signClaimReq') {
+    this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, callbackUrl: this.genCallback(), this.did)
+                    .then(jwt => his.request(jwt, id))
+  }
+
+  /**
+ *  Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md)
+ *
+ *  @example
+ *  const req = { requested: ['name', 'country'],
+ *                callbackUrl: 'https://myserver.com',
+ *                notifications: true }
+ *  credentials.requestDisclosure(req).then(jwt => {
+ *      ...
+ *  })
+ *
+ *  @param    {Object}             [params={}]           request params object
+ *  @param    {Array}              params.requested      an array of attributes for which you are requesting credentials to be shared for
+ *  @param    {Array}              params.verified       an array of attributes for which you are requesting verified credentials to be shared for
+ *  @param    {Boolean}            params.notifications  boolean if you want to request the ability to send push notifications
+ *  @param    {String}             params.callbackUrl    the url which you want to receive the response of this request
+ *  @param    {String}             params.network_id     network id of Ethereum chain of identity eg. 0x4 for rinkeby
+ *  @param    {String}             params.accountType    Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
+ *  @param    {Number}             params.expiresIn      Seconds until expiry
+ *  @param    {String}            [id='disclosureReq']    string to identify request, later used to get response
+ *  @return   {Promise<Object, Error>}                   a promise which resolves with a signed JSON Web Token or rejects with an error
+ */
+  requestDisclosure (reqObj, id='disclosureReq') {
+    this.credentials.requestDisclosure(Object.assign(params, {callbackUrl: this.genCallback()}), reqObj.expiresIn)
+                    .then(jwt => this.request(jwt, id))
+  }
+
+  /**
+  *  Create a credential about connnected user
+  *
+  *  @example
+  *  credentials.attest({
+  *   sub: '5A8bRWU3F7j3REx3vkJ...', // uPort address of user, likely a MNID
+  *   exp: <future timestamp>,
+  *   claim: { name: 'John Smith' }
+  *  }).then( credential => {
+  *   ...
+  *  })
+  *
+  * @param    {Object}            [credential]           a unsigned credential object
+  * @param    {String}            credential.claim       claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
+  * @param    {String}            credential.exp         time at which this claim expires and is no longer valid (seconds since epoch)
+  * @param    {String}            [id='attestReq']       string to identify request, later used to get response
+  */
+  attest (claim, id) {
+    this.credentials.attest(claim).then(jwt => {this.request(jwt, id)})
+  }
 
  /**
   *  Serializes persistant state of Connect object to string. Persistant state includes following
@@ -293,6 +370,13 @@ class Connect {
     this.mnid = did.replace('did:ethr:', '').replace('did:uport:', '')
     this.address = decode(this.mnid).address
   }
+
+  /**
+   *  @private
+   */
+  genCallback() {
+    return this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
+  }
 }
 
 /**
@@ -342,7 +426,7 @@ const windowCallback = () => {
  *  @return   {Boolean}              Returns true if on mobile or tablet, false otherwise.
  *  @private
  */
-function isMobile () {
+const isMobile = () => {
   if (typeof navigator !== 'undefined') {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
