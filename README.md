@@ -152,22 +152,22 @@ Download this repo or your fork, then run `npm install`.
 
 All builds are created from files in `/src`
 
-To transpile to ES5. All files are output to `/lib`. The entry of our npm package is `/lib/index.js`
+To transpile to ES5. All files are output to `/lib`. The entry of our npm package is `/lib/Connect.js`
 
 ```shell
-$ npm run build-es5
+$ npm run build:es5
 ```
 
 To generate a bundle/distributable. We use webpack for our builds. The output dist is `/dist/uport-connect.js` and source map `/dist/uport-connect.map.js`
 
 ```shell
-$ npm run build-dist
+$ npm run build:dist
 ```
 
 To generate a production bundle/distributable. Includes build optimizations related to size and code is minified. The output dist is `/dist/uport-connect.min.js` and source map `/dist/uport-connect.min.map.js`
 
 ```shell
-$ npm run build-dist-prod
+$ npm run build:dist:prod
 ```
 
 #### <a name="test"></a> Tests
@@ -177,7 +177,7 @@ We write our tests using [mocha](http://mochajs.org) and run them with [karma](h
 To run our tests:
 
 ```shell
-$ npm run karma
+$ npm test
 ```
 
 #### <a name="coverage"></a> Code Coverage
@@ -185,7 +185,7 @@ $ npm run karma
 Code coverage reports are generated when tests are run and can be viewed in browser. Reports are also published on [CodeCov](https://codecov.io/gh/uport-project/uport-connect) when pushed to github.
 
 ```shell
-$ npm run karma
+$ npm test
 $ open test/coverage/html/index.html
 ```
 
