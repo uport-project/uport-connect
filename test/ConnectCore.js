@@ -9,7 +9,7 @@ const CREDENTIALS_JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJyZXF1ZXN0ZWQi
 const REQUEST_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.fyJyZXF1ZXN0ZWQiOlsibmFtZSIsInBob25lIl0sImlzcyI6IjB4MDAxMTIyIiwiaWF0IjoxNDg1MzIxMTMzOTk2fQ.zxGLQKo2WjgefrxEQWfwm_oago8Qr4YctBJoqNAm2XKE-48bADjolSo2T_tED9LnSikxqFIM9gNGpNgcY8JPdg'
 const CONTRACT = '0x819320ce2f72768054ac01248734c7d4f9929f6c'
 const UPORT_ID = '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c'
-const CLIENT_ID = '0xa19320ce2f72768054ac01248734c7d4f9929f6d'
+const CLIENT_ID = '2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX'
 const FAKETX = '0x21893aaa10bb28b5893bcec44b33930c659edcd2f3f08ad9f3e69d8997bef238'
 
 const publicKey = '03fdd57adec3d438ea237fe46b33ee1e016eda6b585c3e27ea66686c2ea5358479'
@@ -541,12 +541,12 @@ describe('ConnectCore', () => {
         value: '0xff',
         data: 'abcdef01',
         gas: '0x4444',
-        function: `transfer(address ${UPORT_ID},uint 12312)`
+        function: `transfer(address ${'0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c'},uint 12312)`
       }).then(txhash => {
         expect(txhash, 'uport.sendTransaction txhash').to.equal(FAKETX)
         // Note it intentionally leaves out data as function overrides it
         // gas is not included in uri
-        expect(uriHandler.calledWith(`https://id.uport.me/2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=0xa19320ce2f72768054ac01248734c7d4f9929f6d`), uriHandler.lastCall.args[0]).to.be.true
+        expect(uriHandler.calledWith(`https://id.uport.me/2opgxRd4H4WHiZwxGzGQr4HG942X12d39LJ?value=255&function=transfer(address%200x3b2631d8e15b145fd2bf99fc5f98346aecdc394c%2Cuint%2012312)&label=UportTests&callback_url=https%3A%2F%2Fchasqui.uport.me%2Fapi%2Fv1%2Ftopic%2F123&client_id=${CLIENT_ID}`), uriHandler.lastCall.args[0]).to.be.true
       }, error => {
         throw new Error('uport.request Promise rejected, expected it to resolve')
       })
