@@ -3,6 +3,7 @@ title: "How to integrate Uport-Connect"
 index: 0
 category: "tutorials"
 type: "content"
+source: "https://github.com/uport-project/uport-connect/blob/develop/docs/guides/tutorial.md"
 ---
 
 # How to integrate uPort into your dapp
