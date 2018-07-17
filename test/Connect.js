@@ -27,7 +27,6 @@ describe('Connect', () => {
       // expect(uport.accountType).to.equal('') TODO What will be the default?
       expect(uport.transport).to.be.a('function')
       expect(uport.mobileTransport).to.be.a('function')
-      expect(uport.onloadResponse).to.be.a('function')
       expect(uport.isOnMobile).to.be.a('boolean')
       expect(uport.storage).to.be.true
     })
@@ -199,7 +198,9 @@ describe('Connect', () => {
 
     it('calls request with request uri and id', (done) => {
       const request = (uri, id) => {
-        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
+        window.console.log('yo')
+        window.console.log(uri)
+        expect(/eyJ0eXA/.test(uri)).to.be.true
         expect(!!id).to.be.true
         done()
       }
@@ -341,7 +342,6 @@ describe('Connect', () => {
 
     it('call request with request uri including transaction jwt', (done) => {
       const request = (uri) => {
-        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
         const jwt = getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
         done()
