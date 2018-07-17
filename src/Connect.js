@@ -43,8 +43,15 @@ class Connect {
     this.mobileTransport = opts.mobileTransport || transport.url.send()
     this.onloadResponse = transport.url.getResponse()
     this.PubSub = PubSub
+
+    // Probably move out of constructor
+    this.pubResponse = (payload) => {
+      if(!payload.id) throw new Error('Response payload requires and id')
+      this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
+    }
+
     transport.url.listenResponse((err, payload) => {
-      if (payload) this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
+      if (payload) this.pubResponse(payload)
     })
 
     // State
@@ -69,6 +76,8 @@ class Connect {
       })
     }
   }
+
+
 
  /**
   *  Instantiates and returns a web3 styple provider wrapped with uPort functionality.
@@ -263,7 +272,7 @@ class Connect {
  *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
  */
   createVerificationRequest(reqObj, id='signClaimReq') {
-    this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, callbackUrl: this.genCallback(), this.did)
+    this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(), this.did)
                     .then(jwt => his.request(jwt, id))
   }
 
