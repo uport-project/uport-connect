@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.8.14-alpha-15",
+  "version": "0.8.14-alpha-16",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/Connect.js",
   "scripts": {
@@ -104,7 +104,7 @@
     "qs": "^6.2.1",
     "store": "^2.0.12",
     "uport": "^0.7.0-alpha-5",
-    "uport-core": "^0.0.36",
+    "uport-core": "0.0.45",
     "uport-did-resolver": "^0.0.2",
     "uport-lite": "^1.0.2"
   },
