@@ -41,7 +41,7 @@ class Connect {
     // Transports
     this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send()
-    this.onloadResponse = transport.url.getResponse()
+    this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
     this.PubSub = PubSub
 
     // Probably move out of constructor
@@ -299,7 +299,7 @@ class Connect {
  *  @return   {Promise<Object, Error>}                   a promise which resolves with a signed JSON Web Token or rejects with an error
  */
   requestDisclosure (reqObj, id='disclosureReq') {
-    this.credentials.requestDisclosure(Object.assign(params, {callbackUrl: this.genCallback()}), reqObj.expiresIn)
+    this.credentials.requestDisclosure(Object.assign(reqObj, {callbackUrl: this.genCallback()}), reqObj.expiresIn)
                     .then(jwt => this.request(jwt, id))
   }
 
@@ -382,8 +382,11 @@ class Connect {
    */
   setDID(did) {
     this.did = did
-    this.mnid = did.replace('did:ethr:', '').replace('did:uport:', '')
-    this.address = decode(this.mnid).address
+    // TODO change so doesn't fail, but need fix all handling of did vs addreess vs mnid throughout code here and above
+    const address = did.replace('did:ethr:', '').replace('did:uport:', '')
+    // TODO address should be nad
+    this.mnid = isMNID(address) ? address : encode({network: 'Ox1', address})
+    this.address = isMNID(address) ? decode(address).address : address
   }
 
   /**
