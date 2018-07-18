@@ -86,7 +86,7 @@ class ConnectCore {
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
     this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
     // TODO throw error if this.network not part of network set in Credentials
-    this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
+    this.canSign = !!this.credentials.signer && !!this.credentials.did
     this.pushToken = null
     this.address = null
     this.firstReq = true

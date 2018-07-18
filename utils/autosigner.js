@@ -32,7 +32,7 @@ class Autosigner {
     if (res.to === 'me') {
       // Hardcoded dummy JWT containing the address
       // Note that the signature will not match
-      body.access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJhdWQiOiJodHRwczovL2NoYXNxdWkudXBvcnQubWUvYXBpL3YxL3RvcGljL1ViTHNvTDNpT1R4c2J1c1oiLCJ0eXBlIjoic2hhcmVSZXNwIiwiaXNzIjoiMHg1MWY3OTM0OTMwZTUwMmExYTgzODFlOWZlYzlkOTMzY2Y3MzUwMjg1IiwiaWF0IjoxNDgyNDMwNzI5OTgxLCJleHAiOjE0ODI1MTcxMjk5ODF9.WDVC7Rl9lyeGzoNyxbJ7SRAyTIqLKu2bmYvO5I0DmEs5XWVGKsn16B9o6Zp0O5huX7StRRY3ujDoI1ofFoRf2A'
+      body.access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1Mjk0MTU0NTQsImV4cCI6MTUyOTUwMTg1NCwiYXVkIjoiaHR0cHM6Ly9jaGFzcXVpLnVwb3J0Lm1lL2FwaS92MS90b3BpYy9QZnZaVXpTdWY5UjF4c0RzIiwidHlwZSI6InNoYXJlUmVzcCIsIm5hZCI6IjJvZnFQSHR0R1h2b1B5NE5iaThncHp4ZUVoblZSR0J0ZnF4Iiwib3duIjp7Im5hbWUiOiJaYWNoIn0sImlzcyI6IjJvZnFQSHR0R1h2b1B5NE5iaThncHp4ZUVoblZSR0J0ZnF4In0.UjNOMs2H6EDrozSH6RAMrVeucYEI9zSiDTYR9Qj7k6SVOR8QDhsDVQ1jBjHt6qBClTRtd8DH18r6KtvR9qaguA'
 
       setTimeout(Autosigner.postData.bind(null, res.callback_url, body), 3000)
     } else {
