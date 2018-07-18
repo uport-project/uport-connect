@@ -5,6 +5,8 @@ import UportSubprovider from './uportSubprovider'
 // Can use http provider from ethjs in the future.
 import HttpProvider from 'web3/lib/web3/httpprovider'
 import { isMNID, encode, decode } from 'mnid'
+import { verifyJWT, decodeJWT } from 'did-jwt'
+import { transport } from 'uport-core'
 
 const networks = {
   'mainnet':   {  id: '0x1',
@@ -86,11 +88,27 @@ class ConnectCore {
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
     this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
     // TODO throw error if this.network not part of network set in Credentials
-    this.canSign = !!this.credentials.settings.signer && !!this.credentials.settings.address
+    this.canSign = !!this.credentials.signer && !!this.credentials.did
     this.pushToken = null
     this.address = null
     this.firstReq = true
     this.publicEncKey = null
+
+    this.push = transport.push.send
+    this.verify = (jwt, topicUrl) => {
+      const opts = this.credentials.did ? {audience: this.credentials.did} : {callbackUrl: topicUrl}
+      return verifyJWT(jwt, opts).then(res => {
+        doc = res.doc
+        return this.credentials.processDisclosurePayload(res)
+      }).then(res => {
+        // Convert to past format
+        res.publicKey = '0x' + doc.publicKey[0].publicKeyHex
+        res.publicEncKey = doc.publicKey[1].publicKeyBase64
+        this.did = res.address
+        res.address = res.networkAddress
+        return res
+      })
+    }
   }
 
   /**
@@ -136,6 +154,7 @@ class ConnectCore {
   requestCredentials (request = {}, uriHandler) {
     const topic = this.topicFactory('access_token')
     if (this.accountType) request.accountType = this.accountType
+    let doc
     return new Promise((resolve, reject) => {
       if (this.canSign) {
         this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>
@@ -154,7 +173,7 @@ class ConnectCore {
     }).then(uri => (
         this.request({uri, topic, uriHandler})
       ))
-      .then(jwt => this.credentials.receive(jwt, topic.url))
+      .then(jwt => this.verify(jwt, topic.url))
       .then(res => {
         if (res && res.pushToken) this.pushToken = res.pushToken
         this.address = res.address
@@ -171,7 +190,9 @@ class ConnectCore {
    *  @return   {Promise<String, Error>}                                  a promise which resolves with an address or rejects with an error.
    */
   requestAddress (uriHandler) {
-    return this.requestCredentials({}, uriHandler).then((profile) => profile.networkAddress || profile.address)
+    return this.requestCredentials({}, uriHandler).then((profile) => {
+      return profile.networkAddress || profile.address
+    })
   }
 
   /**
@@ -221,7 +242,7 @@ class ConnectCore {
     if (defaultUriHandler) { uriHandler = this.uriHandler }
 
     if (this.pushToken && !this.isOnMobile) {
-      this.credentials.push(this.pushToken, this.publicEncKey, {url: uri})
+      this.push(this.pushToken, this.publicEncKey)(uri)
       return topic
     }
 

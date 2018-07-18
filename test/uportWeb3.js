@@ -6,6 +6,8 @@ import testData from './testData.json'
 // import ganache from 'ganache-cli'
 
 const addr1 = '0x9d00733ae37f34cdebe443e5cda8e9721fffa092'
+const publicKey = '03fdd57adec3d438ea237fe46b33ee1e016eda6b585c3e27ea66686c2ea5358479'
+const PROFILE = {publicKey, name: 'David Chaum', address: '0x3b2631d8e15b145fd2bf99fc5f98346aecdc394c'}
 
 function mockCredentials (receive) {
   return {
@@ -14,7 +16,7 @@ function mockCredentials (receive) {
   }
 }
 describe('uportWeb3 integration tests', function () {
-  this.timeout(30000)
+  this.timeout(9000)
 
   let autosigner, status, vanillaWeb3, web3
   const coolStatus = 'Writing some tests!'
@@ -67,6 +69,9 @@ describe('uportWeb3 integration tests', function () {
               provider: testrpcProv,
               uriHandler: autosigner.openQr.bind(autosigner)
             })
+            uport.verify = (jwt) => {
+                return Promise.resolve(PROFILE)
+            }
             web3 = uport.getWeb3()
             status = web3.eth.contract(testData.statusContractAbiData).at(contract.address)
             done()
@@ -79,7 +84,7 @@ describe('uportWeb3 integration tests', function () {
   it('getCoinbase', (done) => {
     web3.eth.getCoinbase((err, address) => {
       expect(err).to.be.null
-      expect(address).to.equal(autosigner.address)
+      expect(address).to.equal(PROFILE.address)
       done()
     })
   })
@@ -87,7 +92,7 @@ describe('uportWeb3 integration tests', function () {
   it('getAccounts', (done) => {
     web3.eth.getAccounts((err, addressList) => {
       expect(err).to.be.null
-      expect(addressList).to.deep.equal([autosigner.address])
+      expect(addressList).to.deep.equal([PROFILE.address])
       done()
     })
   })
