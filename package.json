@@ -133,7 +133,7 @@
     "jsdoc": "^3.4.3",
     "jsdoc-to-markdown": "^4.0.1",
     "json-loader": "^0.5.4",
-    "karma": "^2.0.4",
+    "karma": "github:karma-runner/karma#94a6728de96b44788f7179ae1dc29602746d55a6",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-coverage": "^1.1.2",
