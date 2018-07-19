@@ -369,7 +369,7 @@ Instantiates a new uPort connectCore object.
 | opts.uriHandler | <code>function</code> |  | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
 | opts.mobileUriHandler | <code>function</code> |  | default function to consume generated URIs for requests on mobile |
 | opts.closeUriHandler | <code>function</code> |  | default function called after a request receives a response, can be to close QR codes or other custom UX |
-| opts.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none" |
+| opts.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", or "none" |
 
 **Example**  
 ```js
