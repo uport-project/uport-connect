@@ -81,7 +81,7 @@ class ConnectCore {
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
     this.clientId = opts.clientId
-    this.accountType = opts.accountType || 'none'
+    this.accountType = opts.accountType
     this.network = configNetwork(opts.network)
     if (this.accountType === 'segregated' && this.network === networks.mainnet) {
       throw new Error('Segregated accounts are not supported on Mainnet')
@@ -108,7 +108,8 @@ class ConnectCore {
    */
   getProvider () {
     const subProvider = new UportSubprovider({
-      requestAddress: this.requestAddress.bind(this),
+      requestAddress: () => this.requestCredentials({accountType: 'keypair'})
+        .then((profile) => profile.networkAddress || profile.address),
       sendTransaction: this.sendTransaction.bind(this),
       provider: this.provider || new HttpProvider(this.network.rpcUrl),
       networkId: this.network.id
@@ -139,7 +140,7 @@ class ConnectCore {
    */
   requestCredentials (request = {}, uriHandler) {
     const topic = this.topicFactory('access_token')
-    if (this.accountType) request.accountType = this.accountType
+    request.accountType = this.accountType || request.accountType || 'none'
 
     return new Promise((resolve, reject) => {
       if (this.canSign) {
