@@ -67,7 +67,7 @@ class ConnectCore {
    * @param       {Function}          opts.uriHandler        default function to consume generated URIs for requests, can be used to display QR codes or other custom UX
    * @param       {Function}          opts.mobileUriHandler  default function to consume generated URIs for requests on mobile
    * @param       {Function}          opts.closeUriHandler   default function called after a request receives a response, can be to close QR codes or other custom UX
-   *  @param      {String}            opts.accountType       Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
+   * @param       {String}            opts.accountType       Ethereum account type: "general", "segregated", "keypair", or "none"
    * @return      {Connect}                                  self
    */
 
@@ -75,14 +75,18 @@ class ConnectCore {
     this.appName = appName || 'uport-connect-app'
     this.infuraApiKey = opts.infuraApiKey || this.appName.replace(/\W+/g, '-')
     this.provider = opts.provider
-    this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
     this.uriHandler = opts.uriHandler || defaultUriHandler
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
     this.clientId = opts.clientId
+    this.accountType = opts.accountType || 'none'
     this.network = configNetwork(opts.network)
+    if (this.accountType === 'segregated' && this.network === networks.mainnet) {
+      throw new Error('Segregated accounts are not supported on Mainnet')
+    }
+
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
     this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
     // TODO throw error if this.network not part of network set in Credentials
@@ -136,6 +140,7 @@ class ConnectCore {
   requestCredentials (request = {}, uriHandler) {
     const topic = this.topicFactory('access_token')
     if (this.accountType) request.accountType = this.accountType
+
     return new Promise((resolve, reject) => {
       if (this.canSign) {
         this.credentials.createRequest({...request, network_id: this.network.id, callbackUrl: topic.url}).then(requestToken =>

@@ -65,6 +65,7 @@ describe('ConnectCore', () => {
       expect(uport.credentials).to.be.an.instanceof(Credentials)
       expect(uport.canSign).to.be.false
       expect(uport.getWeb3).to.equal(undefined)
+      expect(uport.accountType).to.equal('none')
     })
 
     it('does not have a closeUriHandler if not using built in openQr', () => {
@@ -100,6 +101,10 @@ describe('ConnectCore', () => {
     it('throws error if the network config object is not well formed ', () => {
       try { new ConnectCore('test app', {network: {id: '0x5'}}) } catch (e) { return }
       throw new Error('did not throw error')
+    })
+
+    it('throws error if segregated account is requested on mainnet', () => {
+      expect(() => new ConnectCore('test app', {network: 'mainnet', accountType: 'segregated'})).to.throw()
     })
   })
 
