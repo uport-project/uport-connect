@@ -140,7 +140,7 @@ class ConnectCore {
    */
   requestCredentials (request = {}, uriHandler) {
     const topic = this.topicFactory('access_token')
-    request.accountType = this.accountType || request.accountType || 'none'
+    request.accountType = request.accountType || this.accountType || 'none'
 
     return new Promise((resolve, reject) => {
       if (this.canSign) {
