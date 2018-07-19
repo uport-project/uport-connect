@@ -108,7 +108,7 @@ class ConnectCore {
    */
   getProvider () {
     const subProvider = new UportSubprovider({
-      requestAddress: () => this.requestCredentials({accountType: 'keypair'})
+      requestAddress: () => this.requestCredentials({accountType: this.accountType || 'keypair'})
         .then((profile) => profile.networkAddress || profile.address),
       sendTransaction: this.sendTransaction.bind(this),
       provider: this.provider || new HttpProvider(this.network.rpcUrl),
