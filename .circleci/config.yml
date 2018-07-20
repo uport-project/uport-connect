@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/uport-connect
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:8-browsers
     steps:
       - checkout
 
