@@ -81,7 +81,7 @@ class ConnectCore {
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
     this.clientId = opts.clientId
-    this.accountType = opts.accountType
+    this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.network = configNetwork(opts.network)
     if (this.accountType === 'segregated' && this.network === networks.mainnet) {
       throw new Error('Segregated accounts are not supported on Mainnet')
