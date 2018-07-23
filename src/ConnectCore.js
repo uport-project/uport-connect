@@ -199,9 +199,16 @@ class ConnectCore {
    */
   attestCredentials ({sub, claim, exp}, uriHandler) {
     const topic = this.topicFactory('status')
-    return this.credentials.attest({ sub, claim, exp }).then(jwt => {
+   /** Allows applications  to attest array of claims, by creating a token for each induvidual claim */
+    if (Array.isArray(claim)){
+          return loopOverMultipleClaims(0,claim,[],this,topic,uriHandler,sub,exp);
+    }
+    else{
+        return this.credentials.attest({ sub, claim, exp }).then(jwt => {
       return this.request({uri: `https://id.uport.me/add?attestations=${encodeURIComponent(jwt)}&callback_url=${encodeURIComponent(topic.url)}`, topic, uriHandler})
     })
+    }
+    
   }
 
   /**
@@ -372,5 +379,17 @@ function isMobile () {
 function defaultUriHandler (uri) {
   throw new Error(`No Url handler set to handle ${uri}`)
 }
+function loopOverMultipleClaims(index,claim,final_claim,_this,topic,uriHandler,sub,exp){
+        if(index==claim.length){
+            return _this.request({ uri: 'https://id.uport.me/add?attestations=' + encodeURIComponent(final_claim) + '&callback_url=' + encodeURIComponent(topic.url), topic: topic, uriHandler: uriHandler });
+    }
+
+        _this.credentials.attest({ sub: sub, claim: claim[index], exp: exp }).then(function (jwt) {
+        final_claim.push(jwt)
+        loopOverMultipleClaims(index+1,claim,final_claim,_this,topic,uriHandler,sub,exp)
+        /** Loops over each claim creating a unique token for each one */
+    });
+
+    }
 
 export default ConnectCore
