@@ -21,17 +21,21 @@ source: "https://github.com/uport-project/uport-connect/blob/develop/docs/refere
     * [.request(uri, id, [opts])](#Connect+request)
     * [.contract(abi)](#Connect+contract) ⇒ <code>Object</code>
     * [.sendTransaction(txObj, [id])](#Connect+sendTransaction)
+    * [.createVerificationRequest(reqObj, [id])](#Connect+createVerificationRequest)
+    * [.requestDisclosure([params], [id])](#Connect+requestDisclosure) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
+    * [.attest([credential], [id])](#Connect+attest)
     * [.serialize()](#Connect+serialize) ⇒ <code>String</code>
     * [.deserialize(str)](#Connect+deserialize)
     * [.getState()](#Connect+getState)
     * [.setState()](#Connect+setState)
+    * [.setDID()](#Connect+setDID)
 
 <a name="new_Connect_new"></a>
 
 ### new Connect(appName, [opts])
 Instantiates a new uPort Connect object.
 
-**Returns**: <code>[Connect](#Connect)</code> - self  
+**Returns**: [<code>Connect</code>](#Connect) - self  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -48,7 +52,7 @@ Instantiates a new uPort Connect object.
 | [opts.ethrConfig] | <code>Object</code> |  | Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver) |
 | [opts.registry] | <code>Object</code> |  | Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver) |
 
-**Example**
+**Example**  
 ```js
 import  Connect  from 'uport-connect'
 const connect = new Connect('MydappName')
@@ -62,27 +66,27 @@ Instantiates and returns a web3 styple provider wrapped with uPort functionality
  overrides eth_sendTransaction to start the send transaction flow to pass the
  transaction to the uPort app.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 **Returns**: <code>UportSubprovider</code> - A web3 style provider wrapped with uPort functionality  
 **Example**  
 ```js
 const uportProvider = connect.getProvider()
  const web3 = new Web3(uportProvider)
 
-
+ 
 ```
 <a name="Connect+requestAddress"></a>
 
 ### connect.requestAddress([id])
 Creates a request for only the address/id of the uPort identity.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | [id] | <code>String</code> | <code>&#x27;addressReq&#x27;</code> | string to identify request, later used to get response |
 
-**Example**
+**Example**  
 ```js
 connect.requestAddress()
 
@@ -90,14 +94,14 @@ connect.requestAddress()
    const id = res.res
  })
 
-
+ 
 ```
 <a name="Connect+onResponse"></a>
 
 ### connect.onResponse(id) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
 Get response by id of earlier request, returns promise which resolves when first reponse with given id is available. Listen instead, if looking for multiple responses of same id.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 **Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise resolves once valid response for given id is avaiable, otherwise rejects with error  
 
 | Param | Type | Description |
@@ -109,7 +113,7 @@ Get response by id of earlier request, returns promise which resolves when first
 ### connect.request(uri, id, [opts])
 Send a request URI string to a uport client.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -128,10 +132,10 @@ Builds and returns a contract object which can be used to interact with
  a given contract. Similar to web3.eth.contract. Once specifying .at(address)
  you can call the contract functions with this object. It will create a transaction
  sign request and send it. Functionality limited to function calls which require sending
- a transaction, as these are the only calls which require interaciton with a uPort client.
+ a transaction, as these are the only calls which require interaction with a uPort client.
  For reading and/or events use web3 alongside or a similar library.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 **Returns**: <code>Object</code> - contract object  
 
 | Param | Type | Description |
@@ -144,14 +148,14 @@ Builds and returns a contract object which can be used to interact with
 Given a transaction object (similarly defined as the web3 transaction object)
  it creates a transaction sign request and sends it.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | txObj | <code>Object</code> |  |  |
 | [id] | <code>String</code> | <code>&#x27;addressReq&#x27;</code> | string to identify request, later used to get response |
 
-**Example**
+**Example**  
 ```js
 const txobject = {
    to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
@@ -164,7 +168,93 @@ const txobject = {
    const txId = res.res
  })
 
+ 
+```
+<a name="Connect+createVerificationRequest"></a>
 
+### connect.createVerificationRequest(reqObj, [id])
+Request uPort client/user to sign a claim or list of claims
+
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| reqObj | <code>Object</code> |  | object with request params |
+| reqObj.unsignedClaim | <code>Object</code> |  | an object that is an unsigned claim which you want the user to attest |
+| reqObj.sub | <code>String</code> |  | the DID which the unsigned claim is about |
+| [id] | <code>String</code> | <code>&#x27;signClaimReq&#x27;</code> | string to identify request, later used to get response |
+
+**Example**  
+```js
+const unsignedClaim = {
+   claim: {
+     "Citizen of city X": {
+       "Allowed to vote": true,
+       "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
+     }
+   },
+   sub: "2oTvBxSGseWFqhstsEHgmCBi762FbcigK5u"
+ }
+ credentials.createVerificationRequest(unsignedClaim).then(jwt => {
+   ...
+ })
+
+ 
+```
+<a name="Connect+requestDisclosure"></a>
+
+### connect.requestDisclosure([params], [id]) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
+Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md)
+
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
+**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a signed JSON Web Token or rejects with an error  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [params] | <code>Object</code> | <code>{}</code> | request params object |
+| params.requested | <code>Array</code> |  | an array of attributes for which you are requesting credentials to be shared for |
+| params.verified | <code>Array</code> |  | an array of attributes for which you are requesting verified credentials to be shared for |
+| params.notifications | <code>Boolean</code> |  | boolean if you want to request the ability to send push notifications |
+| params.callbackUrl | <code>String</code> |  | the url which you want to receive the response of this request |
+| params.network_id | <code>String</code> |  | network id of Ethereum chain of identity eg. 0x4 for rinkeby |
+| params.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none" |
+| params.expiresIn | <code>Number</code> |  | Seconds until expiry |
+| [id] | <code>String</code> | <code>&#x27;disclosureReq&#x27;</code> | string to identify request, later used to get response |
+
+**Example**  
+```js
+const req = { requested: ['name', 'country'],
+               callbackUrl: 'https://myserver.com',
+               notifications: true }
+ credentials.requestDisclosure(req).then(jwt => {
+     ...
+ })
+
+ 
+```
+<a name="Connect+attest"></a>
+
+### connect.attest([credential], [id])
+Create a credential about connnected user
+
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [credential] | <code>Object</code> |  | a unsigned credential object |
+| credential.claim | <code>String</code> |  | claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}}) |
+| credential.exp | <code>String</code> |  | time at which this claim expires and is no longer valid (seconds since epoch) |
+| [id] | <code>String</code> | <code>&#x27;attestReq&#x27;</code> | string to identify request, later used to get response |
+
+**Example**  
+```js
+credentials.attest({
+  sub: '5A8bRWU3F7j3REx3vkJ...', // uPort address of user, likely a MNID
+  exp: <future timestamp>,
+  claim: { name: 'John Smith' }
+ }).then( credential => {
+  ...
+ })
 ```
 <a name="Connect+serialize"></a>
 
@@ -173,7 +263,7 @@ Serializes persistant state of Connect object to string. Persistant state includ
  keys and values; address, mnid, did, doc, firstReq, keypair. You can save this string how you
  like and then restore it's state with the deserialize function.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 **Returns**: <code>String</code> - JSON string  
 <a name="Connect+deserialize"></a>
 
@@ -182,7 +272,7 @@ Given string of serialized Connect state, it restores that given state to the Co
  object which it was called on. You can get the serialized state of a connect object
  by calling the serialize() function.
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -193,10 +283,16 @@ Given string of serialized Connect state, it restores that given state to the Co
 ### connect.getState()
 Gets uPort connect state from browser localStorage and sets on this object
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
 <a name="Connect+setState"></a>
 
 ### connect.setState()
 Writes serialized uPort connect state to browser localStorage at key 'connectState'
 
-**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
+<a name="Connect+setDID"></a>
+
+### connect.setDID()
+Set DID on object, also sets decoded mnid and address
+
+**Kind**: instance method of [<code>Connect</code>](#Connect)  
