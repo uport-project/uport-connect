@@ -39,7 +39,7 @@ Instantiates a new uPort Connect object.
 | [opts] | <code>Object</code> |  | optional parameters |
 | [opts.network] | <code>Object</code> | <code>&#x27;rinkeby&#x27;</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'. |
 | [opts.provider] | <code>Object</code> | <code>HttpProvider</code> | Provider used as a base provider to be wrapped with uPort connect functionality |
-| [opts.accountType] | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none" |
+| [opts.accountType] | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", or "none" |
 | [opts.isMobile] | <code>Boolean</code> |  | Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client |
 | [opts.storage] | <code>Boolean</code> | <code>true</code> | When true, object state will be written to local storage on each state cz-conventional-change |
 | [opts.transport] | <code>function</code> |  | Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client |
