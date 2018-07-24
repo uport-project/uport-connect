@@ -20,7 +20,7 @@ class Connect {
    * @param    {Object}      [opts]                       optional parameters
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {Object}      [opts.provider=HttpProvider] Provider used as a base provider to be wrapped with uPort connect functionality
-   * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
+   * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.storage=true]          When true, object state will be written to local storage on each state cz-conventional-change
    * @param    {Function}    [opts.transport]             Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
@@ -35,9 +35,15 @@ class Connect {
     this.appName = appName || 'uport-connect-app'
     this.network = network.config.network(opts.network)
     this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
-    this.accountType = opts.accountType
+    this.accountType = opts.accountType === 'none' ? undefined : opts.accountType 
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.storage = opts.storage === undefined ? true : opts.storage
+
+    // Disallow segregated account on mainnet
+    if (this.network === network.defaults.networks.mainnet && this.accountType === 'segregated') {
+      throw new Error('Segregated accounts are not supported on mainnet')
+    }
+
     // Transports
     this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send()
@@ -96,7 +102,7 @@ class Connect {
     // TODO remove defaults, fix import
     const subProvider = new provider.default({
       requestAddress: () => {
-        this.requestAddress('addressReqProvider')
+        this.requestCredentials({accountType: this.accountType || 'keypair'}, 'addressReqProvider')
         return this.onResponse('addressReqProvider').then(payload => {
           this.setDID(payload.res.address)
           return this.address
@@ -128,6 +134,7 @@ class Connect {
   *    const id = res.res
   *  })
   *
+  *  @param    {String}    [accountType='none'] accountType to be used in the request
   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
   */
   requestAddress (id='addressReq') {
@@ -199,7 +206,9 @@ class Connect {
     console.log(req)
     const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
     if (!id) throw new Error('Requires request id')
-    this.isOnMobile ? this.mobileTransport(uri, {id, data, redirectUrl, type}) : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
+    this.isOnMobile 
+      ? this.mobileTransport(uri, {id, data, redirectUrl, type}) 
+      : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
   }
 
  /**
@@ -293,13 +302,14 @@ class Connect {
  *  @param    {Boolean}            params.notifications  boolean if you want to request the ability to send push notifications
  *  @param    {String}             params.callbackUrl    the url which you want to receive the response of this request
  *  @param    {String}             params.network_id     network id of Ethereum chain of identity eg. 0x4 for rinkeby
- *  @param    {String}             params.accountType    Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none"
+ *  @param    {String}             params.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
  *  @param    {Number}             params.expiresIn      Seconds until expiry
  *  @param    {String}            [id='disclosureReq']    string to identify request, later used to get response
  *  @return   {Promise<Object, Error>}                   a promise which resolves with a signed JSON Web Token or rejects with an error
  */
   requestDisclosure (reqObj, id='disclosureReq') {
-    this.credentials.requestDisclosure(Object.assign(reqObj, {callbackUrl: this.genCallback()}), reqObj.expiresIn)
+    reqObj = Object.assign({accountType: this.accountType || 'none'}, reqObj, {callbackUrl: this.genCallback()})
+    this.credentials.requestDisclosure(reqObj, reqObj.expiresIn)
                     .then(jwt => this.request(jwt, id))
   }
 

@@ -24,7 +24,7 @@ describe('Connect', () => {
       const uport = new Connect('test app')
       expect(uport.appName).to.equal('test app')
       expect(uport.network.id).to.equal('0x4')
-      // expect(uport.accountType).to.equal('') TODO What will be the default?
+      expect(uport.accountType).to.be.undefined
       expect(uport.transport).to.be.a('function')
       expect(uport.mobileTransport).to.be.a('function')
       expect(uport.isOnMobile).to.be.a('boolean')
@@ -52,6 +52,11 @@ describe('Connect', () => {
       uport.mobileTransport('test')
       expect(transport).to.be.calledOnce
       expect(mobileTransport).to.be.calledOnce
+    })
+
+    it('throws an error if a segregated account is requested on mainnet', () => {
+      const config = {accountType: 'segregated', network: 'mainnet'}
+      expect(() => new Connect('bad config', config)).to.throw
     })
 
     it('creates keypair if none in local storage', () => {
@@ -88,17 +93,61 @@ describe('Connect', () => {
 
   })
 
+  describe('requestDisclosure', () => {
+    it('sets the accountType to none if not provided', () => {
+      const uport = new Connect('test app none')
+      uport.genCallback = sinon.stub()
+      uport.request = sinon.stub()
+      uport.credentials.requestDisclosure = (req) => {
+        console.log(req.accountType, accountType)
+        expect(req.accountType).to.equal('none')
+        done()
+      }
+  
+      uport.requestDisclosure({})
+    })
+
+    it('sets the accounttype to configured default if not provided', () => {
+      const accountType = 'keypair'
+      const uport = new Connect('test app keypair', {accountType})
+      uport.genCallback = sinon.stub()
+      uport.request = sinon.stub()
+      uport.credentials.requestDisclosure = (req) => {
+        console.log(req.accountType, accountType)
+        expect(req.accountType).to.equal(accountType)
+        done()
+      }
+
+      uport.requestDisclosure({})
+    })
+
+    it('uses the provided accountType', () => {
+      const configAccountType = 'keypair'
+      const accountType = 'general'
+      const uport = new Connect('test app', {accountType: configAccountType})
+      uport.genCallback = sinon.stub()
+
+      uport.credentials.requestDisclosure = (req) => {
+        console.log(req.accountType, accountType)
+        expect(req.accountType).to.equal(accountType)
+        done()
+      }
+
+      uport.requestDisclosure({accountType})
+    })
+  })
+
   describe('getProvider', () => {
 
-      const addressTest = '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6'
+    const addressTest = '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6'
 
-      // NOTE: provider test coverage in uport-core-js
-      it('returns a provider with same network settings as connect', () => {
+    // NOTE: provider test coverage in uport-core-js
+    it('returns a provider with same network settings as connect', () => {
       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
       const uport = new Connect('test app', {network: netConfig})
       const provider = uport.getProvider()
       expect(uport.network.rpcUrl, 'uport.network.rpcUrl').to.equal(provider.provider.host)
-      })
+    })
 
     it('returns provider which calls connect.requestAddress on getCoinbase', (done) => {
       const uport = new Connect('test app')
