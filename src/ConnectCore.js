@@ -81,7 +81,8 @@ class ConnectCore {
     this.uriHandler = opts.uriHandler || defaultUriHandler
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
-    this.clientId = opts.clientId
+    // support legacy hex ids
+    if (opts.clientId) this.clientId = isMNID(opts.clientId) ? opts.clientId : encode({network: '0x3', address: opts.clientId})
     this.network = configNetwork(opts.network)
     const credentialsNetwork = {[this.network.id]: {registry: this.network.registry, rpcUrl: this.network.rpcUrl}}
     this.credentials = opts.credentials || new Credentials({address: this.clientId, signer: opts.signer, networks: credentialsNetwork})
