@@ -41,33 +41,38 @@
     "ipfs",
     "persona"
   ],
-  "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (http://consensys.net/)",
-  "license": "ISC",
+  "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (https://consensys.net/)",
+  "license": "Apache-2.0",
   "contributors": [
     {
       "name": "Christian Lundkvist",
       "email": "christian.lundkvist@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Jeff Scott Ward",
       "email": "jeffscottward@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Joel Torstensson",
       "email": "joel.torstensson@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Zach Ferland",
       "email": "zach.ferland@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Pelle Braendgaard",
       "email": "pelle.braendgaard@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
+    },
+    {
+      "name": "Levi Strope",
+      "email": "levi.strope@consensys.net",
+      "url": "https://consensys.net"
     }
   ],
   "bugs": {
