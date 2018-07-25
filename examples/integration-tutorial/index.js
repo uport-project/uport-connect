@@ -16,7 +16,7 @@ if (connect.did) {
 }
 
 const abi = [{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"}]
-const StatusContract = connect.contract(abi).at('0x70A804cCE17149deB6030039798701a38667ca3B')
+const StatusContract = web3.eth.contract(abi).at('0x70A804cCE17149deB6030039798701a38667ca3B')
 
 // uPort connect
 const uportConnect = function () {
