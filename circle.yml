@@ -1,10 +1,34 @@
-machine:
-  node:
-    version: v8.4.0
-test:
-  override:
-    - npm i ethjs-abi
-    - npm test
-  post:
-    -  bash <(curl -s https://codecov.io/bash)
-    -  npm run build:dist && npm run build:dist:prod
+version: 2
+jobs:
+  build:
+    working_directory: ~/uport-connect
+    docker:
+      - image: circleci/node:8-browsers
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - dependencies-cache-{{ checksum "package.json" }}
+
+      - run:
+          name: install-dependencies
+          command: yarn
+
+      - run:
+          name: test
+          command: npm run test
+
+      - run:
+          name: code-coverage
+          command: bash <(curl -s https://codecov.io/bash)
+
+      - run:
+          name: dist
+          command: npm run build:dist && npm run build:dist:prod
+
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules

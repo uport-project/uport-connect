@@ -13,6 +13,8 @@ import { decodeJWT } from 'did-jwt'
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 const getURLJWT = (url) => url.replace(/https:\/\/id.uport.me\/req\//, '').replace(/(\#|\?)(.*)/, '')
 
+const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTUzMjU0NTY3MiwiYXVkIjoiMm9lWHVmSEdEcFU1MWJmS0JzWkRkdTdKZTl3ZUozcjdzVkciLCJ0eXBlIjoic2hhcmVSZXNwIiwibmFkIjoiMm91c1hUalBFRnJrZjl3NjY3YXR5R3hQY3h1R0Q0UEYyNGUiLCJvd24iOnsibmFtZSI6IlphY2giLCJjb3VudHJ5IjoiVVMifSwicmVxIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOalFzSW5KbGNYVmxjM1JsWkNJNld5SnVZVzFsSWl3aWNHaHZibVVpTENKamIzVnVkSEo1SWl3aVlYWmhkR0Z5SWwwc0luQmxjbTFwYzNOcGIyNXpJanBiSW01dmRHbG1hV05oZEdsdmJuTWlYU3dpWTJGc2JHSmhZMnNpT2lKb2RIUndjem92TDJOb1lYTnhkV2t1ZFhCdmNuUXViV1V2WVhCcEwzWXhMM1J2Y0dsakwxbzJNM1owVkdGclMyMXdjVlZxVUc0aUxDSnVaWFFpT2lJd2VEUWlMQ0owZVhCbElqb2ljMmhoY21WU1pYRWlMQ0pwYzNNaU9pSXliMlZZZFdaSVIwUndWVFV4WW1aTFFuTmFSR1IxTjBwbE9YZGxTak55TjNOV1J5SjkuRTZLd3ZiN1Z1Tks4a3VaNFVmODVhNFBJVXFhOTd2U2RUTEZOaTEtMzRyYXB0N0V1Q1hHYjU5UXo1MndtUmZIZUhhVS1ZVW5yN3lpZ0p0dE9CYlBZaHciLCJjYXBhYmlsaXRpZXMiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOeklzSW1WNGNDSTZNVFV6TXpjMU5USTNNaXdpWVhWa0lqb2lNbTlsV0hWbVNFZEVjRlUxTVdKbVMwSnpXa1JrZFRkS1pUbDNaVW96Y2pkelZrY2lMQ0owZVhCbElqb2libTkwYVdacFkyRjBhVzl1Y3lJc0luWmhiSFZsSWpvaVlYSnVPbUYzY3pwemJuTTZkWE10ZDJWemRDMHlPakV4TXpFNU5qSXhOalUxT0RwbGJtUndiMmx1ZEM5QlVFNVRMM1ZRYjNKMEx6QmtNVGcwWkRobExXVTBZbVF0TTJNMFl5MDRZbVUxTFdKa1ptSm1aV0kxTVRBeFpTSXNJbWx6Y3lJNklqSnZkWE5ZVkdwUVJVWnlhMlk1ZHpZMk4yRjBlVWQ0VUdONGRVZEVORkJHTWpSbEluMC4tdGFZVS1rVlRzNktJNUtQQ3R5akdHbTdOMFlfV0RNeVY2ZUVRdWZVS0ZXRllQdHZqYnpKMFZrdVdYTUtzb3lyZ0JmM1VxeE9iRzd0NW9ydGxOSm5WZyJdLCJwdWJsaWNFbmNLZXkiOiJKQUJ1dUpIK051ekgwS3NvaEdEUUt2elhkS0ltSXhJcklFN0k2dXBmMnpvPSIsImlzcyI6IjJvdXNYVGpQRUZya2Y5dzY2N2F0eUd4UGN4dUdENFBGMjRlIn0.9-1Yziz0SyB7RdKu_NUXvr64-KZBz30z0rS59oQoAz0fETmZB7Egezs_2YPkIsbjOeXo6st3ezZeXpc7nZOW-A"
+
 describe('Connect', () => {
 
   beforeEach(()=>{
@@ -94,26 +96,24 @@ describe('Connect', () => {
   })
 
   describe('requestDisclosure', () => {
-    it('sets the accountType to none if not provided', () => {
+    it('sets the accountType to none if not provided', (done) => {
       const uport = new Connect('test app none')
       uport.genCallback = sinon.stub()
       uport.request = sinon.stub()
       uport.credentials.requestDisclosure = (req) => {
-        console.log(req.accountType, accountType)
         expect(req.accountType).to.equal('none')
         done()
       }
-  
+
       uport.requestDisclosure({})
     })
 
-    it('sets the accounttype to configured default if not provided', () => {
+    it('sets the accounttype to configured default if not provided', (done) => {
       const accountType = 'keypair'
       const uport = new Connect('test app keypair', {accountType})
       uport.genCallback = sinon.stub()
       uport.request = sinon.stub()
       uport.credentials.requestDisclosure = (req) => {
-        console.log(req.accountType, accountType)
         expect(req.accountType).to.equal(accountType)
         done()
       }
@@ -121,14 +121,13 @@ describe('Connect', () => {
       uport.requestDisclosure({})
     })
 
-    it('uses the provided accountType', () => {
+    it('uses the provided accountType', (done) => {
       const configAccountType = 'keypair'
       const accountType = 'general'
       const uport = new Connect('test app', {accountType: configAccountType})
       uport.genCallback = sinon.stub()
 
       uport.credentials.requestDisclosure = (req) => {
-        console.log(req.accountType, accountType)
         expect(req.accountType).to.equal(accountType)
         done()
       }
@@ -151,19 +150,20 @@ describe('Connect', () => {
 
     it('returns provider which calls connect.requestAddress on getCoinbase', (done) => {
       const uport = new Connect('test app')
-      const mnid = '2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX'
-      const addressTest = '0x00521965e7bd230323c423d96c657db5b79d099f'
+      const mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
+      const addressTest = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
+      const verifyResponse = sinon.stub().callsFake((jwt) => Promise.resolve({'name': 'uPort Demo', '@type': 'App', 'description': 'Demo App', 'url': 'demo.uport.me', 'address': 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'}))
+      uport.verifyResponse = verifyResponse
       uport.requestAddress = sinon.stub()
       const web3 = new Web3(uport.getProvider())
       web3.eth.getCoinbase((error, address) => {
         expect(address).to.equal(addressTest)
-        expect(uport.requestAddress).to.be.called
         done()
       })
       // Fake response
       const resId = 'addressReqProvider'
-      const res = { id: resId, res: { payload: { nad: mnid } }, data: '' }
-      uport.PubSub.publish(resId, res)
+      const res = { id: resId, res: resJWT, data: '' }
+      uport.pubResponse(res)
     })
 
     it('returns provider which calls connect.txRequest on transaction calls', () => {
@@ -247,8 +247,6 @@ describe('Connect', () => {
 
     it('calls request with request uri and id', (done) => {
       const request = (uri, id) => {
-        window.console.log('yo')
-        window.console.log(uri)
         expect(/eyJ0eXA/.test(uri)).to.be.true
         expect(!!id).to.be.true
         done()
