@@ -444,14 +444,12 @@ describe('Connect', () => {
       uport.mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       uport.doc = {name: 'Ran'}
       uport.did = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
-      uport.firstReq = true
       uport.keypair = {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
       const uportStateString = uport.serialize()
       expect(uportStateString).to.be.a('string')
       expect(/0x00521965e7bd230323c423d96c657db5b79d099f/.test(uportStateString)).to.be.true
       expect(/2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG/.test(uportStateString)).to.be.true
       expect(/Ran/.test(uportStateString)).to.be.true
-      expect(/true/.test(uportStateString)).to.be.true
       expect(/did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54/.test(uportStateString)).to.be.true
       expect(/1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d/.test(uportStateString)).to.be.true
     })
@@ -465,7 +463,6 @@ describe('Connect', () => {
       uportTest.mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       uportTest.doc = {name: 'Ran'}
       uportTest.did = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
-      uportTest.firstReq = true
       uportTest.keypair = {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
 
       const uport = new Connect('testapp')
