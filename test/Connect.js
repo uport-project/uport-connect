@@ -29,6 +29,7 @@ describe('Connect', () => {
       expect(uport.accountType).to.be.undefined
       expect(uport.transport).to.be.a('function')
       expect(uport.mobileTransport).to.be.a('function')
+      expect(uport.pushTransport).to.be.a('function')
       expect(uport.isOnMobile).to.be.a('boolean')
       expect(uport.storage).to.be.true
     })
@@ -349,6 +350,20 @@ describe('Connect', () => {
       expect(transport).to.be.calledWith('uri')
     })
 
+    it('uses pushTransport if pushToken is available', () => {
+      const pushTransport = sinon.stub().resolves()
+      const transport = sinon.stub().resolves()
+
+      const uport = new Connect('test app', {pushTransport, transport})
+      uport.request('fake uri', 'fake id')
+      expect(pushTransport).not.to.be.called
+      expect(transport).to.be.calledOnce
+      uport.pushToken = 'token'
+      uport.request('fake uri', 'fake id')
+      expect(pushTransport).to.be.calledOnce
+      expect(pushTransport).to.be.calledWith('fake uri')
+    })
+
     it('requires a request id, throws error if none', () => {
         const uport = new Connect('testapp')
         try { uport.request() } catch(err) { return }
@@ -359,6 +374,17 @@ describe('Connect', () => {
       const transport = sinon.stub().callsFake(() => new Promise((resolve)=> resolve('test')))
       const uport = new Connect('testapp', { transport, isMobile: false})
       // Check if publish func called, by subsribing to event
+      uport.PubSub.subscribe('topic', (msg, res) => {
+        expect(res).to.equal('test')
+        done()
+      })
+      uport.request('request', 'topic')
+    })
+
+    it('publishes response to subscriber once returned when using pushTransport', (done) => {
+      const pushTransport = sinon.stub().resolves('test')
+      const uport = new Connect('testapp', {pushTransport, isMobile: false})
+      uport.pushToken = 'fake pushtoken'
       uport.PubSub.subscribe('topic', (msg, res) => {
         expect(res).to.equal('test')
         done()
@@ -466,6 +492,8 @@ describe('Connect', () => {
       uportTest.did = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       uportTest.firstReq = true
       uportTest.keypair = {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
+      uportTest.publicEncKey = 'test public key'
+      uportTest.pushToken = 'test push token'
 
       const uport = new Connect('testapp')
       uport.deserialize(uportTest.serialize())
@@ -476,6 +504,8 @@ describe('Connect', () => {
       expect(uport.did).to.equal(uportTest.did)
       expect(uport.firstReq).to.equal(uportTest.firstReq)
       expect(uport.keypair).to.deep.equal(uportTest.keypair)
+      expect(uport.pushToken).to.equal(uportTest.pushToken)
+      expect(uport.publicEncKey).to.equal(uportTest.publicEncKey)
     })
   })
 
