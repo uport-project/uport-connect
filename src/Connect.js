@@ -83,8 +83,6 @@ class Connect {
     }
   }
 
-
-
  /**
   *  Instantiates and returns a web3 styple provider wrapped with uPort functionality.
   *  For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
@@ -112,35 +110,15 @@ class Connect {
       },
       sendTransaction: (txObj) => {
         delete txObj['from']
-        this.sendTransaction(txObj, 'txReqProvider')
-        return this.onResponse('txReqProvider').then(payload => payload.res)
+        const requestID = 'txReqProvider'
+        this.sendTransaction(txObj, requestID)
+        return this.onResponse(requestID).then(payload => payload.res)
       },
       provider: this.provider,
       networkId: this.network.id
     })
     if (this.address) subProvider.setAccount(this.address)
     return subProvider
-  }
-
-// TODO where to return MNID and where to return address, should this be named differently, will return entire response obj now, not just address
-// TODO requestID? requestAddress? return mnid, address, did in response??
-// TODO add account option, param
- /**
-  *  Creates a request for only the address/id of the uPort identity.
-  *
-  *  @example
-  *  connect.requestAddress()
-  *
-  *  connect.onResponse('addressReq').then(res => {
-  *    const id = res.res
-  *  })
-  *
-  *  @param    {String}    [accountType='none'] accountType to be used in the request
-  *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
-  */
-  requestAddress (id='addressReq') {
-    this.credentials.requestDisclosure({callbackUrl: this.genCallback()})
-                    .then(jwt => this.request(jwt, id))
   }
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
