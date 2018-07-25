@@ -1,5 +1,5 @@
 import { Credentials, ContractFactory } from 'uport'
-import { verifyJWT } from 'did-jwt'
+import { verifyJWT, decodeJWT } from 'did-jwt'
 import MobileDetect from 'mobile-detect'
 import HttpProvider from 'web3/lib/web3/httpprovider' // Can use http provider from ethjs in the future.
 import { isMNID, encode, decode } from 'mnid'
@@ -35,7 +35,7 @@ class Connect {
     this.appName = appName || 'uport-connect-app'
     this.network = network.config.network(opts.network)
     this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
-    this.accountType = opts.accountType === 'none' ? undefined : opts.accountType 
+    this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.storage = opts.storage === undefined ? true : opts.storage
 
@@ -70,7 +70,7 @@ class Connect {
     // Load any existing state if any
     if (this.storage)  this.getState()
     if (!this.keypair) this.keypair = Credentials.createIdentity()
-    if (this.storage)this.setState()
+    if (this.storage) this.setState()
     // Credential (uport-js) config for verification
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     // TODO can resolver configs not be passed through
@@ -102,8 +102,9 @@ class Connect {
     // TODO remove defaults, fix import
     const subProvider = new provider.default({
       requestAddress: () => {
-        this.requestCredentials({accountType: this.accountType || 'keypair'}, 'addressReqProvider')
-        return this.onResponse('addressReqProvider').then(payload => {
+        const requestID = 'addressReqProvider'
+        this.requestDisclosure({accountType: this.accountType || 'keypair'}, requestID)
+        return this.onResponse(requestID).then(payload => {
           this.setDID(payload.res.address)
           return this.address
         })
@@ -203,11 +204,10 @@ class Connect {
   *  @param    {Function}   opts.cancel       When using the default QR, but handling the response yourself, this function will be called when a users closes the request modal.
   */
   request (req, id, {redirectUrl, data, type, cancel} = {}) {
-    console.log(req)
     const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
     if (!id) throw new Error('Requires request id')
-    this.isOnMobile 
-      ? this.mobileTransport(uri, {id, data, redirectUrl, type}) 
+    this.isOnMobile
+      ? this.mobileTransport(uri, {id, data, redirectUrl, type})
       : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
   }
 
@@ -403,7 +403,7 @@ class Connect {
    *  @private
    */
   genCallback() {
-    return this.isOnMobile ?  windowCallback() : transport.chasqui.genCallback()
+    return this.isOnMobile ?  windowCallback() : transport.messageServer.genCallback()
   }
 }
 
