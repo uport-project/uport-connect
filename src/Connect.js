@@ -23,8 +23,9 @@ class Connect {
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.storage=true]          When true, object state will be written to local storage on each state cz-conventional-change
-   * @param    {Function}    [opts.transport]             Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
-   * @param    {Function}    [opts.mobileTransport]       Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
+   * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
+   * @param    {Function}    [opts.pushTransport]         Optional custom transport for sending push notifications
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
    * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
    * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
