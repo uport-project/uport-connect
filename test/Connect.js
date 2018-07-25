@@ -196,66 +196,67 @@ describe('Connect', () => {
     })
   })
 
-  describe('requestAddress', () => {
-
-    it('creates a request uri ', (done) => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
-        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
-        const jwt = getURLJWT(uri)
-        expect(isJWT(jwt)).to.be.true
-        done()
-      })
-      const uport = new Connect('testApp', {transport})
-      uport.requestAddress('addressReq')
-    })
-
-    it('creates a JWT signed by keypair', (done) => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
-        const jwt = message.util.getURLJWT(uri)
-        expect(isJWT(jwt)).to.be.true
-        const decoded = decodeJWT(jwt)
-        expect(decoded.payload.iss).is.equal(uport.keypair.did)
-        resolve('test')
-        done()
-      })
-      const uport = new Connect('testApp', { transport })
-      uport.requestAddress('addressReq')
-    })
-
-    it('sets chasqui as callback if not on mobile', () => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
-        const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
-        expect(/chasqui/.test(decoded.payload.callback)).to.be.true
-        resolve('test')
-        done()
-      })
-      const uport = new Connect('testApp', {transport})
-      uport.requestAddress('addressReq')
-    })
-
-    it('sets this window as callback if on mobile', (done) => {
-      const mobileTransport = (uri, opts) => {
-        const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
-        expect(/localhost/.test(decoded.payload.callback)).to.be.true
-        done()
-      }
-      const uport = new Connect('testApp', {mobileTransport, isMobile: true})
-      uport.requestAddress('addressReq')
-    })
-
-    it('calls request with request uri and id', (done) => {
-      const request = (uri, id) => {
-        expect(/eyJ0eXA/.test(uri)).to.be.true
-        expect(!!id).to.be.true
-        done()
-      }
-      const uport = new Connect('testApp')
-      uport.request = request
-      uport.requestAddress('addressReq')
-    })
-  })
+  // Move some of these test to request disclosure now
+  // describe('requestAddress', () => {
+  //
+  //   it('creates a request uri ', (done) => {
+  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
+  //       expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
+  //       const jwt = getURLJWT(uri)
+  //       expect(isJWT(jwt)).to.be.true
+  //       done()
+  //     })
+  //     const uport = new Connect('testApp', {transport})
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('creates a JWT signed by keypair', (done) => {
+  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
+  //       const jwt = message.util.getURLJWT(uri)
+  //       expect(isJWT(jwt)).to.be.true
+  //       const decoded = decodeJWT(jwt)
+  //       expect(decoded.payload.iss).is.equal(uport.keypair.did)
+  //       resolve('test')
+  //       done()
+  //     })
+  //     const uport = new Connect('testApp', { transport })
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('sets chasqui as callback if not on mobile', () => {
+  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
+  //       const jwt = message.util.getURLJWT(uri)
+  //       const decoded = decodeJWT(jwt)
+  //       expect(/chasqui/.test(decoded.payload.callback)).to.be.true
+  //       resolve('test')
+  //       done()
+  //     })
+  //     const uport = new Connect('testApp', {transport})
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('sets this window as callback if on mobile', (done) => {
+  //     const mobileTransport = (uri, opts) => {
+  //       const jwt = message.util.getURLJWT(uri)
+  //       const decoded = decodeJWT(jwt)
+  //       expect(/localhost/.test(decoded.payload.callback)).to.be.true
+  //       done()
+  //     }
+  //     const uport = new Connect('testApp', {mobileTransport, isMobile: true})
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('calls request with request uri and id', (done) => {
+  //     const request = (uri, id) => {
+  //       expect(/eyJ0eXA/.test(uri)).to.be.true
+  //       expect(!!id).to.be.true
+  //       done()
+  //     }
+  //     const uport = new Connect('testApp')
+  //     uport.request = request
+  //     uport.requestAddress('addressReq')
+  //   })
+  // })
 
 
   describe('onResponse', () => {
