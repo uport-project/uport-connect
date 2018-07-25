@@ -64,7 +64,6 @@ class Connect {
     this.did = null
     this.mnid = null
     this.address = null
-    this.firstReq = true // Add firstReq?
     this.doc = null
 
     // Load any existing state if any
@@ -106,7 +105,6 @@ class Connect {
           this.setDID(payload.res.address)
           return this.address
         })
-
       },
       sendTransaction: (txObj) => {
         delete txObj['from']
@@ -314,7 +312,7 @@ class Connect {
 
  /**
   *  Serializes persistant state of Connect object to string. Persistant state includes following
-  *  keys and values; address, mnid, did, doc, firstReq, keypair. You can save this string how you
+  *  keys and values; address, mnid, did, doc, keypair. You can save this string how you
   *  like and then restore it's state with the deserialize function.
   *
   *  @return   {String}   JSON string
@@ -326,7 +324,6 @@ class Connect {
       mnid: this.mnid,
       did: this.did,
       doc: this.doc,
-      firstReq: this.firstReq,
       keypair: this.keypair
     }
     return JSON.stringify(connectJSONState)
@@ -345,7 +342,6 @@ class Connect {
     this.mnid = state.mnid
     this.did = state.did
     this.doc = state.doc
-    this.firstReq = state.firstReq
     this.keypair = state.keypair
   }
 
@@ -401,7 +397,7 @@ class Connect {
  *  @private
  */
 const connectTransport = (appName) => (uri, {data, cancel}) => {
-  if (transport.chasqui.isChasquiCallback(uri)) {
+  if (transport.messageServer.isMessageServerCallback(uri)) {
     return  transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
   } else {
     transport.qr.send()(uri, {cancel})
