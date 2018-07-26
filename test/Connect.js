@@ -22,6 +22,8 @@ describe('Connect', () => {
     window.localStorage.clear()
   })
 
+  /*********************************************************************/
+
   describe('constructor', () => {
     it('sets defaults', () => {
       const uport = new Connect('test app')
@@ -97,7 +99,67 @@ describe('Connect', () => {
 
   })
 
+  /*********************************************************************/
+
   describe('requestDisclosure', () => {
+    it('creates a request uri ', (done) => {
+      const transport = (uri, opts) => new Promise((resolve, reject) => {
+        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
+        const jwt = getURLJWT(uri)
+        expect(isJWT(jwt)).to.be.true
+        done()
+      })
+      const uport = new Connect('testApp', {transport})
+      uport.requestDisclosure({})
+    })
+  
+    it('creates a JWT signed by keypair', (done) => {
+      const transport = (uri, opts) => new Promise((resolve, reject) => {
+        const jwt = message.util.getURLJWT(uri)
+        expect(isJWT(jwt)).to.be.true
+        const decoded = decodeJWT(jwt)
+        expect(decoded.payload.iss).is.equal(uport.keypair.did)
+        resolve('test')
+        done()
+      })
+      const uport = new Connect('testApp', { transport })
+      uport.requestDisclosure({})
+    })
+  
+    it('sets chasqui as callback if not on mobile', () => {
+      const transport = (uri, opts) => new Promise((resolve, reject) => {
+        const jwt = message.util.getURLJWT(uri)
+        const decoded = decodeJWT(jwt)
+        expect(/chasqui/.test(decoded.payload.callback)).to.be.true
+        resolve('test')
+        done()
+      })
+      const uport = new Connect('testApp', {transport})
+      uport.requestDisclosure({})
+    })
+  
+    it('sets this window as callback if on mobile', (done) => {
+      const mobileTransport = (uri, opts) => {
+        const jwt = message.util.getURLJWT(uri)
+        const decoded = decodeJWT(jwt)
+        expect(/localhost/.test(decoded.payload.callback)).to.be.true
+        done()
+      }
+      const uport = new Connect('testApp', {mobileTransport, isMobile: true})
+      uport.requestDisclosure({})
+    })
+  
+    it('calls request with request uri and id', (done) => {
+      const request = (uri, id) => {
+        expect(/eyJ0eXA/.test(uri)).to.be.true
+        expect(!!id).to.be.true
+        done()
+      }
+      const uport = new Connect('testApp')
+      uport.request = request
+      uport.requestDisclosure({})
+    })
+
     it('sets the accountType to none if not provided', (done) => {
       const uport = new Connect('test app none')
       uport.genCallback = sinon.stub()
@@ -110,7 +172,7 @@ describe('Connect', () => {
       uport.requestDisclosure({})
     })
 
-    it('sets the accounttype to configured default if not provided', (done) => {
+    it('sets the accountType to configured default if not provided in request', (done) => {
       const accountType = 'keypair'
       const uport = new Connect('test app keypair', {accountType})
       uport.genCallback = sinon.stub()
@@ -123,7 +185,7 @@ describe('Connect', () => {
       uport.requestDisclosure({})
     })
 
-    it('uses the provided accountType', (done) => {
+    it('uses the accountType provided in request', (done) => {
       const configAccountType = 'keypair'
       const accountType = 'general'
       const uport = new Connect('test app', {accountType: configAccountType})
@@ -137,6 +199,8 @@ describe('Connect', () => {
       uport.requestDisclosure({accountType})
     })
   })
+
+  /*********************************************************************/
 
   describe('getProvider', () => {
 
@@ -198,68 +262,7 @@ describe('Connect', () => {
     })
   })
 
-  // Move some of these test to request disclosure now
-  // describe('requestAddress', () => {
-  //
-  //   it('creates a request uri ', (done) => {
-  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
-  //       expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
-  //       const jwt = getURLJWT(uri)
-  //       expect(isJWT(jwt)).to.be.true
-  //       done()
-  //     })
-  //     const uport = new Connect('testApp', {transport})
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('creates a JWT signed by keypair', (done) => {
-  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
-  //       const jwt = message.util.getURLJWT(uri)
-  //       expect(isJWT(jwt)).to.be.true
-  //       const decoded = decodeJWT(jwt)
-  //       expect(decoded.payload.iss).is.equal(uport.keypair.did)
-  //       resolve('test')
-  //       done()
-  //     })
-  //     const uport = new Connect('testApp', { transport })
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('sets chasqui as callback if not on mobile', () => {
-  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
-  //       const jwt = message.util.getURLJWT(uri)
-  //       const decoded = decodeJWT(jwt)
-  //       expect(/chasqui/.test(decoded.payload.callback)).to.be.true
-  //       resolve('test')
-  //       done()
-  //     })
-  //     const uport = new Connect('testApp', {transport})
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('sets this window as callback if on mobile', (done) => {
-  //     const mobileTransport = (uri, opts) => {
-  //       const jwt = message.util.getURLJWT(uri)
-  //       const decoded = decodeJWT(jwt)
-  //       expect(/localhost/.test(decoded.payload.callback)).to.be.true
-  //       done()
-  //     }
-  //     const uport = new Connect('testApp', {mobileTransport, isMobile: true})
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('calls request with request uri and id', (done) => {
-  //     const request = (uri, id) => {
-  //       expect(/eyJ0eXA/.test(uri)).to.be.true
-  //       expect(!!id).to.be.true
-  //       done()
-  //     }
-  //     const uport = new Connect('testApp')
-  //     uport.request = request
-  //     uport.requestAddress('addressReq')
-  //   })
-  // })
-
+  /*********************************************************************/
 
   describe('onResponse', () => {
     const id = 'test'
@@ -335,6 +338,8 @@ describe('Connect', () => {
     // TODO test error handling
   })
 
+  /*********************************************************************/
+
   describe('request', () => {
     it('calls mobile transport if on mobile client', () => {
       const mobileTransport = sinon.stub().callsFake(() => new Promise((resolve)=> resolve()))
@@ -394,6 +399,8 @@ describe('Connect', () => {
       uport.request('request', 'topic')
     })
   })
+  
+  /*********************************************************************/
 
   describe('contract', () => {
     // NOTE: most unit test are in uport-js/core
@@ -410,6 +417,7 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
 
   describe('sendTransaction', () => {
     const txObj = {to: "2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6", function: "updateStatus(string 'hello')"}
@@ -463,6 +471,7 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
 
   describe('serialize', () => {
     it('returns string representing all persistant state of connect obj', () => {
@@ -486,6 +495,7 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
 
   describe('deserialize', () => {
     it('sets all persitant state of connect object given serialized string of state', () => {
@@ -511,6 +521,8 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
+
   describe('getState', () => {
     it('gets serialized state from local storage and calls deserialize with it', () => {
       const uport = new Connect('testapp')
@@ -523,6 +535,7 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
 
   describe('setState', () => {
     it('writes serialized state to local storage at connectState ', () => {
