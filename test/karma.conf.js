@@ -5,7 +5,7 @@ module.exports = function (config) {
     frameworks: [ 'mocha', 'chai' ],
     files: ['./Connect.js', '../src/*.js'],
     preprocessors: {
-      '../src/*.js': ['webpack', 'coverage'],
+      '../src/*.js': ['webpack', 'sourcemap'],
       './Connect.js': ['webpack']
     },
     reporters: [ 'mocha', 'coverage' ],
