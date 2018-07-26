@@ -201,7 +201,9 @@ class ConnectCore {
     const topic = this.topicFactory('status')
    /** Allows applications  to attest array of claims, by creating a token for each induvidual claim */
     if (Array.isArray(claim)){
-          return loopOverMultipleClaims(0,claim,[],this,topic,uriHandler,sub,exp);
+          return new Promise(function (resolve, reject) {
+            loopOverMultipleClaims(0,claim,[],this,topic,uriHandler,sub,exp,resolve);
+          })
     }
     else{
         return this.credentials.attest({ sub, claim, exp }).then(jwt => {
@@ -379,14 +381,16 @@ function isMobile () {
 function defaultUriHandler (uri) {
   throw new Error(`No Url handler set to handle ${uri}`)
 }
-function loopOverMultipleClaims(index,claim,final_claim,_this,topic,uriHandler,sub,exp){
+function loopOverMultipleClaims(index,claim,final_claim,_this,topic,uriHandler,sub,exp,resolve){
         if(index==claim.length){
-            return _this.request({ uri: 'https://id.uport.me/add?attestations=' + encodeURIComponent(final_claim) + '&callback_url=' + encodeURIComponent(topic.url), topic: topic, uriHandler: uriHandler });
+            return _this.request({ uri: 'https://id.uport.me/add?attestations=' + encodeURIComponent(final_claim) + '&callback_url=' + encodeURIComponent(topic.url), topic: topic, uriHandler: uriHandler }).then(function(){
+              resolve();
+            });
     }
 
         _this.credentials.attest({ sub: sub, claim: claim[index], exp: exp }).then(function (jwt) {
         final_claim.push(jwt)
-        loopOverMultipleClaims(index+1,claim,final_claim,_this,topic,uriHandler,sub,exp)
+        loopOverMultipleClaims(index+1,claim,final_claim,_this,topic,uriHandler,sub,exp,resolve)
         /** Loops over each claim creating a unique token for each one */
     });
 
