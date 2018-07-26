@@ -18,9 +18,11 @@ const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MzI0NTkyNzIsI
 
 describe('Connect', () => {
 
-  beforeEach(()=>{
+  beforeEach(() => {
     window.localStorage.clear()
   })
+
+  /*********************************************************************/
 
   describe('constructor', () => {
     it('sets defaults', () => {
@@ -38,6 +40,7 @@ describe('Connect', () => {
     it('sets config vals if given config object', () => {
       const transport = sinon.stub()
       const mobileTransport = sinon.stub()
+      const pushTransport = sinon.stub()
       const config ={
         network: 'mainnet',
         // provider: new HttpProvider(this.network.rpcUrl),
@@ -45,7 +48,8 @@ describe('Connect', () => {
         isMobile: true,
         storage: false,
         transport,
-        mobileTransport
+        mobileTransport,
+        pushTransport
       }
       const uport = new Connect('test app', config)
       expect(uport.network.id).to.equal('0x1')
@@ -54,7 +58,9 @@ describe('Connect', () => {
       expect(uport.storage).to.be.false
       uport.transport('test')
       uport.mobileTransport('test')
+      uport.pushTransport('test')
       expect(transport).to.be.calledOnce
+      expect(pushTransport).to.be.calledOnce
       expect(mobileTransport).to.be.calledOnce
     })
 
@@ -70,34 +76,95 @@ describe('Connect', () => {
       expect(!!uport.keypair.privateKey).to.be.true
     })
 
-    it('initializes with keypair from local storage if available', () => {
+    it('initializes serializable params from local storage if available', () => {
       // Set some storage
       const uportSetStorage = new Connect('test app')
-      const keypairDID = uportSetStorage.keypair.did
-      const keypairPrivateKey = uportSetStorage.keypair.privateKey
-      // Test if re-initialized with storage
-      const uport = new Connect('testApp')
-      expect(uport.keypair.did).to.equal(keypairDID)
-      expect(uport.keypair.privateKey).to.equal(keypairPrivateKey)
-    })
 
-    it('initializes with address/did from local storage if available', () => {
-      // TODO
-      // Set some storage
-      const uportSetStorage = new Connect('test app')
-      const address = "0x60fa1309b60125e97f2e8fd2ec576be1932ee51a"
-      const did = "did:ethr:0x60fa1309b60125e97f2e8fd2ec576be1932ee51a"
-      // TODO update and test other vals
-      uportSetStorage.mnid = did
+      const state = {
+        address: '0xdeadbeef',
+        did: 'did:ethr:0xdeadbeef',
+        doc: {name: 'test'},
+        keypair: {did: 'did:ethr:0xdeadbeef' , privateKey: 'notarealkeypair'},
+        publicEncKey: 'test public key',
+        pushToken: 'test push token'
+      }
+
+      for (let prop in state) {
+        uportSetStorage[prop] = state[prop]
+      }
+
+      // Assign values and serialize to localstorage
       uportSetStorage.setState()
+
       // Test if re-initialized with storage
       const uport = new Connect('testApp')
-      expect(uport.mnid).to.equal(did)
+      for (let prop in state) {
+        expect(uport[prop]).to.deep.equal(state[prop])
+      }
     })
-
   })
 
+  /*********************************************************************/
+
   describe('requestDisclosure', () => {
+    it('creates a request uri ', (done) => {
+      const transport = (uri, opts) => new Promise((resolve, reject) => {
+        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
+        const jwt = getURLJWT(uri)
+        expect(isJWT(jwt)).to.be.true
+        done()
+      })
+      const uport = new Connect('testApp', {transport})
+      uport.requestDisclosure({})
+    })
+  
+    it('creates a JWT signed by keypair', (done) => {
+      const transport = (uri, opts) => new Promise((resolve, reject) => {
+        const jwt = message.util.getURLJWT(uri)
+        expect(isJWT(jwt)).to.be.true
+        const decoded = decodeJWT(jwt)
+        expect(decoded.payload.iss).is.equal(uport.keypair.did)
+        resolve('test')
+        done()
+      })
+      const uport = new Connect('testApp', { transport })
+      uport.requestDisclosure({})
+    })
+  
+    it('sets chasqui as callback if not on mobile', () => {
+      const transport = (uri, opts) => new Promise((resolve, reject) => {
+        const jwt = message.util.getURLJWT(uri)
+        const decoded = decodeJWT(jwt)
+        expect(/chasqui/.test(decoded.payload.callback)).to.be.true
+        resolve('test')
+        done()
+      })
+      const uport = new Connect('testApp', {transport})
+      uport.requestDisclosure({})
+    })
+  
+    it('sets this window as callback if on mobile', (done) => {
+      const mobileTransport = (uri, opts) => {
+        const jwt = message.util.getURLJWT(uri)
+        const decoded = decodeJWT(jwt)
+        expect(/localhost/.test(decoded.payload.callback)).to.be.true
+        done()
+      }
+      const uport = new Connect('testApp', {mobileTransport, isMobile: true})
+      uport.requestDisclosure({})
+    })
+  
+    it('calls request with request uri and id', (done) => {
+      const request = (uri, id) => {
+        expect(/eyJ0eXA/.test(uri)).to.be.true
+        expect(!!id).to.be.true
+        done()
+      }
+      const uport = new Connect('testApp')
+      uport.request = request
+      uport.requestDisclosure({})
+    })
+
     it('sets the accountType to none if not provided', (done) => {
       const uport = new Connect('test app none')
       uport.genCallback = sinon.stub()
@@ -110,7 +177,7 @@ describe('Connect', () => {
       uport.requestDisclosure({})
     })
 
-    it('sets the accounttype to configured default if not provided', (done) => {
+    it('sets the accountType to configured default if not provided in request', (done) => {
       const accountType = 'keypair'
       const uport = new Connect('test app keypair', {accountType})
       uport.genCallback = sinon.stub()
@@ -123,7 +190,7 @@ describe('Connect', () => {
       uport.requestDisclosure({})
     })
 
-    it('uses the provided accountType', (done) => {
+    it('uses the accountType provided in request', (done) => {
       const configAccountType = 'keypair'
       const accountType = 'general'
       const uport = new Connect('test app', {accountType: configAccountType})
@@ -137,6 +204,8 @@ describe('Connect', () => {
       uport.requestDisclosure({accountType})
     })
   })
+
+  /*********************************************************************/
 
   describe('getProvider', () => {
 
@@ -198,68 +267,7 @@ describe('Connect', () => {
     })
   })
 
-  // Move some of these test to request disclosure now
-  // describe('requestAddress', () => {
-  //
-  //   it('creates a request uri ', (done) => {
-  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
-  //       expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
-  //       const jwt = getURLJWT(uri)
-  //       expect(isJWT(jwt)).to.be.true
-  //       done()
-  //     })
-  //     const uport = new Connect('testApp', {transport})
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('creates a JWT signed by keypair', (done) => {
-  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
-  //       const jwt = message.util.getURLJWT(uri)
-  //       expect(isJWT(jwt)).to.be.true
-  //       const decoded = decodeJWT(jwt)
-  //       expect(decoded.payload.iss).is.equal(uport.keypair.did)
-  //       resolve('test')
-  //       done()
-  //     })
-  //     const uport = new Connect('testApp', { transport })
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('sets chasqui as callback if not on mobile', () => {
-  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
-  //       const jwt = message.util.getURLJWT(uri)
-  //       const decoded = decodeJWT(jwt)
-  //       expect(/chasqui/.test(decoded.payload.callback)).to.be.true
-  //       resolve('test')
-  //       done()
-  //     })
-  //     const uport = new Connect('testApp', {transport})
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('sets this window as callback if on mobile', (done) => {
-  //     const mobileTransport = (uri, opts) => {
-  //       const jwt = message.util.getURLJWT(uri)
-  //       const decoded = decodeJWT(jwt)
-  //       expect(/localhost/.test(decoded.payload.callback)).to.be.true
-  //       done()
-  //     }
-  //     const uport = new Connect('testApp', {mobileTransport, isMobile: true})
-  //     uport.requestAddress('addressReq')
-  //   })
-  //
-  //   it('calls request with request uri and id', (done) => {
-  //     const request = (uri, id) => {
-  //       expect(/eyJ0eXA/.test(uri)).to.be.true
-  //       expect(!!id).to.be.true
-  //       done()
-  //     }
-  //     const uport = new Connect('testApp')
-  //     uport.request = request
-  //     uport.requestAddress('addressReq')
-  //   })
-  // })
-
+  /*********************************************************************/
 
   describe('onResponse', () => {
     const id = 'test'
@@ -332,8 +340,31 @@ describe('Connect', () => {
       window.location.hash = `access_token=${JWTReq}&id=${id}`
     })
 
-    // TODO test error handling
+    it('rejects if pubsub payload has an error', (done) => {
+      const uport = new Connect('testApp')
+
+      uport.onResponse('errorId').then(null, (err) => {
+        expect(err.error).to.equal('bad')
+        done()
+      })
+
+      uport.PubSub.publish('errorId', {error: 'bad'})
+    })
+
+    it('rejects if the JWT is not validated', (done) => {
+      const uport = new Connect('testApp')
+
+      uport.verifyResponse = sinon.stub().rejects()
+      uport.onResponse('id').then(null, (err) => {
+        expect(!!err).to.be.true
+        done()
+      })
+
+      uport.PubSub.publish('id', {res: resJWT})
+    })
   })
+
+  /*********************************************************************/
 
   describe('request', () => {
     it('calls mobile transport if on mobile client', () => {
@@ -369,13 +400,12 @@ describe('Connect', () => {
     })
 
     it('requires a request id, throws error if none', () => {
-        const uport = new Connect('testapp')
-        try { uport.request() } catch(err) { return }
-        throw new Error('Func should have thrown')
+      const uport = new Connect('testapp')
+      expect(() => uport.request()).to.throw
     })
 
     it('on desktop client it publishes response to subscriber once returned', (done) => {
-      const transport = sinon.stub().callsFake(() => new Promise((resolve)=> resolve('test')))
+      const transport = sinon.stub().resolves('test')
       const uport = new Connect('testapp', { transport, isMobile: false})
       // Check if publish func called, by subsribing to event
       uport.PubSub.subscribe('topic', (msg, res) => {
@@ -396,6 +426,8 @@ describe('Connect', () => {
       uport.request('request', 'topic')
     })
   })
+  
+  /*********************************************************************/
 
   describe('contract', () => {
     // NOTE: most unit test are in uport-js/core
@@ -412,6 +444,22 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
+
+  describe('setDID', () => {
+    it('converts non-mnid addresses', () => {
+      const uport = new Connect('testapp')
+      const address = '0x00521965e7bd230323c423d96c657db5b79d099f'
+      const did = `did:ethr:${address}`
+      const mainnetMNID = '2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX'
+      uport.setDID(did)
+      expect(uport.address).to.equal(address)
+      expect(uport.mnid).to.equal(mainnetMNID)
+      expect(uport.did).to.equal(did)
+    })
+  })
+
+  /*********************************************************************/
 
   describe('sendTransaction', () => {
     const txObj = {to: "2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6", function: "updateStatus(string 'hello')"}
@@ -465,6 +513,7 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
 
   describe('serialize', () => {
     it('returns string representing all persistant state of connect obj', () => {
@@ -488,6 +537,7 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
 
   describe('deserialize', () => {
     it('sets all persitant state of connect object given serialized string of state', () => {
@@ -513,6 +563,8 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
+
   describe('getState', () => {
     it('gets serialized state from local storage and calls deserialize with it', () => {
       const uport = new Connect('testapp')
@@ -525,6 +577,7 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
 
   describe('setState', () => {
     it('writes serialized state to local storage at connectState ', () => {
