@@ -3,35 +3,27 @@
  * to automatically sign transactions from the uportProvider. This can be used
  * in order to create efficient tests.
  */
-import Lightwallet from 'eth-lightwallet'
-import Transaction from 'ethereumjs-tx'
 import Web3 from 'web3'
 import url from 'url'
 import querystring from 'querystring'
 import nets from 'nets'
 import { isMNID, decode, encode } from 'mnid'
+const sign = require('ethjs-signer').sign
+const BN = require('bignumber.js')
 
-const PASSWORD = 'password'
-const SEED = 'unhappy nerve cancel reject october fix vital pulse cash behind curious bicycle'
+const address = '0x0F6af8F8D7AAD198a7607C96fb74Ffa02C5eD86B'
+const privateKey = '0xecbcd9838f7f2afa6e809df8d7cdae69aa5dfc14d563ee98e97effd3f6a652f2'
 
 class Autosigner {
 
-  constructor (web3Provider, keystore, pwDerivedKey) {
-    keystore.generateNewAddress(pwDerivedKey)
-    this.address = '0x' + keystore.getAddresses()[0]
-    this.keystore = keystore
-    this.pwDerivedKey = pwDerivedKey
+  constructor (web3Provider) {
+    this.address = address
     this.web3 = new Web3(web3Provider)
   }
 
   static load (web3Provider, cb) {
-    Lightwallet.keystore.deriveKeyFromPassword(PASSWORD, (err, pwDerivedKey) => {
-      if (err) cb(err)
-      let KeystoreMethod = Lightwallet.keystore
-      let Keystore = new KeystoreMethod(SEED, pwDerivedKey)
-      let autosigner = new Autosigner(web3Provider, Keystore, pwDerivedKey)
-      cb(null, autosigner)
-    })
+    let autosigner = new Autosigner(web3Provider)
+    cb(null, autosigner)
   }
 
   openQr (data) {
@@ -72,23 +64,20 @@ class Autosigner {
     this.web3.eth.getTransactionCount(this.address, (err, nonce) => {
       if (err) cb(err)
       let txObj = {
-        gasPrice: 10000000000000,
-        gasLimit: 3000000,
+         gasPrice: new BN(1000000000000),
+         gasLimit: new BN(3000000),
         nonce: nonce
       }
       if (params.to) { txObj.to = params.to }
       if (params.value) { txObj.value = this.web3.toHex(params.value) }
       if (params.data) { txObj.data = params.data }
-
-      let tx = new Transaction(txObj).serialize().toString('hex')
-      let signedTx = '0x' + Lightwallet.signing.signTx(this.keystore, this.pwDerivedKey, tx, this.address)
-      cb(null, signedTx)
+      cb(null, sign(txObj, privateKey))
     })
   }
 
   static parse (uri) {
     let parsedUri = url.parse(uri)
-    let address = parsedUri.pathname.slice(1)
+    let address = uri.match(/:(?:(?!\?).)*/)[0].slice(1)
 
     if (address !== 'me') {
       address = isMNID(address) ? decode(address).address : address

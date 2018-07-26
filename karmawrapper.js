@@ -4,7 +4,7 @@
 // lastly returns the same exit code as the test child process. Consumes same
 // arguments as karma.
 
-const TestRPC = require('ethereumjs-testrpc')
+const TestRPC = require('ganache-cli')
 const TestRPCserver = TestRPC.server()
 const spawn = require('child_process').spawn
 

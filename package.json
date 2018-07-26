@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "post-release": "node prwrapper",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post && npm run post-release",
     "build:docs:html": "./node_modules/.bin/jsdoc src/* README.md -d docs",
-    "build:docs:md": "./node_modules/jsdoc-to-markdown/bin/cli.js src/* > DOCS.md",
+    "build:docs:md": "./node_modules/jsdoc-to-markdown/bin/cli.js src/* --template template.hbs -c js2doc.conf > docs/reference/index.md; echo",
     "build:docs": "npm run build:docs:html && npm run build:docs:md",
     "commitmsg": "validate-commit-msg"
   },
@@ -41,33 +41,38 @@
     "ipfs",
     "persona"
   ],
-  "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (http://consensys.net/)",
-  "license": "ISC",
+  "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (https://consensys.net/)",
+  "license": "Apache-2.0",
   "contributors": [
     {
       "name": "Christian Lundkvist",
       "email": "christian.lundkvist@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Jeff Scott Ward",
       "email": "jeffscottward@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Joel Torstensson",
       "email": "joel.torstensson@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Zach Ferland",
       "email": "zach.ferland@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Pelle Braendgaard",
       "email": "pelle.braendgaard@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
+    },
+    {
+      "name": "Levi Strope",
+      "email": "levi.strope@consensys.net",
+      "url": "https://consensys.net"
     }
   ],
   "bugs": {
@@ -94,17 +99,16 @@
   },
   "dependencies": {
     "async": "^2.1.4",
+    "did-jwt": "0.0.8",
     "ethjs-abi": "^0.1.8",
     "ethjs-util": "^0.1.3",
     "ipfs-mini": "^1.0.1",
-    "json-loader": "^0.5.4",
     "mnid": "^0.1.1",
     "mobile-detect": "^1.3.5",
     "nets": "^3.2.0",
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
-    "request": "^2.75.0",
-    "uport": "^0.6.2",
+    "uport": "^0.7.0-alpha-minor-19",
     "web3": "0.19.0"
   },
   "devDependencies": {
@@ -121,20 +125,20 @@
     "babel-plugin-transform-object-rest-spread": "^6.22.0",
     "babel-preset-es2015": "^6.18.0",
     "babel-register": "^6.18.0",
+    "bignumber.js": "^7.0.1",
     "chai": "^3.5.0",
     "codecov": "^1.0.1",
     "condition-circle": "^1.5.0",
     "cz-conventional-changelog": "^1.2.0",
     "eslint": "^3.2.2",
-    "eth-lightwallet": "git+https://github.com/srirangan/eth-lightwallet",
-    "ethereumjs-testrpc": "^3.0.3",
-    "ethereumjs-tx": "^1.1.1",
+    "ethjs-signer": "^0.1.1",
+    "ganache-cli": "^6.1.0",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc": "^3.4.3",
     "jsdoc-to-markdown": "^1.3.7",
     "json-loader": "^0.5.4",
-    "karma": "^1.5.0",
+    "karma": "^2.0.3",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-coverage": "^1.1.1",
