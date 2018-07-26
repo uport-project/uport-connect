@@ -3,9 +3,10 @@ module.exports = function (config) {
     basePath: '',
     browsers: ['Chrome'],
     frameworks: [ 'mocha', 'chai' ],
-    files: ['./Connect.js'],
+    files: ['./Connect.js', '../src/*.js'],
     preprocessors: {
-      './Connect.js': [ 'webpack' ]
+      '../src/*.js': ['webpack', 'sourcemap'],
+      './Connect.js': ['webpack']
     },
     reporters: [ 'mocha', 'coverage' ],
     webpack: {
@@ -19,7 +20,7 @@ module.exports = function (config) {
           }
         ]
       },
-      node: {
+      node: { 
         console: false,
         fs: 'empty',
         net: 'empty',
@@ -31,6 +32,7 @@ module.exports = function (config) {
     },
     coverageReporter: {
       reporters: [
+        {type: 'text'},
         {type:'lcovonly', subdir: '.'},
         {type:'html', subdir: 'html'}
       ]

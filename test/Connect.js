@@ -117,7 +117,7 @@ describe('Connect', () => {
       const uport = new Connect('testApp', {transport})
       uport.requestDisclosure({})
     })
-  
+
     it('creates a JWT signed by keypair', (done) => {
       const transport = (uri, opts) => new Promise((resolve, reject) => {
         const jwt = message.util.getURLJWT(uri)
@@ -130,7 +130,7 @@ describe('Connect', () => {
       const uport = new Connect('testApp', { transport })
       uport.requestDisclosure({})
     })
-  
+
     it('sets chasqui as callback if not on mobile', () => {
       const transport = (uri, opts) => new Promise((resolve, reject) => {
         const jwt = message.util.getURLJWT(uri)
@@ -142,7 +142,7 @@ describe('Connect', () => {
       const uport = new Connect('testApp', {transport})
       uport.requestDisclosure({})
     })
-  
+
     it('sets this window as callback if on mobile', (done) => {
       const mobileTransport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
@@ -153,7 +153,7 @@ describe('Connect', () => {
       const uport = new Connect('testApp', {mobileTransport, isMobile: true})
       uport.requestDisclosure({})
     })
-  
+
     it('calls request with request uri and id', (done) => {
       const request = (uri, id) => {
         expect(/eyJ0eXA/.test(uri)).to.be.true
@@ -448,7 +448,7 @@ describe('Connect', () => {
       uport.request('request', 'topic')
     })
   })
-  
+
   /*********************************************************************/
 
   describe('contract', () => {
@@ -463,21 +463,6 @@ describe('Connect', () => {
       // sendTransaction configured as TxObj handler if called on function call
       Contract.updateStatus('hello')
       expect(sendTransaction).to.be.called
-    })
-  })
-
-  /*********************************************************************/
-
-  describe('setDID', () => {
-    it('converts non-mnid addresses', () => {
-      const uport = new Connect('testapp')
-      const address = '0x00521965e7bd230323c423d96c657db5b79d099f'
-      const did = `did:ethr:${address}`
-      const mainnetMNID = '2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX'
-      uport.setDID(did)
-      expect(uport.address).to.equal(address)
-      expect(uport.mnid).to.equal(mainnetMNID)
-      expect(uport.did).to.equal(did)
     })
   })
 
