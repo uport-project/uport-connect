@@ -67,7 +67,6 @@ class Connect {
     this.did = null
     this.mnid = null
     this.address = null
-    this.firstReq = true // Add firstReq?
     this.doc = null
     this.pushToken = null
     this.publicEncKey = null
@@ -87,8 +86,6 @@ class Connect {
       })
     }
   }
-
-
 
  /**
   *  Instantiates and returns a web3 styple provider wrapped with uPort functionality.
@@ -113,39 +110,18 @@ class Connect {
           this.setDID(payload.res.address)
           return this.address
         })
-
       },
       sendTransaction: (txObj) => {
         delete txObj['from']
-        this.sendTransaction(txObj, 'txReqProvider')
-        return this.onResponse('txReqProvider').then(payload => payload.res)
+        const requestID = 'txReqProvider'
+        this.sendTransaction(txObj, requestID)
+        return this.onResponse(requestID).then(payload => payload.res)
       },
       provider: this.provider,
       networkId: this.network.id
     })
     if (this.address) subProvider.setAccount(this.address)
     return subProvider
-  }
-
-// TODO where to return MNID and where to return address, should this be named differently, will return entire response obj now, not just address
-// TODO requestID? requestAddress? return mnid, address, did in response??
-// TODO add account option, param
- /**
-  *  Creates a request for only the address/id of the uPort identity.
-  *
-  *  @example
-  *  connect.requestAddress()
-  *
-  *  connect.onResponse('addressReq').then(res => {
-  *    const id = res.res
-  *  })
-  *
-  *  @param    {String}    [accountType='none'] accountType to be used in the request
-  *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
-  */
-  requestAddress (id='addressReq') {
-    this.credentials.requestDisclosure({callbackUrl: this.genCallback()})
-                    .then(jwt => this.request(jwt, id))
   }
 
  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
@@ -348,7 +324,7 @@ class Connect {
 
  /**
   *  Serializes persistant state of Connect object to string. Persistant state includes following
-  *  keys and values; address, mnid, did, doc, firstReq, keypair. You can save this string how you
+  *  keys and values; address, mnid, did, doc, keypair. You can save this string how you
   *  like and then restore it's state with the deserialize function.
   *
   *  @return   {String}   JSON string
@@ -360,10 +336,9 @@ class Connect {
       mnid: this.mnid,
       did: this.did,
       doc: this.doc,
-      firstReq: this.firstReq,
       keypair: this.keypair,
       pushToken: this.pushToken,
-      publicEncKey: this.publicEncKey
+      publicEncKey: this.publicEncKey,
     }
     return JSON.stringify(connectJSONState)
   }
@@ -381,7 +356,6 @@ class Connect {
     this.mnid = state.mnid
     this.did = state.did
     this.doc = state.doc
-    this.firstReq = state.firstReq
     this.keypair = state.keypair
     this.pushToken = state.pushToken
     this.publicEncKey = state.publicEncKey
@@ -439,7 +413,7 @@ class Connect {
  *  @private
  */
 const connectTransport = (appName) => (uri, {data, cancel}) => {
-  if (transport.chasqui.isChasquiCallback(uri)) {
+  if (transport.messageServer.isMessageServerCallback(uri)) {
     return transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
   } else {
     transport.qr.send()(uri, {cancel})

@@ -1,13 +1,14 @@
-// import { expect, assert} from 'chai'
-import { Connect } from './uport-connect.js'
-const sinon = require('sinon')
-var chai = require('chai');
-const expect = chai.expect
-chai.use(require('sinon-chai'))
-import { Credentials } from 'uport'
+import chai, { expect, assert } from 'chai'
+import sinonChai from 'sinon-chai'
+import sinon from 'sinon'
 import Web3 from 'web3'
+
+import { Connect } from './uport-connect.js'
 import { message } from 'uport-core'
+import { Credentials } from 'uport'
 import { decodeJWT } from 'did-jwt'
+
+chai.use(sinonChai)
 
 // TODO import from messages after
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
@@ -197,66 +198,67 @@ describe('Connect', () => {
     })
   })
 
-  describe('requestAddress', () => {
-
-    it('creates a request uri ', (done) => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
-        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
-        const jwt = getURLJWT(uri)
-        expect(isJWT(jwt)).to.be.true
-        done()
-      })
-      const uport = new Connect('testApp', {transport})
-      uport.requestAddress('addressReq')
-    })
-
-    it('creates a JWT signed by keypair', (done) => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
-        const jwt = message.util.getURLJWT(uri)
-        expect(isJWT(jwt)).to.be.true
-        const decoded = decodeJWT(jwt)
-        expect(decoded.payload.iss).is.equal(uport.keypair.did)
-        resolve('test')
-        done()
-      })
-      const uport = new Connect('testApp', { transport })
-      uport.requestAddress('addressReq')
-    })
-
-    it('sets chasqui as callback if not on mobile', () => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
-        const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
-        expect(/chasqui/.test(decoded.payload.callback)).to.be.true
-        resolve('test')
-        done()
-      })
-      const uport = new Connect('testApp', {transport})
-      uport.requestAddress('addressReq')
-    })
-
-    it('sets this window as callback if on mobile', (done) => {
-      const mobileTransport = (uri, opts) => {
-        const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
-        expect(/localhost/.test(decoded.payload.callback)).to.be.true
-        done()
-      }
-      const uport = new Connect('testApp', {mobileTransport, isMobile: true})
-      uport.requestAddress('addressReq')
-    })
-
-    it('calls request with request uri and id', (done) => {
-      const request = (uri, id) => {
-        expect(/eyJ0eXA/.test(uri)).to.be.true
-        expect(!!id).to.be.true
-        done()
-      }
-      const uport = new Connect('testApp')
-      uport.request = request
-      uport.requestAddress('addressReq')
-    })
-  })
+  // Move some of these test to request disclosure now
+  // describe('requestAddress', () => {
+  //
+  //   it('creates a request uri ', (done) => {
+  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
+  //       expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
+  //       const jwt = getURLJWT(uri)
+  //       expect(isJWT(jwt)).to.be.true
+  //       done()
+  //     })
+  //     const uport = new Connect('testApp', {transport})
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('creates a JWT signed by keypair', (done) => {
+  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
+  //       const jwt = message.util.getURLJWT(uri)
+  //       expect(isJWT(jwt)).to.be.true
+  //       const decoded = decodeJWT(jwt)
+  //       expect(decoded.payload.iss).is.equal(uport.keypair.did)
+  //       resolve('test')
+  //       done()
+  //     })
+  //     const uport = new Connect('testApp', { transport })
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('sets chasqui as callback if not on mobile', () => {
+  //     const transport = (uri, opts) => new Promise((resolve, reject) => {
+  //       const jwt = message.util.getURLJWT(uri)
+  //       const decoded = decodeJWT(jwt)
+  //       expect(/chasqui/.test(decoded.payload.callback)).to.be.true
+  //       resolve('test')
+  //       done()
+  //     })
+  //     const uport = new Connect('testApp', {transport})
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('sets this window as callback if on mobile', (done) => {
+  //     const mobileTransport = (uri, opts) => {
+  //       const jwt = message.util.getURLJWT(uri)
+  //       const decoded = decodeJWT(jwt)
+  //       expect(/localhost/.test(decoded.payload.callback)).to.be.true
+  //       done()
+  //     }
+  //     const uport = new Connect('testApp', {mobileTransport, isMobile: true})
+  //     uport.requestAddress('addressReq')
+  //   })
+  //
+  //   it('calls request with request uri and id', (done) => {
+  //     const request = (uri, id) => {
+  //       expect(/eyJ0eXA/.test(uri)).to.be.true
+  //       expect(!!id).to.be.true
+  //       done()
+  //     }
+  //     const uport = new Connect('testApp')
+  //     uport.request = request
+  //     uport.requestAddress('addressReq')
+  //   })
+  // })
 
 
   describe('onResponse', () => {
@@ -469,14 +471,16 @@ describe('Connect', () => {
       uport.mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       uport.doc = {name: 'Ran'}
       uport.did = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
-      uport.firstReq = true
       uport.keypair = {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
+      uport.publicEncKey = 'test public key'
+      uport.pushToken = 'test push token'
       const uportStateString = uport.serialize()
       expect(uportStateString).to.be.a('string')
       expect(/0x00521965e7bd230323c423d96c657db5b79d099f/.test(uportStateString)).to.be.true
       expect(/2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG/.test(uportStateString)).to.be.true
+      expect(/test public key/.test(uportStateString)).to.be.true
+      expect(/test push token/.test(uportStateString)).to.be.true
       expect(/Ran/.test(uportStateString)).to.be.true
-      expect(/true/.test(uportStateString)).to.be.true
       expect(/did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54/.test(uportStateString)).to.be.true
       expect(/1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d/.test(uportStateString)).to.be.true
     })
@@ -490,7 +494,6 @@ describe('Connect', () => {
       uportTest.mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       uportTest.doc = {name: 'Ran'}
       uportTest.did = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
-      uportTest.firstReq = true
       uportTest.keypair = {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
       uportTest.publicEncKey = 'test public key'
       uportTest.pushToken = 'test push token'
@@ -502,7 +505,6 @@ describe('Connect', () => {
       expect(uport.mnid).to.equal(uportTest.mnid)
       expect(uport.doc).to.deep.equal(uportTest.doc)
       expect(uport.did).to.equal(uportTest.did)
-      expect(uport.firstReq).to.equal(uportTest.firstReq)
       expect(uport.keypair).to.deep.equal(uportTest.keypair)
       expect(uport.pushToken).to.equal(uportTest.pushToken)
       expect(uport.publicEncKey).to.equal(uportTest.publicEncKey)
