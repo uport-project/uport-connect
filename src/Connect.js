@@ -23,8 +23,9 @@ class Connect {
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.storage=true]          When true, object state will be written to local storage on each state cz-conventional-change
-   * @param    {Function}    [opts.transport]             Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
-   * @param    {Function}    [opts.mobileTransport]       Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
+   * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
+   * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
+   * @param    {Function}    [opts.pushTransport]         Optional custom transport for sending push notifications
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
    * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
    * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
@@ -47,6 +48,8 @@ class Connect {
     // Transports
     this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send()
+    this.pushTransport = opts.pushTransport || pushTransport(this)
+
     this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
     this.PubSub = PubSub
 
@@ -65,6 +68,8 @@ class Connect {
     this.mnid = null
     this.address = null
     this.doc = null
+    this.pushToken = null
+    this.publicEncKey = null
 
     // Load any existing state if any
     if (this.storage)  this.getState()
@@ -136,8 +141,10 @@ class Connect {
           return Promise.resolve(Object.assign({id}, payload))
         }
         return this.verifyResponse(jwt).then(res => {
-            this.setDID(res.address)
-            return {id, res, data: payload.data}
+          this.setDID(res.address)
+          if (res.pushToken) this.pushToken = res.pushToken
+          this.publicEncKey = res.publicEncKey
+          return {id, res, data: payload.data}
         })
       } else {
         return Promise.resolve(Object.assign({id}, payload))
@@ -182,9 +189,14 @@ class Connect {
   request (req, id, {redirectUrl, data, type, cancel} = {}) {
     const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
     if (!id) throw new Error('Requires request id')
-    this.isOnMobile
-      ? this.mobileTransport(uri, {id, data, redirectUrl, type})
-      : this.transport(uri, {data, cancel}).then(res => { this.PubSub.publish(id, res)})
+
+    if (this.isOnMobile) {
+      this.mobileTransport(uri, {id, data, redirectUrl, type})
+    } else if (this.pushToken) {
+      this.pushTransport(uri, {data, redirectUrl, type}).then(res => this.PubSub.publish(id, res))
+    } else {
+      this.transport(uri, {data, cancel}).then(res => this.PubSub.publish(id, res))
+    }
   }
 
  /**
@@ -258,7 +270,7 @@ class Connect {
  */
   createVerificationRequest(reqObj, id='signClaimReq') {
     this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(), this.did)
-                    .then(jwt => his.request(jwt, id))
+                    .then(jwt => this.request(jwt, id))
   }
 
   /**
@@ -324,7 +336,9 @@ class Connect {
       mnid: this.mnid,
       did: this.did,
       doc: this.doc,
-      keypair: this.keypair
+      keypair: this.keypair,
+      pushToken: this.pushToken,
+      publicEncKey: this.publicEncKey,
     }
     return JSON.stringify(connectJSONState)
   }
@@ -343,6 +357,8 @@ class Connect {
     this.did = state.did
     this.doc = state.doc
     this.keypair = state.keypair
+    this.pushToken = state.pushToken
+    this.publicEncKey = state.publicEncKey
   }
 
   /**
@@ -398,12 +414,24 @@ class Connect {
  */
 const connectTransport = (appName) => (uri, {data, cancel}) => {
   if (transport.messageServer.isMessageServerCallback(uri)) {
-    return  transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
+    return transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
   } else {
     transport.qr.send()(uri, {cancel})
     // TODO return close QR func?
     return Promise.resolve({data})
   }
+}
+
+/**
+ * Wrap push transport from uport-core-js, providing stored pushToken and publicEncKey from the
+ * provided connect instance
+ * @param   {Connect} connect   The Connect instance holding the pushToken and publicEncKey
+ * @returns {Function}          Configured pushTransport function
+ * @private
+ */
+const pushTransport = (connect) => (url, {message, type, redirectUrl, data}) => {
+  return transport.push.send(connect.pushToken, connect.publicEncKey)(url, {message, type, redirectUrl})
+    .then(res => ({res, data}))
 }
 
 /**
