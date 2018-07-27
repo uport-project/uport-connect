@@ -26,8 +26,8 @@ describe('Connect', () => {
 
   describe('constructor', () => {
     it('sets defaults', () => {
-      const uport = new Connect('test app')
-      expect(uport.appName).to.equal('test app')
+      const uport = new Connect()
+      expect(uport.appName).to.equal('uport-connect-app')
       expect(uport.network.id).to.equal('0x4')
       expect(uport.accountType).to.be.undefined
       expect(uport.transport).to.be.a('function')
@@ -299,7 +299,7 @@ describe('Connect', () => {
 
     it('handles JWT responses, parses, validates and returns by calling verifyResponse/credentials', (done) => {
       const uport = new Connect('testApp')
-      const verifyResponse = sinon.stub().callsFake((jwt) => Promise.resolve(JWTParse))
+      const verifyResponse = sinon.stub().resolves(JWTParse)
       uport.verifyResponse = verifyResponse
       uport.onResponse(id).then((res) => {
         expect(verifyResponse).to.be.called
@@ -330,7 +330,7 @@ describe('Connect', () => {
 
     it('it writes to local storage and instance (did, ...) if values already not available', (done) => {
       const uport = new Connect('testApp')
-      uport.verifyResponse = sinon.stub().callsFake((jwt) => Promise.resolve(JWTParse))
+      uport.verifyResponse = sinon.stub().resolves(JWTParse)
       uport.onResponse(id).then((res) => {
         expect(uport.did).to.equal(did)
         const connectState = window.localStorage.getItem('connectState')
@@ -338,6 +338,28 @@ describe('Connect', () => {
         done()
       })
       window.location.hash = `access_token=${JWTReq}&id=${id}`
+    })
+
+    it('sets pushToken and publicEncKey if available, ands aves them to localStorage', (done) => {
+      const uport = new Connect('testApp')
+      const response = {pushToken: 'push token', publicEncKey: 'public key'}
+      uport.verifyResponse = sinon.stub().resolves(response)
+      expect(uport.pushTransport).to.be.undefined
+      expect(uport.pushToken).to.be.null
+      expect(uport.publicEncKey).to.be.null
+
+      uport.onResponse(id).then((res) => {
+        expect(uport.pushToken).to.equal(response.pushToken)
+        expect(uport.publicEncKey).to.equal(response.publicEncKey)
+        expect(uport.pushTransport).to.be.a('function')
+      }).then(() => {
+        const uportFromLocalStorage = new Connect('testApp2')
+        expect(uportFromLocalStorage.pushToken).to.equal(response.pushToken)
+        expect(uportFromLocalStorage.publicEncKey).to.equal(response.publicEncKey)
+        expect(uportFromLocalStorage.pushTransport).to.be.a('function')
+      })
+
+      uport.PubSub.publish(id, {res: resJWT})
     })
 
     it('rejects if pubsub payload has an error', (done) => {
