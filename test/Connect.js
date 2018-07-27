@@ -18,7 +18,7 @@ const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MzI0NTkyNzIsI
 
 describe('Connect', () => {
 
-  beforeEach(()=>{
+  beforeEach(() => {
     window.localStorage.clear()
   })
 
@@ -40,6 +40,7 @@ describe('Connect', () => {
     it('sets config vals if given config object', () => {
       const transport = sinon.stub()
       const mobileTransport = sinon.stub()
+      const pushTransport = sinon.stub()
       const config ={
         network: 'mainnet',
         // provider: new HttpProvider(this.network.rpcUrl),
@@ -47,7 +48,8 @@ describe('Connect', () => {
         isMobile: true,
         storage: false,
         transport,
-        mobileTransport
+        mobileTransport,
+        pushTransport
       }
       const uport = new Connect('test app', config)
       expect(uport.network.id).to.equal('0x1')
@@ -56,7 +58,9 @@ describe('Connect', () => {
       expect(uport.storage).to.be.false
       uport.transport('test')
       uport.mobileTransport('test')
+      uport.pushTransport('test')
       expect(transport).to.be.calledOnce
+      expect(pushTransport).to.be.calledOnce
       expect(mobileTransport).to.be.calledOnce
     })
 
@@ -72,31 +76,32 @@ describe('Connect', () => {
       expect(!!uport.keypair.privateKey).to.be.true
     })
 
-    it('initializes with keypair from local storage if available', () => {
+    it('initializes serializable params from local storage if available', () => {
       // Set some storage
       const uportSetStorage = new Connect('test app')
-      const keypairDID = uportSetStorage.keypair.did
-      const keypairPrivateKey = uportSetStorage.keypair.privateKey
-      // Test if re-initialized with storage
-      const uport = new Connect('testApp')
-      expect(uport.keypair.did).to.equal(keypairDID)
-      expect(uport.keypair.privateKey).to.equal(keypairPrivateKey)
-    })
 
-    it('initializes with address/did from local storage if available', () => {
-      // TODO
-      // Set some storage
-      const uportSetStorage = new Connect('test app')
-      const address = "0x60fa1309b60125e97f2e8fd2ec576be1932ee51a"
-      const did = "did:ethr:0x60fa1309b60125e97f2e8fd2ec576be1932ee51a"
-      // TODO update and test other vals
-      uportSetStorage.mnid = did
+      const state = {
+        address: '0xdeadbeef',
+        did: 'did:ethr:0xdeadbeef',
+        doc: {name: 'test'},
+        keypair: {did: 'did:ethr:0xdeadbeef' , privateKey: 'notarealkeypair'},
+        publicEncKey: 'test public key',
+        pushToken: 'test push token'
+      }
+
+      for (let prop in state) {
+        uportSetStorage[prop] = state[prop]
+      }
+
+      // Assign values and serialize to localstorage
       uportSetStorage.setState()
+
       // Test if re-initialized with storage
       const uport = new Connect('testApp')
-      expect(uport.mnid).to.equal(did)
+      for (let prop in state) {
+        expect(uport[prop]).to.deep.equal(state[prop])
+      }
     })
-
   })
 
   /*********************************************************************/
@@ -335,7 +340,28 @@ describe('Connect', () => {
       window.location.hash = `access_token=${JWTReq}&id=${id}`
     })
 
-    // TODO test error handling
+    it('rejects if pubsub payload has an error', (done) => {
+      const uport = new Connect('testApp')
+
+      uport.onResponse('errorId').then(null, (err) => {
+        expect(err.error).to.equal('bad')
+        done()
+      })
+
+      uport.PubSub.publish('errorId', {error: 'bad'})
+    })
+
+    it('rejects if the JWT is not validated', (done) => {
+      const uport = new Connect('testApp')
+
+      uport.verifyResponse = sinon.stub().rejects()
+      uport.onResponse('id').then(null, (err) => {
+        expect(!!err).to.be.true
+        done()
+      })
+
+      uport.PubSub.publish('id', {res: resJWT})
+    })
   })
 
   /*********************************************************************/
@@ -372,13 +398,12 @@ describe('Connect', () => {
     })
 
     it('requires a request id, throws error if none', () => {
-        const uport = new Connect('testapp')
-        try { uport.request() } catch(err) { return }
-        throw new Error('Func should have thrown')
+      const uport = new Connect('testapp')
+      expect(() => uport.request()).to.throw
     })
 
     it('on desktop client it publishes response to subscriber once returned', (done) => {
-      const transport = sinon.stub().callsFake(() => new Promise((resolve)=> resolve('test')))
+      const transport = sinon.stub().resolves('test')
       const uport = new Connect('testapp', { transport, isMobile: false})
       // Check if publish func called, by subsribing to event
       uport.PubSub.subscribe('topic', (msg, res) => {
@@ -414,6 +439,21 @@ describe('Connect', () => {
       // sendTransaction configured as TxObj handler if called on function call
       Contract.updateStatus('hello')
       expect(sendTransaction).to.be.called
+    })
+  })
+
+  /*********************************************************************/
+
+  describe('setDID', () => {
+    it('converts non-mnid addresses', () => {
+      const uport = new Connect('testapp')
+      const address = '0x00521965e7bd230323c423d96c657db5b79d099f'
+      const did = `did:ethr:${address}`
+      const mainnetMNID = '2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX'
+      uport.setDID(did)
+      expect(uport.address).to.equal(address)
+      expect(uport.mnid).to.equal(mainnetMNID)
+      expect(uport.did).to.equal(did)
     })
   })
 
