@@ -23,9 +23,9 @@ class Connect {
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.storage=true]          When true, object state will be written to local storage on each state cz-conventional-change
+   * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
-   * @param    {Function}    [opts.pushTransport]         Optional custom transport for sending push notifications
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
    * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
    * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
@@ -39,29 +39,12 @@ class Connect {
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.storage = opts.storage === undefined ? true : opts.storage
+    this.usePush = opts.usePush === undefined ? true : opts.usePush
 
     // Disallow segregated account on mainnet
     if (this.network === network.defaults.networks.mainnet && this.accountType === 'segregated') {
       throw new Error('Segregated accounts are not supported on mainnet')
     }
-
-    // Transports
-    this.transport = opts.transport || connectTransport(appName)
-    this.mobileTransport = opts.mobileTransport || transport.url.send()
-    this.pushTransport = opts.pushTransport || pushTransport(this)
-
-    this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
-    this.PubSub = PubSub
-
-    // Probably move out of constructor
-    this.pubResponse = (payload) => {
-      if(!payload.id) throw new Error('Response payload requires and id')
-      this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
-    }
-
-    transport.url.listenResponse((err, payload) => {
-      if (payload) this.pubResponse(payload)
-    })
 
     // State
     this.did = null
@@ -75,6 +58,28 @@ class Connect {
     if (this.storage)  this.getState()
     if (!this.keypair) this.keypair = Credentials.createIdentity()
     if (this.storage) this.setState()
+
+    // Transports
+    this.transport = opts.transport || connectTransport(appName)
+
+    if (this.pushToken && this.publicEncnKey) {
+      this.pushTransport = pushTransport(this.pushToken, this.publicEncKey)
+    }
+
+    this.mobileTransport = opts.mobileTransport || transport.url.send()
+    this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
+    this.PubSub = PubSub
+
+    // Probably move out of constructor
+    this.pubResponse = (payload) => {
+      if(!payload.id) throw new Error('Response payload requires and id')
+      this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
+    }
+
+    transport.url.listenResponse((err, payload) => {
+      if (payload) this.pubResponse(payload)
+    })
+
     // Credential (uport-js) config for verification
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     // TODO can resolver configs not be passed through
@@ -142,8 +147,12 @@ class Connect {
         }
         return this.verifyResponse(jwt).then(res => {
           this.setDID(res.address)
+          // Setup push transport if response contains pushtoken
           if (res.pushToken) this.pushToken = res.pushToken
-          this.publicEncKey = res.publicEncKey
+          if (res.publicEncKey) this.publicEncKey = res.publicEncKey
+          if (this.pushToken && this.publicEncKey) {
+            this.pushTransport = pushTransport(this.pushToken, this.publicEncKey)
+          }
           return {id, res, data: payload.data}
         })
       } else {
@@ -192,7 +201,7 @@ class Connect {
 
     if (this.isOnMobile) {
       this.mobileTransport(uri, {id, data, redirectUrl, type})
-    } else if (this.pushToken) {
+    } else if (this.usePush && this.pushTransport) {
       this.pushTransport(uri, {data, redirectUrl, type}).then(res => this.PubSub.publish(id, res))
     } else {
       this.transport(uri, {data, cancel}).then(res => this.PubSub.publish(id, res))
@@ -270,7 +279,7 @@ class Connect {
  */
   createVerificationRequest(reqObj, id='signClaimReq') {
     this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(), this.did)
-                    .then(jwt => this.request(jwt, id))
+      .then(jwt => this.request(jwt, id))
   }
 
   /**
@@ -298,7 +307,7 @@ class Connect {
   requestDisclosure (reqObj, id='disclosureReq') {
     reqObj = Object.assign({accountType: this.accountType || 'none'}, reqObj, {callbackUrl: this.genCallback()})
     this.credentials.requestDisclosure(reqObj, reqObj.expiresIn)
-                    .then(jwt => this.request(jwt, id))
+      .then(jwt => this.request(jwt, id))
   }
 
   /**
@@ -429,9 +438,19 @@ const connectTransport = (appName) => (uri, {data, cancel}) => {
  * @returns {Function}          Configured pushTransport function
  * @private
  */
-const pushTransport = (connect) => (url, {message, type, redirectUrl, data}) => {
-  return transport.push.send(connect.pushToken, connect.publicEncKey)(url, {message, type, redirectUrl})
-    .then(res => ({res, data}))
+const pushTransport = (pushToken, publicEncKey) => {
+  const send = transport.push.send(pushToken, publicEncKey)
+
+  return (uri, {message, type, redirectUrl, data}) => {
+    if (transport.messageServer.isMessageServerCallback(uri)) {
+      return transport.messageServer.URIHandlerSend(send)(uri, {message, type, redirectUrl})
+        .then(res => ({res, data}))
+    } else {
+      // Return immediately for custom message server
+      send(uri, {message, type, redirectUrl})
+      return Promise.resolve({data})
+    }
+  }
 }
 
 /**

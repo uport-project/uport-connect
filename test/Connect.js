@@ -30,7 +30,7 @@ describe('Connect', () => {
       expect(uport.accountType).to.be.undefined
       expect(uport.transport).to.be.a('function')
       expect(uport.mobileTransport).to.be.a('function')
-      expect(uport.pushTransport).to.be.a('function')
+      expect(uport.usePush).to.be.true
       expect(uport.isOnMobile).to.be.a('boolean')
       expect(uport.storage).to.be.true
     })
@@ -352,15 +352,17 @@ describe('Connect', () => {
       expect(transport).to.be.calledWith('uri')
     })
 
-    it('uses pushTransport if pushToken is available', () => {
-      const pushTransport = sinon.stub().resolves()
+    it('uses pushTransport if available and usePush is true', () => {
       const transport = sinon.stub().resolves()
-
-      const uport = new Connect('test app', {pushTransport, transport})
+      const pushTransport = sinon.stub().resolves()
+      const uport = new Connect('test app', {transport, usePush: false})
+      uport.pushTransport = pushTransport
+      
       uport.request('fake uri', 'fake id')
       expect(pushTransport).not.to.be.called
       expect(transport).to.be.calledOnce
-      uport.pushToken = 'token'
+      
+      uport.usePush = true
       uport.request('fake uri', 'fake id')
       expect(pushTransport).to.be.calledOnce
       expect(pushTransport).to.be.calledWith('fake uri')
@@ -385,8 +387,8 @@ describe('Connect', () => {
 
     it('publishes response to subscriber once returned when using pushTransport', (done) => {
       const pushTransport = sinon.stub().resolves('test')
-      const uport = new Connect('testapp', {pushTransport, isMobile: false})
-      uport.pushToken = 'fake pushtoken'
+      const uport = new Connect('testapp', {isMobile: false})
+      uport.pushTransport = pushTransport
       uport.PubSub.subscribe('topic', (msg, res) => {
         expect(res).to.equal('test')
         done()
