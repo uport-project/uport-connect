@@ -60,36 +60,37 @@ class Connect {
     if (this.storage) this.setState()
 
     // Transports
+    this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
-
-    if (this.pushToken && this.publicEncnKey) {
-      this.pushTransport = pushTransport(this.pushToken, this.publicEncKey)
-    }
-
     this.mobileTransport = opts.mobileTransport || transport.url.send()
     this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
-    this.PubSub = PubSub
-
-    // Probably move out of constructor
-    this.pubResponse = (payload) => {
-      if(!payload.id) throw new Error('Response payload requires and id')
-      this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
-    }
-
+    this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
     transport.url.listenResponse((err, payload) => {
-      if (payload) this.pubResponse(payload)
+      if (err) throw err
+      this.pubResponse(payload)
     })
+
+    // State
+    this.did = null
+    this.mnid = null
+    this.address = null
+    this.doc = null
+    this.pushToken = null
+    this.publicEncKey = null
+
+    // Load any existing state if any
+    if (this.storage) this.getState()
+    if (!this.keypair) this.keypair = Credentials.createIdentity()
+    if (this.storage) this.setState()
 
     // Credential (uport-js) config for verification
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     // TODO can resolver configs not be passed through
-    this.credentials = new Credentials(Object.assign(this.keypair, {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }))
-    this.verifyResponse = (token) => {
-      return verifyJWT(token, {audience: this.credentials.did}).then(res => {
-        this.doc = res.doc
-        return this.credentials.processDisclosurePayload(res)
-      })
-    }
+    this.credentials = new Credentials(Object.assign({}, this.keypair, {
+      registry: this.registry,
+      ethrConfig: opts.ethrConfig,
+      muportConfig: opts.muportConfig
+    }))
   }
 
  /**
@@ -189,6 +190,30 @@ class Connect {
     })
   }
 
+  /**
+   * @private
+   * Extract relevant params from a payload from transports.url.listenResponse, and
+   * pass them along to this.PubSub in the proper format
+   * @param {Object} payload  the response from transports.url.listenrResponse
+   */
+  pubResponse (payload) {
+    if (!payload || !payload.id) throw new Error('Response payload requires an id')
+    this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
+  }
+
+  /**
+   * @private
+   * Verify a jwt and save the resulting doc to this instance, then process the
+   * disclosure payload with this.credentials
+   * @param {JWT} token   the JWT to be verified
+   */
+  verifyResponse (token) {
+    return verifyJWT(token, {audience: this.credentials.did}).then(res => {
+      this.doc = res.doc
+      return this.credentials.processDisclosurePayload(res)
+    })
+  }
+
   //  TODO Name? request, transport or send?
  /**
   *  Send a request URI string to a uport client.
@@ -253,7 +278,7 @@ class Connect {
    *  })
    *
    *  @param    {Object}    txObj
-   *  @param    {String}    [id='addressReq']    string to identify request, later used to get response
+   *  @param    {String}    [id='txReq']    string to identify request, later used to get response
    */
    sendTransaction (txObj, id='txReq') {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
@@ -290,29 +315,32 @@ class Connect {
   }
 
   /**
- *  Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md)
- *
- *  @example
- *  const req = { requested: ['name', 'country'],
- *                callbackUrl: 'https://myserver.com',
- *                notifications: true }
- *  credentials.requestDisclosure(req).then(jwt => {
- *      ...
- *  })
- *
- *  @param    {Object}             [params={}]           request params object
- *  @param    {Array}              params.requested      an array of attributes for which you are requesting credentials to be shared for
- *  @param    {Array}              params.verified       an array of attributes for which you are requesting verified credentials to be shared for
- *  @param    {Boolean}            params.notifications  boolean if you want to request the ability to send push notifications
- *  @param    {String}             params.callbackUrl    the url which you want to receive the response of this request
- *  @param    {String}             params.network_id     network id of Ethereum chain of identity eg. 0x4 for rinkeby
- *  @param    {String}             params.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
- *  @param    {Number}             params.expiresIn      Seconds until expiry
- *  @param    {String}            [id='disclosureReq']    string to identify request, later used to get response
- *  @return   {Promise<Object, Error>}                   a promise which resolves with a signed JSON Web Token or rejects with an error
- */
-  requestDisclosure (reqObj, id='disclosureReq') {
-    reqObj = Object.assign({accountType: this.accountType || 'none'}, reqObj, {callbackUrl: this.genCallback()})
+   *  Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md)
+   *
+   *  @example
+   *  const req = { requested: ['name', 'country'],
+   *                callbackUrl: 'https://myserver.com',
+   *                notifications: true }
+   *  credentials.requestDisclosure(req).then(jwt => {
+   *      ...
+   *  })
+   *
+   *  @param    {Object}             [reqObj={}]           request params object
+   *  @param    {Array}              reqObj.requested      an array of attributes for which you are requesting credentials to be shared for
+   *  @param    {Array}              reqObj.verified       an array of attributes for which you are requesting verified credentials to be shared for
+   *  @param    {Boolean}            reqObj.notifications  boolean if you want to request the ability to send push notifications
+   *  @param    {String}             reqObj.callbackUrl    the url which you want to receive the response of this request
+   *  @param    {String}             reqObj.network_id     network id of Ethereum chain of identity eg. 0x4 for rinkeby
+   *  @param    {String}             reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
+   *  @param    {Number}             reqObj.expiresIn      Seconds until expiry
+   *  @param    {String}            [id='disclosureReq']   string to identify request, later used to get response
+   *  @return   {Promise<Object, Error>}                   a promise which resolves with a signed JSON Web Token or rejects with an error
+   */
+  requestDisclosure (reqObj, id = 'disclosureReq') {
+    reqObj = Object.assign({
+      accountType: this.accountType || 'none',
+      callbackUrl: this.genCallback()
+    }, reqObj)
     this.credentials.requestDisclosure(reqObj, reqObj.expiresIn)
       .then(jwt => this.request(jwt, id))
   }
@@ -335,7 +363,7 @@ class Connect {
   * @param    {String}            [id='attestReq']       string to identify request, later used to get response
   */
   attest (claim, id) {
-    this.credentials.attest(claim).then(jwt => {this.request(jwt, id)})
+     this.credentials.attest(claim).then(jwt => this.request(jwt, id))
   }
 
  /**
