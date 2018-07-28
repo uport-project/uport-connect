@@ -32,7 +32,7 @@ describe('Connect', () => {
       expect(uport.accountType).to.be.undefined
       expect(uport.transport).to.be.a('function')
       expect(uport.mobileTransport).to.be.a('function')
-      expect(uport.pushTransport).to.be.a('function')
+      expect(uport.usePush).to.be.true
       expect(uport.isOnMobile).to.be.a('boolean')
       expect(uport.storage).to.be.true
     })
@@ -41,7 +41,7 @@ describe('Connect', () => {
       const transport = sinon.stub()
       const mobileTransport = sinon.stub()
       const pushTransport = sinon.stub()
-      const config ={
+      const config = {
         network: 'mainnet',
         // provider: new HttpProvider(this.network.rpcUrl),
         accountType: 'keypair',
@@ -49,7 +49,6 @@ describe('Connect', () => {
         storage: false,
         transport,
         mobileTransport,
-        pushTransport
       }
       const uport = new Connect('test app', config)
       expect(uport.network.id).to.equal('0x1')
@@ -58,9 +57,7 @@ describe('Connect', () => {
       expect(uport.storage).to.be.false
       uport.transport('test')
       uport.mobileTransport('test')
-      uport.pushTransport('test')
       expect(transport).to.be.calledOnce
-      expect(pushTransport).to.be.calledOnce
       expect(mobileTransport).to.be.calledOnce
     })
 
@@ -340,9 +337,9 @@ describe('Connect', () => {
       window.location.hash = `access_token=${JWTReq}&id=${id}`
     })
 
-    it('sets pushToken and publicEncKey if available, ands aves them to localStorage', (done) => {
+    it('sets pushToken and publicEncKey if available, and saves them to localStorage', (done) => {
       const uport = new Connect('testApp')
-      const response = {pushToken: 'push token', publicEncKey: 'public key'}
+      const response = {pushToken: 'push token', publicEncKey: 'public key', address: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'}
       uport.verifyResponse = sinon.stub().resolves(response)
       expect(uport.pushTransport).to.be.undefined
       expect(uport.pushToken).to.be.null
@@ -352,12 +349,14 @@ describe('Connect', () => {
         expect(uport.pushToken).to.equal(response.pushToken)
         expect(uport.publicEncKey).to.equal(response.publicEncKey)
         expect(uport.pushTransport).to.be.a('function')
-      }).then(() => {
+
+        // Instantiate a new connect instance to test persistance
         const uportFromLocalStorage = new Connect('testApp2')
         expect(uportFromLocalStorage.pushToken).to.equal(response.pushToken)
         expect(uportFromLocalStorage.publicEncKey).to.equal(response.publicEncKey)
         expect(uportFromLocalStorage.pushTransport).to.be.a('function')
-      })
+        done()
+      }).catch(console.log)
 
       uport.PubSub.publish(id, {res: resJWT})
     })
@@ -405,15 +404,19 @@ describe('Connect', () => {
       expect(transport).to.be.calledWith('uri')
     })
 
-    it('uses pushTransport if pushToken is available', () => {
-      const pushTransport = sinon.stub().resolves()
+    it('uses pushTransport if available and usePush is true', () => {
       const transport = sinon.stub().resolves()
-
-      const uport = new Connect('test app', {pushTransport, transport})
+      const pushTransport = sinon.stub().resolves()
+      const uport = new Connect('test app', {transport, usePush: false})
+      uport.pushTransport = pushTransport
+      uport.pushToken = 'push token'
+      uport.publicEncKey = 'public key'
+      
       uport.request('fake uri', 'fake id')
       expect(pushTransport).not.to.be.called
       expect(transport).to.be.calledOnce
-      uport.pushToken = 'token'
+      
+      uport.usePush = true
       uport.request('fake uri', 'fake id')
       expect(pushTransport).to.be.calledOnce
       expect(pushTransport).to.be.calledWith('fake uri')
@@ -437,8 +440,8 @@ describe('Connect', () => {
 
     it('publishes response to subscriber once returned when using pushTransport', (done) => {
       const pushTransport = sinon.stub().resolves('test')
-      const uport = new Connect('testapp', {pushTransport, isMobile: false})
-      uport.pushToken = 'fake pushtoken'
+      const uport = new Connect('testapp', {isMobile: false})
+      uport.pushTransport = pushTransport
       uport.PubSub.subscribe('topic', (msg, res) => {
         expect(res).to.equal('test')
         done()
@@ -446,6 +449,21 @@ describe('Connect', () => {
       uport.request('request', 'topic')
     })
   })
+
+  /*********************************************************************/
+
+  describe('attest', () => {
+    // TODO
+    it('NEEDS TESTS')
+  })
+
+  /*********************************************************************/
+
+  describe('createVerificationRequest', () => {
+    // TODO
+    it('NEEDS TESTS')
+  })
+  
   
   /*********************************************************************/
 
@@ -530,6 +548,33 @@ describe('Connect', () => {
       const uport = new Connect('testApp', {isMobile: true})
       uport.request = request
       uport.sendTransaction(txObj)
+    })
+  })
+
+  /*********************************************************************/
+
+  describe('transports', () => {
+    const data = {hello: 'world'}
+
+    it('connectTransport resolves immediately if not using chasqui', (done) => {
+      const uport = new Connect('testApp')
+      uport.transport(resJWT, {data}).then(res => {
+        expect(res.data).to.equal(data)
+        done()
+      })
+    })
+
+    it('pushTransport resolves immediately if not using chasqui', (done) => {
+      const dummy = new Connect('dumb')
+      dummy.pushToken = 'push token'
+      dummy.publicEncKey = 'public key'
+      dummy.setState()
+      // This one has pushTransport set
+      const uport = new Connect('testApp')
+      uport.pushTransport(resJWT, {data}).then(res => {
+        expect(res.data).to.equal(data)
+        done()        
+      })
     })
   })
 
