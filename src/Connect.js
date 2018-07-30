@@ -89,7 +89,7 @@ class Connect {
   }
 
   /**
-   *  Instantiates and returns a web3 styple provider wrapped with uPort functionality.
+   *  Instantiates and returns a web3 style provider wrapped with uPort functionality.
    *  For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
    *  to start a get address flow or to return an already received address. It also
    *  overrides eth_sendTransaction to start the send transaction flow to pass the
@@ -285,7 +285,7 @@ class Connect {
    *        "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
    *      }
    *    },
-   *    sub: "2oTvBxSGseWFqhstsEHgmCBi762FbcigK5u"
+   *    sub: "did:uport:2oTvBxSGseWFqhstsEHgmCBi762FbcigK5u"
    *  }
    *  connect.createVerificationRequest(unsignedClaim).then(jwt => {
    *    ...
@@ -308,8 +308,8 @@ class Connect {
    *  const req = { requested: ['name', 'country'],
    *                callbackUrl: 'https://myserver.com',
    *                notifications: true }
-   *  connect.requestDisclosure(req, 'REQUEST_ID')
-   *  connect.onResponse('REQUEST_ID').then(jwt => {
+   *  connect.requestDisclosure(req)
+   *  connect.onResponse('disclosureReq').then(jwt => {
    *      ...
    *  })
    *
@@ -338,11 +338,11 @@ class Connect {
    *
    *  @example
    *  connect.attest({
-   *   sub: '5A8bRWU3F7j3REx3vkJ...', // uPort address of user, likely a MNID
+   *   sub: 'did:uport:5A8bRWU3F7j3REx3vkJ...', // uPort address of user, likely a MNID
    *   exp: <future timestamp>,
    *   claim: { name: 'John Smith' }
-   *  }, 'REQUEST_ID')
-   *  connect.onResponse('REQUEST_ID').then(credential => {
+   *  }, 'attestReq')
+   *  connect.onResponse('attestReq').then(credential => {
    *   ...
    *  })
    *

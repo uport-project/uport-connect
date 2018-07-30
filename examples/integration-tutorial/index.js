@@ -23,7 +23,7 @@ const uportConnect = function () {
   web3.eth.getCoinbase((error, address) => {
     if (error) { throw error }
     globalState.ethAddress = address
-    // This one is for display purposes - MNID encoding includes network
+    // This one is for display purposes
     globalState.uportId = connect.did
 
     StatusContract.getStatus.call(globalState.ethAddress, (err, st) => {
