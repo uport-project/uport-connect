@@ -3,6 +3,7 @@ title: "Communication and Transactions"
 index: 2
 category: "tutorials"
 type: "content"
+source: "https://github.com/uport-project/uport-connect/blob/develop/docs/guides/usage.md"
 ---
 
 # Communication and Transactions how-to
