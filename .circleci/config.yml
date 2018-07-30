@@ -14,7 +14,7 @@ jobs:
 
       - run:
           name: install-dependencies
-          command: yarn
+          command: npm i
 
       - run:
           name: test
