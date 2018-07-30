@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { Connect } from './uport-connect.js'
 import { message } from 'uport-transports'
 import { Credentials } from 'uport'
-import { decodeJWT } from 'did-jwt'
+import { decodeJWT, verifyJWT } from 'did-jwt'
 
 chai.use(sinonChai)
 
@@ -40,7 +40,6 @@ describe('Connect', () => {
     it('sets config vals if given config object', () => {
       const transport = sinon.stub()
       const mobileTransport = sinon.stub()
-      const pushTransport = sinon.stub()
       const config = {
         network: 'mainnet',
         // provider: new HttpProvider(this.network.rpcUrl),
@@ -48,8 +47,7 @@ describe('Connect', () => {
         isMobile: true,
         storage: false,
         transport,
-        mobileTransport,
-        pushTransport
+        mobileTransport
       }
       const uport = new Connect('test app', config)
       expect(uport.network.id).to.equal('0x1')
@@ -58,9 +56,8 @@ describe('Connect', () => {
       expect(uport.storage).to.be.false
       uport.transport('test')
       uport.mobileTransport('test')
-      uport.pushTransport('test')
       expect(transport).to.be.calledOnce
-      expect(pushTransport).to.be.calledOnce
+      expect(uport.usePush).to.be.true
       expect(mobileTransport).to.be.calledOnce
     })
 
@@ -342,7 +339,7 @@ describe('Connect', () => {
 
     it('sets pushToken and publicEncKey if available, and saves them to localStorage', (done) => {
       const uport = new Connect('testApp')
-      const response = {pushToken: 'push token', publicEncKey: 'public key', address: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'}
+      const response = {pushToken: 'push token', boxPub: 'public key', address: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'}
       uport.verifyResponse = sinon.stub().resolves(response)
       expect(uport.pushTransport).to.be.undefined
       expect(uport.pushToken).to.be.null
@@ -350,13 +347,13 @@ describe('Connect', () => {
 
       uport.onResponse(id).then((res) => {
         expect(uport.pushToken).to.equal(response.pushToken)
-        expect(uport.publicEncKey).to.equal(response.publicEncKey)
+        expect(uport.publicEncKey).to.equal(response.boxPub)
         expect(uport.pushTransport).to.be.a('function')
 
         // Instantiate a new connect instance to test persistance
         const uportFromLocalStorage = new Connect('testApp2')
         expect(uportFromLocalStorage.pushToken).to.equal(response.pushToken)
-        expect(uportFromLocalStorage.publicEncKey).to.equal(response.publicEncKey)
+        expect(uportFromLocalStorage.publicEncKey).to.equal(response.boxPub)
         expect(uportFromLocalStorage.pushTransport).to.be.a('function')
         done()
       }).catch(console.log)
@@ -452,6 +449,51 @@ describe('Connect', () => {
       uport.request('request', 'topic')
     })
   })
+
+  /*********************************************************************/
+
+  describe('attest', () => {
+    it('Creates a JWT signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp')
+      const cred = {
+        claim: { hello: 'world' },
+        sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
+      }
+
+      uport.request = (jwt) => {
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.claim).to.deep.equal(cred.claim)
+          done()
+        })
+      }
+
+      uport.attest(cred)
+    })
+  })
+
+  /*********************************************************************/
+
+  describe('createVerificationRequest', () => {
+    it('Creates a JWT signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp')
+      const cred = {
+        unsignedClaim: { hello: 'world' },
+        sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
+      }
+
+      uport.request = (jwt) => {
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.unsignedClaim).to.deep.equal(cred.unsignedClaim)
+          done()
+        })
+      }
+
+      uport.createVerificationRequest(cred)
+    })
+  })
+
 
   /*********************************************************************/
 
