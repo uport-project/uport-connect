@@ -126,6 +126,7 @@
     "babel-preset-es2015": "^6.18.0",
     "babel-register": "^6.18.0",
     "bignumber.js": "^7.2.1",
+    "browserify": "^16.2.2",
     "chai": "^4.1.2",
     "codecov": "^3.0.4",
     "condition-circle": "^2.0.1",
