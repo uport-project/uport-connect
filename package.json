@@ -99,9 +99,9 @@
   },
   "dependencies": {
     "async": "^2.6.1",
+    "did-jwt": "0.0.8",
     "ethjs-abi": "^0.2.1",
     "ethjs-util": "^0.1.6",
-    "did-jwt": "0.0.8",
     "ipfs-mini": "^1.0.1",
     "mnid": "^0.1.1",
     "mobile-detect": "^1.4.2",
@@ -160,7 +160,8 @@
     "snazzy": "^7.1.1",
     "standard": "^11.0.1",
     "supervisor": "^0.12.0",
-    "webpack": "4.15.1"
+    "webpack": "4.15.1",
+    "webpack-cli": "^3.1.0"
   },
   "config": {
     "commitizen": {
