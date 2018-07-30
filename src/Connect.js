@@ -288,28 +288,28 @@ class Connect {
 
   //  TODO this name is confusing
   /**
- *  Request uPort client/user to sign a claim or list of claims
- *
- *  @example
- *  const unsignedClaim = {
- *    claim: {
- *      "Citizen of city X": {
- *        "Allowed to vote": true,
- *        "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
- *      }
- *    },
- *    sub: "2oTvBxSGseWFqhstsEHgmCBi762FbcigK5u"
- *  }
- *  credentials.createVerificationRequest(unsignedClaim).then(jwt => {
- *    ...
- *  })
- *
- *  @param    {Object}      reqObj                 object with request params
- *  @param    {Object}      reqObj.unsignedClaim   an object that is an unsigned claim which you want the user to attest
- *  @param    {String}      reqObj.sub             the DID which the unsigned claim is about
- *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
- */
-  createVerificationRequest(reqObj, id='signClaimReq') {
+   *  Request uPort client/user to sign a claim or list of claims
+   *
+   *  @example
+   *  const unsignedClaim = {
+   *    claim: {
+   *      "Citizen of city X": {
+   *        "Allowed to vote": true,
+   *        "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
+   *      }
+   *    },
+   *    sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
+   *  }
+   *  connect.createVerificationRequest(unsignedClaim).then(jwt => {
+   *    ...
+   *  })
+   *
+   *  @param    {Object}      reqObj                 object with request params
+   *  @param    {Object}      reqObj.unsignedClaim   an object that is an unsigned claim which you want the user to attest
+   *  @param    {String}      reqObj.sub             the DID which the unsigned claim is about
+   *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
+   */
+  createVerificationRequest (reqObj, id = 'signClaimReq') {
     this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(), this.did)
       .then(jwt => this.request(jwt, id))
   }
@@ -321,7 +321,9 @@ class Connect {
    *  const req = { requested: ['name', 'country'],
    *                callbackUrl: 'https://myserver.com',
    *                notifications: true }
-   *  credentials.requestDisclosure(req).then(jwt => {
+   *  const reqID = 'disclosureReq'
+   *  connect.requestDisclosure(req, reqID)
+   *  connect.onResponse(reqID).then(jwt => {
    *      ...
    *  })
    *
@@ -346,24 +348,25 @@ class Connect {
   }
 
   /**
-  *  Create a credential about connnected user
-  *
-  *  @example
-  *  credentials.attest({
-  *   sub: '5A8bRWU3F7j3REx3vkJ...', // uPort address of user, likely a MNID
-  *   exp: <future timestamp>,
-  *   claim: { name: 'John Smith' }
-  *  }).then( credential => {
-  *   ...
-  *  })
-  *
-  * @param    {Object}            [credential]           a unsigned credential object
-  * @param    {String}            credential.claim       claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
-  * @param    {String}            credential.exp         time at which this claim expires and is no longer valid (seconds since epoch)
-  * @param    {String}            [id='attestReq']       string to identify request, later used to get response
-  */
-  attest (claim, id) {
-     this.credentials.attest(claim).then(jwt => this.request(jwt, id))
+   *  Create a credential about connnected user
+   *
+   *  @example
+   *  connect.attest({
+   *   sub: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54',
+   *   exp: <future timestamp>,
+   *   claim: { name: 'John Smith' }
+   *  }, 'REQUEST_ID')
+   *  connect.onResponse('REQUEST_ID').then(credential => {
+   *   ...
+   *  })
+   *
+   * @param    {Object}            [credential]           a unsigned credential object
+   * @param    {String}            credential.claim       claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
+   * @param    {String}            credential.exp         time at which this claim expires and is no longer valid (seconds since epoch)
+   * @param    {String}            [id='attestReq']       string to identify request, later used to get response
+   */
+  attest (credential, id) {
+    this.credentials.attest(credential).then(jwt => this.request(jwt, id))
   }
 
  /**
