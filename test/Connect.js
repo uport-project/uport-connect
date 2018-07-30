@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { Connect } from './uport-connect.js'
 import { message } from 'uport-core'
 import { Credentials } from 'uport'
-import { decodeJWT } from 'did-jwt'
+import { decodeJWT, verifyJWT } from 'did-jwt'
 
 chai.use(sinonChai)
 
@@ -453,15 +453,45 @@ describe('Connect', () => {
   /*********************************************************************/
 
   describe('attest', () => {
-    // TODO
-    it('NEEDS TESTS')
+    it('Creates a JWT signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp')
+      const cred = {
+        claim: { hello: 'world' },
+        sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
+      }
+
+      uport.request = (jwt) => {
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.claim).to.deep.equal(cred.claim)
+          done()
+        })
+      }
+
+      uport.attest(cred)
+    })
   })
 
   /*********************************************************************/
 
   describe('createVerificationRequest', () => {
-    // TODO
-    it('NEEDS TESTS')
+    it('Creates a JWT signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp')
+      const cred = {
+        unsignedClaim: { hello: 'world' }, 
+        sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
+      }
+
+      uport.request = (jwt) => {
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.unsignedClaim).to.deep.equal(cred.unsignedClaim)
+          done()
+        })
+      }
+
+      uport.createVerificationRequest(cred)
+    })
   })
   
   

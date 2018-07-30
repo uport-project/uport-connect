@@ -287,7 +287,7 @@ class Connect {
    *    },
    *    sub: "2oTvBxSGseWFqhstsEHgmCBi762FbcigK5u"
    *  }
-   *  credentials.createVerificationRequest(unsignedClaim).then(jwt => {
+   *  connect.createVerificationRequest(unsignedClaim).then(jwt => {
    *    ...
    *  })
    *
@@ -308,7 +308,8 @@ class Connect {
    *  const req = { requested: ['name', 'country'],
    *                callbackUrl: 'https://myserver.com',
    *                notifications: true }
-   *  credentials.requestDisclosure(req).then(jwt => {
+   *  connect.requestDisclosure(req, 'REQUEST_ID')
+   *  connect.onResponse('REQUEST_ID').then(jwt => {
    *      ...
    *  })
    *
@@ -336,11 +337,12 @@ class Connect {
    *  Create a credential about connnected user
    *
    *  @example
-   *  credentials.attest({
+   *  connect.attest({
    *   sub: '5A8bRWU3F7j3REx3vkJ...', // uPort address of user, likely a MNID
    *   exp: <future timestamp>,
    *   claim: { name: 'John Smith' }
-   *  }).then( credential => {
+   *  }, 'REQUEST_ID')
+   *  connect.onResponse('REQUEST_ID').then(credential => {
    *   ...
    *  })
    *
@@ -349,8 +351,8 @@ class Connect {
    * @param    {String}            credential.exp         time at which this claim expires and is no longer valid (seconds since epoch)
    * @param    {String}            [id='attestReq']       string to identify request, later used to get response
    */
-  attest (claim, id) {
-    this.credentials.attest(claim).then(jwt => this.request(jwt, id))
+  attest (credential, id) {
+    this.credentials.attest(credential).then(jwt => this.request(jwt, id))
   }
 
   /**
@@ -401,7 +403,7 @@ class Connect {
   }
 
   /**
-   *  Writes serialized uPort connect state to browser localStorage at key 'connectState'
+   * Writes serialized uPort connect state to browser localStorage at key 'connectState'
    */
   setState () {
     const connectState = this.serialize()
