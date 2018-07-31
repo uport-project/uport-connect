@@ -3,7 +3,7 @@ import { verifyJWT, decodeJWT } from 'did-jwt'
 import MobileDetect from 'mobile-detect'
 import HttpProvider from 'web3/lib/web3/httpprovider' // Can use http provider from ethjs in the future.
 import { isMNID, encode, decode } from 'mnid'
-import { transport, message, network, provider } from 'uport-core'
+import { transport, message, network, provider } from 'uport-transports'
 import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
@@ -401,7 +401,7 @@ class Connect {
 }
 
 /**
- *  A transport created for uport connect. Bundles transport functionality from uport-core-js. This implements the
+ *  A transport created for uport connect. Bundles transport functionality from uport-transports. This implements the
  *  default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
  *  responses, it will by default poll Chasqui and return response. If given a request which specifies another
  *  callback to receive the response, for example your own server, it will show the request in the default QR
@@ -426,7 +426,7 @@ const connectTransport = (appName) => (uri, {data, cancel}) => {
 }
 
 /**
- * Wrap push transport from uport-core-js, providing stored pushToken and publicEncKey from the
+ * Wrap push transport from uport-transports, providing stored pushToken and publicEncKey from the
  * provided connect instance
  * @param   {Connect} connect   The Connect instance holding the pushToken and publicEncKey
  * @returns {Function}          Configured pushTransport function
