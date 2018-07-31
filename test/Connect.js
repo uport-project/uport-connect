@@ -154,7 +154,7 @@ describe('Connect', () => {
       const uport = new Connect('test app')
       const mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       const addressTest = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
-      const verifyResponse = sinon.stub().callsFake((jwt) => Promise.resolve({'name': 'uPort Demo', '@type': 'App', 'description': 'Demo App', 'url': 'demo.uport.me', 'address': 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'}))
+      const verifyResponse = sinon.stub().callsFake((jwt) => Promise.resolve({'name': 'uPort Demo', '@type': 'App', 'description': 'Demo App', 'url': 'demo.uport.me', 'address': '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'}))
       uport.verifyResponse = verifyResponse
       uport.requestAddress = sinon.stub()
       const web3 = new Web3(uport.getProvider())
@@ -263,7 +263,7 @@ describe('Connect', () => {
 
   describe('onResponse', () => {
     const id = 'test'
-    const JWTParse = {'name': 'uPort Demo', '@type': 'App', 'description': 'Demo App', 'url': 'demo.uport.me', 'address': 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'}
+    const JWTParse = {'name': 'uPort Demo', '@type': 'App', 'description': 'Demo App', 'url': 'demo.uport.me', 'address': '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e', 'did': 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG' }
     const did = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
     const JWTReq = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MjcxODM0ODcsImV4cCI6MTUyNzE4NDA4NywicmVxdWVzdGVkIjpbIm5hbWUiLCJwaG9uZSIsImNvdW50cnkiXSwicGVybWlzc2lvbnMiOlsibm90aWZpY2F0aW9ucyJdLCJjYWxsYmFjayI6Imh0dHBzOi8vY2hhc3F1aS51cG9ydC5tZS9hcGkvdjEvdG9waWMvS3JzRkxnSDFQa3RwOGZ0eSIsInR5cGUiOiJzaGFyZVJlcSIsImlzcyI6ImRpZDp1cG9ydDoyb2VYdWZIR0RwVTUxYmZLQnNaRGR1N0plOXdlSjNyN3NWRyJ9.bJC2dWT0tCdFOeC0JlN_Dx9PwyI18wtVHz2MOp-9I7QPNhgA8SlbqdqJiMrmZfc1PdM3AjNVD31HmuDoQYQMNQ'
 
@@ -357,11 +357,11 @@ describe('Connect', () => {
       const pushTransport = sinon.stub().resolves()
       const uport = new Connect('test app', {transport, usePush: false})
       uport.pushTransport = pushTransport
-      
+
       uport.request('fake uri', 'fake id')
       expect(pushTransport).not.to.be.called
       expect(transport).to.be.calledOnce
-      
+
       uport.usePush = true
       uport.request('fake uri', 'fake id')
       expect(pushTransport).to.be.calledOnce
