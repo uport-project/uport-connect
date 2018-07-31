@@ -149,7 +149,7 @@ class Connect {
           this.setDID(res.address)
           // Setup push transport if response contains pushtoken
           if (res.pushToken) this.pushToken = res.pushToken
-          if (res.publicEncKey) this.publicEncKey = res.publicEncKey
+          if (res.boxPub) this.publicEncKey = res.boxPub
           if (this.pushToken && this.publicEncKey) {
             this.pushTransport = pushTransport(this.pushToken, this.publicEncKey)
           }
