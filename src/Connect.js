@@ -46,17 +46,19 @@ class Connect {
       throw new Error('Segregated accounts are not supported on mainnet')
     }
 
-    // State
-    this.did = null
-    this.mnid = null
-    this.address = null
-    this.doc = null
-    this.pushToken = null
-    this.publicEncKey = null
+    // Initialize private state
+    this._state = {
+      did: null,
+      mnid: null,
+      address: null,
+      doc: null,
+      pushToken: null,
+      publicEncKey: null
+    }
 
     // Load any existing state if any
-    if (this.storage)  this.getState()
-    if (!this.keypair) this.keypair = Credentials.createIdentity()
+    if (this.storage) this.getState()
+    if (!this.keypair || !this.keypair.did) this.keypair = Credentials.createIdentity()
     if (this.storage) this.setState()
 
     // Transports
@@ -133,13 +135,13 @@ class Connect {
     return subProvider
   }
 
- // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
- /**
-  *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is available. Listen instead, if looking for multiple responses of same id.
-  *
-  *  @param    {String}    id             id of request you are waiting for a response for
-  *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
-  */
+  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
+  /**
+   *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is available. Listen instead, if looking for multiple responses of same id.
+   *
+   *  @param    {String}    id             id of request you are waiting for a response for
+   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
+   */
   onResponse(id) {
     const parseResponse = (payload) => {
       if (payload.error) return Promise.reject(Object.assign({id}, payload))
@@ -150,10 +152,8 @@ class Connect {
           return Promise.resolve(Object.assign({id}, payload))
         }
         return this.verifyResponse(jwt).then(res => {
-          //TODO improve set/get state, address could be ethAddress
-          this.address = res.address
-          this.mnid = res.mnid
-          this.did = res.did
+          this.setState({address: res.address, mnid: res.mnid, did: res.did})
+
           // Setup push transport if response contains pushtoken
           if (res.pushToken) this.pushToken = res.pushToken
           if (res.boxPub) this.publicEncKey = res.boxPub
@@ -367,59 +367,86 @@ class Connect {
     this.credentials.attest(credential).then(jwt => this.request(jwt, id))
   }
 
- /**
-  *  Serializes persistant state of Connect object to string. Persistant state includes following
-  *  keys and values; address, mnid, did, doc, keypair. You can save this string how you
-  *  like and then restore it's state with the deserialize function.
-  *
-  *  @return   {String}   JSON string
-  */
-  serialize() {
-    // TODO these are redundant vals, just store did maybe
-    const connectJSONState = {
-      address: this.address,
-      mnid: this.mnid,
-      did: this.did,
-      doc: this.doc,
-      keypair: this.keypair,
-      pushToken: this.pushToken,
-      publicEncKey: this.publicEncKey
-    }
-    return JSON.stringify(connectJSONState)
-  }
-
   /**
-   *  Given string of serialized Connect state, it restores that given state to the Connect
-   *  object which it was called on. You can get the serialized state of a connect object
-   *  by calling the serialize() function.
+   * Update the internal state of the connect instance and ensure that it is consistent
+   * with the state saved to localStorage.  You can pass in a serialized state object to
+   * restore a previous connect state, an object containing key-value pairs to update,
+   * or a function that returns updated key-value pairs as a function of the current state
    *
-   *  @param    {String}    str      serialized uPort Connect state
+   * @param {Function|String|Object} Update -- An object, serialized object string, or reducer
+   *                                           function specifying updates to the current Connect
+   *                                           state (as a function of the current state)
    */
-  deserialize(str) {
-    const state = JSON.parse(str)
-    this.address = state.address
-    this.mnid = state.mnid
-    this.did = state.did
-    this.doc = state.doc
-    this.keypair = state.keypair
-    this.pushToken = state.pushToken
-    this.publicEncKey = state.publicEncKey
+  setState(update) {
+    switch (typeof update) {
+      case 'object':
+        this._state = { ...this._state, ...update }
+        break
+      case 'function':
+        this._state = { ...this._state, ...update(this._state) }
+        break
+      case 'string':
+        this._state = { ...this._state, ...JSON.parse(update) }
+        break
+      case 'undefined':
+        break
+      default:
+        throw new Error(`Cannot update state with ${update}`)
+    }
+
+    // Write to localStorage
+    store.set('connectState', JSON.stringify(this._state))
   }
 
   /**
-   *  Gets uPort connect state from browser localStorage and sets on this object
+   * Load state from local storage and set this instance's state accordingly.
+   * Additionally returns the serialized string for you to manually save the
+   * Connect instance's state somewhere else.
+   *
+   * @returns {String} The serialized connect state
    */
   getState() {
-    const connectState = store.get('connectState')
-    if (connectState) this.deserialize(connectState)
+    const serialized = store.get('connectState')
+    const { address, mnid, did, doc, keypair, pushToken, publicEncKey } = JSON.parse(serialized || '{}')
+    this._state = { address, mnid, did, doc, keypair, pushToken, publicEncKey }
+
+    return JSON.stringify(this._state)
   }
 
-    /**
-     *  Writes serialized uPort connect state to browser localStorage at key 'connectState'
-     */
-  setState() {
-    const connectState = this.serialize()
-    store.set('connectState', connectState)
+  /**
+   * Accessor methods for Connect state.  The state consists of the key-value pairs below
+   *  (did, doc, mnid, address, keypair, pushToken, and publicEncKey)
+   */
+  get did ()          { return this._state.did }
+  get doc ()          { return {...this._state.doc} }
+  get mnid ()         { return this._state.mnid }
+  get address ()      { return this._state.address }
+  get keypair ()      { return {...this._state.keypair} }
+  get pushToken ()    { return this._state.pushToken }
+  get publicEncKey () { return this._state.publicEncKey }
+
+  /**
+   * Setter methods with appropriate validation
+   */
+  set did (did)                   { this.setState({did}) }
+  set doc (doc)                   { this.setState({doc}) }
+  set mnid (mnid)                 { this.setState(this.mnidDecode(mnid)) }
+  set address (address)           { this.setState(this.mnidDecode(address)) }
+  set keypair (keypair)           { this.setState({keypair}) }
+  set pushToken (pushToken)       { this.setState({pushToken}) }
+  set publicEncKey (publicEncKey) { this.setState({publicEncKey}) }
+
+  /**
+   * Utility method for disambiguating an address or mnid;
+   * Receives either and return an object containing both, encoded according to this.network.id
+   *
+   * @param   {String}  addressOrMnid   -- A string containing an address or an mnid
+   * @returns {Object}  addressAndMnid  -- an object with propreties address, and mnid containing both
+   */
+  mnidDecode(addressOrMnid) {
+    const address = isMNID(addressOrMnid) ? decode(addressOrMnid).address : addressOrMnid
+    const mnid = isMNID(addressOrMnid) ? addressOrMnid : encode({network: this.network.id, address: addressOrMnid})
+    return {address, mnid}
   }
 
   /**
