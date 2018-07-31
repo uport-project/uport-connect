@@ -112,7 +112,10 @@ class Connect {
         const requestID = 'addressReqProvider'
         this.requestDisclosure({accountType: this.accountType || 'keypair'}, requestID)
         return this.onResponse(requestID).then(payload => {
-          this.setDID(payload.res.address)
+          // improve set/get state
+          this.address = payload.res.address
+          this.mnid = payload.res.mnid
+          this.did = payload.res.did
           return this.address
         })
       },
@@ -146,7 +149,10 @@ class Connect {
           return Promise.resolve(Object.assign({id}, payload))
         }
         return this.verifyResponse(jwt).then(res => {
-          this.setDID(res.address)
+          //TODO improve set/get state, address could be ethAddress
+          this.address = res.address
+          this.mnid = res.mnid
+          this.did = res.did
           // Setup push transport if response contains pushtoken
           if (res.pushToken) this.pushToken = res.pushToken
           if (res.boxPub) this.publicEncKey = res.boxPub
@@ -384,18 +390,6 @@ class Connect {
   setState() {
     const connectState = this.serialize()
     store.set('connectState', connectState)
-  }
-
-  /**
-   * Set DID on object, also sets decoded mnid and address
-   */
-  setDID(did) {
-    this.did = did
-    // TODO change so doesn't fail, but need fix all handling of did vs addreess vs mnid throughout code here and above
-    const address = did.replace('did:ethr:', '').replace('did:uport:', '')
-    // TODO address should be nad
-    this.mnid = isMNID(address) ? address : encode({network: 'Ox1', address})
-    this.address = isMNID(address) ? decode(address).address : address
   }
 
   /**
