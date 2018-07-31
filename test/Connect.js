@@ -4,7 +4,7 @@ import sinon from 'sinon'
 import Web3 from 'web3'
 
 import { Connect } from './uport-connect.js'
-import { message } from 'uport-core'
+import { message } from 'uport-transports'
 import { Credentials } from 'uport'
 import { decodeJWT } from 'did-jwt'
 
@@ -142,7 +142,7 @@ describe('Connect', () => {
 
     const addressTest = '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6'
 
-    // NOTE: provider test coverage in uport-core-js
+    // NOTE: provider test coverage in uport-transports
     it('returns a provider with same network settings as connect', () => {
       const netConfig = { id: '0x5', registry: '0xab6c9051b9a1eg1abc1250f8b0640848c8ebfcg6', rpcUrl: 'https://somenet.io' }
       const uport = new Connect('test app', {network: netConfig})
