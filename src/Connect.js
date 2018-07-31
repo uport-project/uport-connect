@@ -395,7 +395,9 @@ class Connect {
     }
 
     // Write to localStorage
-    store.set('connectState', JSON.stringify(this._state))
+    if (this.storage) {
+      store.set('connectState', JSON.stringify(this._state))
+    } 
   }
 
   /**
