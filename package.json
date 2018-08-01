@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.7.4-alpha-minor-4",
+  "version": "0.7.5",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -41,33 +41,38 @@
     "ipfs",
     "persona"
   ],
-  "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (http://consensys.net/)",
-  "license": "ISC",
+  "author": "Christian Lundkvist <christian.lundkvist@consensys.net> (https://consensys.net/)",
+  "license": "Apache-2.0",
   "contributors": [
     {
       "name": "Christian Lundkvist",
       "email": "christian.lundkvist@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Jeff Scott Ward",
       "email": "jeffscottward@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Joel Torstensson",
       "email": "joel.torstensson@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Zach Ferland",
       "email": "zach.ferland@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
     },
     {
       "name": "Pelle Braendgaard",
       "email": "pelle.braendgaard@consensys.net",
-      "url": "http://consensys.net/"
+      "url": "https://consensys.net/"
+    },
+    {
+      "name": "Levi Strope",
+      "email": "levi.strope@consensys.net",
+      "url": "https://consensys.net"
     }
   ],
   "bugs": {
@@ -103,8 +108,7 @@
     "nets": "^3.2.0",
     "qr-image": "^3.1.0",
     "qs": "^6.2.1",
-    "uport": "^0.7.0-alpha-minor-13",
-    "uport-core": "^0.0.43",
+    "uport": "^0.6.3",
     "web3": "0.19.0"
   },
   "devDependencies": {
