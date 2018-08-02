@@ -206,9 +206,10 @@ class Connect {
     if (!id) throw new Error('Requires request id')
 
     if (this.isOnMobile) {
+      if (!redirectUrl & !type) type = 'redirect'
       this.mobileTransport(uri, {id, data, redirectUrl, type})
     } else if (this.usePush && this.pushTransport) {
-      this.pushTransport(uri, {data, redirectUrl, type}).then(res => this.PubSub.publish(id, res))
+      this.pushTransport(uri, {data}).then(res => this.PubSub.publish(id, res))
     } else {
       this.transport(uri, {data, cancel}).then(res => this.PubSub.publish(id, res))
     }
