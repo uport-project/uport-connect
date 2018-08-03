@@ -282,7 +282,7 @@ class Connect {
    */
    sendTransaction (txObj, id='txReq') {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
-     this.credentials.txRequest(txObj, {callbackUrl: this.genCallback()})
+     this.credentials.txRequest(txObj, {callbackUrl: this.genCallback(id)})
                      .then(jwt => this.request(jwt, id))
    }
 
@@ -310,7 +310,7 @@ class Connect {
    *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
    */
   createVerificationRequest (reqObj, id = 'signClaimReq') {
-    this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(), this.did)
+    this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
       .then(jwt => this.request(jwt, id))
   }
 
@@ -341,7 +341,7 @@ class Connect {
   requestDisclosure (reqObj, id = 'disclosureReq') {
     reqObj = Object.assign({
       accountType: this.accountType || 'none',
-      callbackUrl: this.genCallback()
+      callbackUrl: this.genCallback(id)
     }, reqObj)
     this.credentials.requestDisclosure(reqObj, reqObj.expiresIn)
       .then(jwt => this.request(jwt, id))
@@ -427,8 +427,8 @@ class Connect {
   /**
    *  @private
    */
-  genCallback() {
-    return this.isOnMobile ?  windowCallback() : transport.messageServer.genCallback()
+  genCallback(reqId) {
+    return this.isOnMobile ?  windowCallback(reqId) : transport.messageServer.genCallback()
   }
 }
 
@@ -485,13 +485,11 @@ const pushTransport = (pushToken, publicEncKey) => {
  *  @return   {String}   Returns window url formatted as callback
  *  @private
  */
-const windowCallback = () => {
+const windowCallback = (id) => {
   const md = new MobileDetect(navigator.userAgent)
-  if( md.userAgent() === 'Chrome' && md.os() === 'iOS' ) {
-    return `googlechrome:${window.location.href.substring(window.location.protocol.length)}`
-  } else {
-    return  window.location.href
-  }
+  const chromeAndIOS = (md.userAgent() === 'Chrome' && md.os() === 'iOS')
+  const callback = chromeAndIOS ? `googlechrome:${window.location.href.substring(window.location.protocol.length)}` : window.location.href
+  return message.util.paramsToUrlFragment(callback, {id})
 }
 
 /**
