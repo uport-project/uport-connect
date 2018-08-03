@@ -438,18 +438,9 @@ class Connect {
    * and localStorage.  Rebuild this.credentials with a new app-instance identity
    */
   reset() {
-    this.setState({
-      did: null,
-      mnid: null,
-      address: null,
-      doc: null,
-      pushToken: null,
-      publicEncKey: null,
-      keypair: Credentials.createIdentity()
-    })
-
-    // Clear other instance variables and rebuild credentials
-    this.pushTransport = null
+    this.logout()
+    // Rebuild credentials
+    this.keypair = Credentials.createIdentity()
     this.credentials = new Credentials({...this.keypair, ...this.resolverConfigs})
   }
 
