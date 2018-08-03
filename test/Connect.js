@@ -588,12 +588,12 @@ describe('transports', () => {
     it('Ensures agreement between mnid and address', () => {
       const uport = new Connect('testApp')
 
-      uport.did = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
+      uport.address = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
       expect(uport.mnid).to.equal('2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG')
 
       const uport2 = new Connect('testApp')
       uport.mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
-      expect(uport.did).to.equal('0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e')
+      expect(uport.address).to.equal('0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e')
     })
 
 
