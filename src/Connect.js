@@ -87,12 +87,10 @@ class Connect {
 
     // Credential (uport-js) config for verification
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
+    this.resolverConfigs = {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }
+
     // TODO can resolver configs not be passed through
-    this.credentials = new Credentials(Object.assign({}, this.keypair, {
-      registry: this.registry,
-      ethrConfig: opts.ethrConfig,
-      muportConfig: opts.muportConfig
-    }))
+    this.credentials = new Credentials(Object.assign(this.keypair, this.resolverConfigs))
   }
 
  /**
@@ -155,11 +153,8 @@ class Connect {
           this.setState({address: res.address, mnid: res.mnid, did: res.did})
 
           // Setup push transport if response contains pushtoken
-          if (res.pushToken) this.pushToken = res.pushToken
           if (res.boxPub) this.publicEncKey = res.boxPub
-          if (this.pushToken && this.publicEncKey) {
-            this.pushTransport = pushTransport(this.pushToken, this.publicEncKey)
-          }
+          if (res.pushToken) this.pushToken = res.pushToken
           return {id, res, data: payload.data}
         })
       } else {
@@ -394,10 +389,14 @@ class Connect {
         throw new Error(`Cannot update state with ${update}`)
     }
 
+    if (this.publicEncKey && this.pushToken) {
+      this.pushTransport = pushTransport(this.pushToken, this.publicEncKey)
+    }
+
     // Write to localStorage
     if (this.storage) {
       store.set('connectState', JSON.stringify(this._state))
-    } 
+    }
   }
 
   /**
@@ -413,6 +412,45 @@ class Connect {
     this._state = { address, mnid, did, doc, keypair, pushToken, publicEncKey }
 
     return JSON.stringify(this._state)
+  }
+
+  /**
+   * Clear any user-specific state from the browser, (both the Connect instance and localStorage)
+   * effectively logging them out. The keypair (app-instance identity) is preserved
+   */
+  logout() {
+    // Clear explicit state
+    this.setState({
+      did: null,
+      mnid: null,
+      address: null,
+      doc: null,
+      pushToken: null,
+      publicEncKey: null
+    })
+
+    // Clear all instance variables with references to current state
+    this.pushTransport = null
+  }
+
+  /**
+   * Clear the entire state of the connect instance, including the keypair, from memory
+   * and localStorage.  Rebuild this.credentials with a new app-instance identity
+   */
+  reset() {
+    this.setState({
+      did: null,
+      mnid: null,
+      address: null,
+      doc: null,
+      pushToken: null,
+      publicEncKey: null,
+      keypair: Credentials.createIdentity()
+    })
+
+    // Clear other instance variables and rebuild credentials
+    this.pushTransport = null
+    this.credentials = new Credentials({...this.keypair, ...this.resolverConfigs})
   }
 
   /**
