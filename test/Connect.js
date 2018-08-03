@@ -596,7 +596,6 @@ describe('transports', () => {
       expect(uport.address).to.equal('0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e')
     })
 
-
     it('Saves to localStorage on assignment to state properties', () => {
       const uport = new Connect('testApp')
 
@@ -649,23 +648,53 @@ describe('transports', () => {
       expect(uport.publicEncKey).to.equal(uportTest.publicEncKey)
     })
 
-    // it('gets serialized state from local storage and calls deserialize with it', () => {
-    //   const uport = new Connect('testapp')
-    //   const deserialize = sinon.spy()
-    //   uport.deserialize = deserialize
-    //   // Set after connect instantiated
-    //   window.localStorage.setItem('connectState', 'uportTestStateString')
-    //   uport.getState()
-    //   expect(deserialize).to.be.calledWith('uportTestStateString')
-    // })
+    const testState = {
+      address: '0x00521965e7bd230323c423d96c657db5b79d099f',
+      mnid: '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG',
+      doc: {name: 'Ran'},
+      did: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG',
+      publicEncKey: 'test public key',
+      pushToken: 'test push token',
+      keypair: {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
+    }
 
-    // it('writes serialized state to local storage at connectState ', () => {
-    //   const uport = new Connect('testapp')
-    //   const serialize = sinon.stub().callsFake(() => 'uportTestStateString')
-    //   uport.serialize = serialize
-    //   uport.setState()
-    //   expect(serialize).to.be.called
-    //   expect(window.localStorage.getItem('connectState')).to.equal('"uportTestStateString"')
-    // })
+    const logoutState = {
+      address: null,
+      mnid: null,
+      doc: null,
+      did: null, 
+      publicEncKey: null,
+      pushToken: null, 
+      keypair: {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
+    }
+
+    it('clears all state except for keypair on logout', () => {
+      const uport = new Connect('testApp')
+
+      uport.setState(testState)
+
+      expect(JSON.parse(uport.getState())).to.deep.equal(testState)
+      expect(uport.pushTransport).to.be.a('function')
+
+      uport.logout()
+      expect(JSON.parse(uport.getState())).to.deep.equal(logoutState)
+      expect(uport.pushTransport).to.be.null
+    })
+
+    it('clears all state including keypair on reset ', () => {
+      const uport = new Connect('testApp')
+
+      uport.setState(testState)
+      expect(JSON.parse(uport.getState())).to.deep.equal(testState)
+      expect(uport.pushTransport).to.be.a('function')
+      const oldCredentials = uport.credentials
+
+      uport.reset()
+
+      expect(uport.did).to.be.null
+      expect(uport.pushTransport).to.be.null
+      expect(uport.credentials).not.to.equal(oldCredentials)
+      expect(uport.credentials).not.to.deep.equal(oldCredentials)
+    })
   })
 })
