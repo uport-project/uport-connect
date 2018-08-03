@@ -112,13 +112,7 @@ class Connect {
       requestAddress: () => {
         const requestID = 'addressReqProvider'
         this.requestDisclosure({accountType: this.accountType || 'keypair'}, requestID)
-        return this.onResponse(requestID).then(payload => {
-          // improve set/get state
-          this.address = payload.res.address
-          this.mnid = payload.res.mnid
-          this.did = payload.res.did
-          return this.address
-        })
+        return this.onResponse(requestID).then(payload => this.address)
       },
       sendTransaction: (txObj) => {
         delete txObj['from']
@@ -150,8 +144,10 @@ class Connect {
           return Promise.resolve(Object.assign({id}, payload))
         }
         return this.verifyResponse(jwt).then(res => {
-          this.setState({address: res.address, mnid: res.mnid, did: res.did})
-
+          // Set identifiers present in the response
+          if (res.address) this.address = res.address
+          if (res.mnid) this.mnid = mnid
+          if (res.did) this.did = res.did
           // Setup push transport if response contains pushtoken
           if (res.boxPub) this.publicEncKey = res.boxPub
           if (res.pushToken) this.pushToken = res.pushToken
@@ -475,6 +471,7 @@ class Connect {
    * @returns {Object}  addressAndMnid  -- an object with propreties address, and mnid containing both
    */
   mnidDecode(addressOrMnid) {
+    if (!addressOrMnid) return {adddress: undefined, mnid: undefined}
     const address = isMNID(addressOrMnid) ? decode(addressOrMnid).address : addressOrMnid
     const mnid = isMNID(addressOrMnid) ? addressOrMnid : encode({network: this.network.id, address: addressOrMnid})
     return {address, mnid}
