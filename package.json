@@ -17,7 +17,7 @@
     "karma-watch": "node karmawrapper start test/karma.conf.js --browsers Chrome",
     "karma": "node karmawrapper start test/karma.conf.js --single-run --browsers Chrome",
     "karma-CI": "node karmawrapper start test/karmaCI.conf.js",
-    "test:jest": "jest",
+    "test:jest": "./__tests__/ganache.sh",
     "karma-CI-integration": "cd integration-test && ./setup && cd .. && node karmawrapper start integration-test/karma.conf.js --single-run --browsers PhantomJS",
     "prepublish": "npm run build-es5",
     "post-release": "node prwrapper",
