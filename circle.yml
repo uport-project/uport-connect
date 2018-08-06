@@ -1,9 +1,0 @@
-machine:
-  node:
-    version: v8.4.0
-test:
-  override:
-    - npm run karma-CI
-  post:
-    -  bash <(curl -s https://codecov.io/bash)
-    -  npm run build-dist && npm run build-dist-prod
