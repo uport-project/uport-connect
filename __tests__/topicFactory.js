@@ -5,7 +5,7 @@ import TopicFactory from "../src/topicFactory.js";
 let topicFactory;
 
 describe("TopicFactory", function() {
-  jest.setTimeout(10000);
+  jest.setTimeout(15000);
 
   describe("On desktop", function() {
     beforeEach(function() {
