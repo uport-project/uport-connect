@@ -1,4 +1,4 @@
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import { ConnectCore } from "../src/indexCore";
 import { Credentials } from "uport";
 const sinon = require("sinon");

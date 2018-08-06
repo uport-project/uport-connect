@@ -1,6 +1,5 @@
 import { Connect } from "../src/index";
 import { Credentials } from "uport";
-import { openQr, closeQr } from "../src/util/qrdisplay";
 
 describe("Connect", () => {
   describe("config", () => {

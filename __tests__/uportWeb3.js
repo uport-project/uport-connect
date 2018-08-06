@@ -1,15 +1,8 @@
 import { expect } from "chai";
 import Web3 from "web3";
-import {
-  Connect,
-  ConnectCore,
-  QRUtil,
-  SimpleSigner,
-  Credentials
-} from "../src/index";
+import { Connect } from "../src/index";
 import Autosigner from "../utils/autosigner";
 import testData from "./testData.json";
-// import ganache from 'ganache-cli'
 
 const addr1 = "0x9d00733ae37f34cdebe443e5cda8e9721fffa092";
 
