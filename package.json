@@ -12,12 +12,9 @@
     "build-dist-prod": "./node_modules/.bin/webpack --config webpack.prod-config.js",
     "watch": "./node_modules/.bin/webpack --config webpack.config.js -w",
     "testrpc": "./node_modules/.bin/testrpc",
-    "test": "./node_modules/.bin/mocha && npm run karma",
+    "test": "./__tests__/ganache.sh",
     "autotest": "./node_modules/.bin/supervisor -q -n exit -x ./node_modules/.bin/mocha -- --reporter spec",
-    "karma-watch": "node karmawrapper start test/karma.conf.js --browsers Chrome",
-    "karma": "node karmawrapper start test/karma.conf.js --single-run --browsers Chrome",
-    "karma-CI": "node karmawrapper start test/karmaCI.conf.js",
-    "karma-CI-integration": "cd integration-test && ./setup && cd .. && node karmawrapper start integration-test/karma.conf.js --single-run --browsers PhantomJS",
+    "test:jest": "./__tests__/ganache.sh",
     "prepublish": "npm run build-es5",
     "post-release": "node prwrapper",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post && npm run post-release",
@@ -115,6 +112,7 @@
     "babel-cli": "^6.18.0",
     "babel-core": "^6.21.0",
     "babel-eslint": "^7.1.1",
+    "babel-jest": "^23.4.2",
     "babel-loader": "^6.2.10",
     "babel-plugin-external-helpers": "^6.18.0",
     "babel-plugin-syntax-object-rest-spread": "^6.13.0",
@@ -135,24 +133,14 @@
     "ganache-cli": "^6.1.0",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
+    "jest": "^23.4.2",
     "jsdoc": "^3.4.3",
     "jsdoc-to-markdown": "^1.3.7",
     "json-loader": "^0.5.4",
-    "karma": "^2.0.3",
-    "karma-chai": "^0.1.0",
-    "karma-chrome-launcher": "^2.0.0",
-    "karma-coverage": "^1.1.1",
-    "karma-firefox-launcher": "^1.0.0",
-    "karma-mocha": "^1.2.0",
-    "karma-mocha-reporter": "^2.2.0",
-    "karma-phantomjs-launcher": "^1.0.2",
-    "karma-safari-launcher": "^1.0.0",
-    "karma-sourcemap-loader": "^0.3.7",
-    "karma-webpack": "^2.0.3",
     "mocha": "^3.0.2",
     "phantomjs-polyfill-object-assign": "^0.0.2",
     "phantomjs-prebuilt": "^2.1.14",
-    "publish-release": "^1.3.2",
+    "publish-release": "^1.6.0",
     "reify": "^0.3.8",
     "semantic-release": "^4.3.5",
     "sinon": "git+https://github.com/sinonjs/sinon.git#afdf4255e97e8a8738da19ddfafd18efc09c917a",
@@ -183,5 +171,12 @@
   },
   "release": {
     "verifyConditions": "condition-circle"
+  },
+  "jest": {
+    "verbose": true,
+    "testURL": "http://localhost:9876/context.html"
+  },
+  "transform": {
+    "^.+\\.js$": "babel-jest"
   }
 }

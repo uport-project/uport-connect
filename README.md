@@ -10,6 +10,8 @@
 
 # <a name="introduction"></a> Introduction
 
+**Required Upgrade to v0.7.5 to support new uPort Clients - [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
+
 **uPort** is a system for self-sovereign digital identity anchored in Ethereum.
 The uPort technology primarily consists of smart contracts, developer libraries, and a mobile app. uPort identities are fully owned and controlled by the creator, and don't rely on centralized third-parties for creation, control or validation. In the current implementation of the system this is achievable by having the mobile app act as the primary secure container for data related to your identity and for a set of keys which allow you sign transactions, grant authorization and sign credentials. The identity is anchored in the blockchain with an identifier and public data is stored in IPFS.
 
