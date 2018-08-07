@@ -77,7 +77,7 @@ class ConnectCore {
     this.provider = opts.provider
     this.accountType = opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
-    this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile)
+    this.topicFactory = opts.topicFactory || TopicFactory(this.isOnMobile,opts.pollingInterval)
     this.uriHandler = opts.uriHandler || defaultUriHandler
     this.mobileUriHandler = opts.mobileUriHandler
     this.closeUriHandler = opts.closeUriHandler
