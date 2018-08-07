@@ -57,7 +57,7 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
    *  @param    {Function}   cb            function which is called with a response or error
    *  @param    {Function}   cancelled     function which returns true if the polling has been cancelled
    */
-  function pollForResult (topicName, url, cb, cancelled) {
+  function pollForResult (topicName, url, cb, cancelled,timeoutInMilliseconds=300000) {
     let interval = setInterval(
       () => {
         nets({
@@ -95,6 +95,11 @@ function TopicFactory (isOnMobile, pollingInterval = 2000, chasquiUrl = CHASQUI_
           }
         })
       }, pollingInterval)
+
+      let timeout=setTimeout(function(){
+        clearInterval(interval)
+        clearTopic(url)
+    },timeoutInMilliseconds);
   }
 
   /**
