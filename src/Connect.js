@@ -8,6 +8,16 @@ import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
 
+// Initial state for
+const NULL_STATE = {
+  did: null,
+  mnid: null,
+  address: null,
+  doc: null,
+  pushToken: null,
+  publicEncKey: null
+}
+
 class Connect {
   /**
    * Instantiates a new uPort Connect object.
@@ -46,15 +56,7 @@ class Connect {
       throw new Error('Segregated accounts are not supported on mainnet')
     }
 
-    // Initialize private state
-    this._state = {
-      did: null,
-      mnid: null,
-      address: null,
-      doc: null,
-      pushToken: null,
-      publicEncKey: null
-    }
+    this._state = NULL_STATE
 
     // Load any existing state if any
     if (this.storage) this.getState()
@@ -112,7 +114,7 @@ class Connect {
       requestAddress: () => {
         const requestID = 'addressReqProvider'
         this.requestDisclosure({accountType: this.accountType || 'keypair'}, requestID)
-        return this.onResponse(requestID).then(payload => this.address)
+        return this.onResponse(requestID).then(({address}) => address)
       },
       sendTransaction: (txObj) => {
         delete txObj['from']
@@ -145,9 +147,9 @@ class Connect {
         }
         return this.verifyResponse(jwt).then(res => {
           // Set identifiers present in the response
+          this.did = res.did
           if (res.address) this.address = res.address
           if (res.mnid) this.mnid = mnid
-          if (res.did) this.did = res.did
           // Setup push transport if response contains pushtoken
           if (res.boxPub) this.publicEncKey = res.boxPub
           if (res.pushToken) this.pushToken = res.pushToken
@@ -403,10 +405,11 @@ class Connect {
    * @returns {String} The serialized connect state
    */
   getState() {
-    const serialized = store.get('connectState')
-    const { address, mnid, did, doc, keypair, pushToken, publicEncKey } = JSON.parse(serialized || '{}')
-    this._state = { address, mnid, did, doc, keypair, pushToken, publicEncKey }
-
+    if (this.storage) {
+      const serialized = store.get('connectState')
+      const { address, mnid, did, doc, keypair, pushToken, publicEncKey } = JSON.parse(serialized || '{}')
+      this._state = { address, mnid, did, doc, keypair, pushToken, publicEncKey }
+    }
     return JSON.stringify(this._state)
   }
 
@@ -416,15 +419,7 @@ class Connect {
    */
   logout() {
     // Clear explicit state
-    this.setState({
-      did: null,
-      mnid: null,
-      address: null,
-      doc: null,
-      pushToken: null,
-      publicEncKey: null
-    })
-
+    this.setState(NULL_STATE)
     // Clear all instance variables with references to current state
     this.pushTransport = null
   }
@@ -468,7 +463,7 @@ class Connect {
    * Receives either and return an object containing both, encoded according to this.network.id
    *
    * @param   {String}  addressOrMnid   -- A string containing an address or an mnid
-   * @returns {Object}  addressAndMnid  -- an object with propreties address, and mnid containing both
+   * @returns {Object}  addressAndMnid  -- an object with properties address, and mnid containing both
    */
   mnidDecode(addressOrMnid) {
     if (!addressOrMnid) return {adddress: undefined, mnid: undefined}
