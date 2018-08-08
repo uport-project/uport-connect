@@ -106,7 +106,6 @@ describe('Connect', () => {
   describe('requestDisclosure', () => {
     it('creates a request uri ', (done) => {
       const transport = (uri, opts) => new Promise((resolve, reject) => {
-        expect(/https:\/\/id\.uport\.me\/req\//.test(uri)).to.be.true
         const jwt = getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
         done()
