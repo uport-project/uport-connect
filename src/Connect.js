@@ -218,7 +218,7 @@ class Connect {
  /**
   *  Send a request URI string to a uport client.
   *
-  *  @param    {String}     uri               a request URI to send to a uport client
+  *  @param    {String}     request           a request message to send to a uport client
   *  @param    {String}     id                id of request you are looking for a response for
   *  @param    {Object}     [opts]            optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md]
   *  @param    {String}     opts.redirectUrl  If on mobile client, the url you want to the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token.
@@ -226,17 +226,15 @@ class Connect {
   *  @param    {String}     opts.type         Type specifies the callback action. 'post' to send response to callback in request token or 'redirect' to send response in redirect url.
   *  @param    {Function}   opts.cancel       When using the default QR, but handling the response yourself, this function will be called when a users closes the request modal.
   */
-  request (req, id, {redirectUrl, data, type, cancel} = {}) {
-    const uri = message.util.isJWT(req) ? message.util.tokenRequest(req) : req
+  request (request, id, {redirectUrl, data, type, cancel} = {}) {
     if (!id) throw new Error('Requires request id')
-
     if (this.isOnMobile) {
       if (!redirectUrl & !type) type = 'redirect'
-      this.mobileTransport(uri, {id, data, redirectUrl, type})
+      this.mobileTransport(request, {id, data, redirectUrl, type})
     } else if (this.usePush && this.pushTransport) {
-      this.pushTransport(uri, {data}).then(res => this.PubSub.publish(id, res))
+      this.pushTransport(request, {data}).then(res => this.PubSub.publish(id, res))
     } else {
-      this.transport(uri, {data, cancel}).then(res => this.PubSub.publish(id, res))
+      this.transport(request, {data, cancel}).then(res => this.PubSub.publish(id, res))
     }
   }
 
