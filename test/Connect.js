@@ -215,16 +215,15 @@ describe('Connect', () => {
       const uport = new Connect('test app')
       const mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       const addressTest = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
-      const verifyResponse = sinon.stub().resolves({'name': 'uPort Demo', '@type': 'App', 'description': 'Demo App', 'url': 'demo.uport.me', did: `did:uport:${mnid}`, mnid})
+      const verifyResponse = sinon.stub().resolves({'name': 'uPort Demo', '@type': 'App', 'description': 'Demo App', 'url': 'demo.uport.me', did: `did:uport:${mnid}`, mnid, address: addressTest})
       uport.verifyResponse = verifyResponse
 
       // uport.requestDisclosure = sinon.stub()
       const web3 = new Web3(uport.getProvider())
       web3.eth.getCoinbase((error, address) => {
         expect(uport.verifyResponse).to.be.called
-        // TODO test with full test example and fix
-        // if (error) console.log(error)
-        // expect(address).to.equal(addressTest)
+        if (error) console.log(error)
+        expect(address).to.equal(addressTest)
         done()
       })
 
