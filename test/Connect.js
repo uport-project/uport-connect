@@ -342,8 +342,8 @@ describe('Connect', () => {
       const response = {pushToken: 'push token', boxPub: 'public key', did: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG', mnid:'2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'}
       uport.verifyResponse = sinon.stub().resolves(response)
       expect(uport.pushTransport).to.equal(undefined)
-      expect(uport.pushToken).to.equal(undefined)
-      expect(uport.publicEncKey).to.equal(undefined)
+      expect(uport.pushToken).to.be.falsey
+      expect(uport.publicEncKey).to.falsey
 
       uport.onResponse(id).then((res) => {
         expect(uport.pushToken).to.equal(response.pushToken)
@@ -627,7 +627,7 @@ describe('transports', () => {
       uport.keypair = {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
       uport.publicEncKey = 'test public key'
       uport.pushToken = 'test push token'
-      const uportStateString = uport.getState()
+      const uportStateString = JSON.stringify(uport.state)
 
       expect(uportStateString).to.be.a('string')
       expect(/0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e/.test(uportStateString)).to.be.true
@@ -650,7 +650,7 @@ describe('transports', () => {
       uportTest.pushToken = 'test push token'
 
       const uport = new Connect('testapp')
-      uport.setState(uportTest.getState())
+      uport.setState(uportTest.loadState())
 
       expect(uport.address).to.equal(uportTest.address)
       expect(uport.mnid).to.equal(uportTest.mnid)
@@ -672,12 +672,6 @@ describe('transports', () => {
     }
 
     const logoutState = {
-      address: null,
-      mnid: null,
-      doc: null,
-      did: null,
-      publicEncKey: null,
-      pushToken: null,
       keypair: {did: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54' , keypair: '1338f32fefb4db9b2deeb15d8b1b428a6346153cc43f51ace865986871dd069d'}
     }
 
@@ -686,26 +680,26 @@ describe('transports', () => {
 
       uport.setState(testState)
 
-      expect(JSON.parse(uport.getState())).to.deep.equal(testState)
+      expect(uport.state).to.deep.equal(testState)
       expect(uport.pushTransport).to.be.a('function')
 
       uport.logout()
-      expect(JSON.parse(uport.getState())).to.deep.equal(logoutState)
-      expect(uport.pushTransport).to.be.null
+      expect(uport.state).to.deep.equal(logoutState)
+      expect(uport.pushTransport).to.be.falsey
     })
 
     it('clears all state including keypair on reset ', () => {
       const uport = new Connect('testApp')
 
       uport.setState(testState)
-      expect(JSON.parse(uport.getState())).to.deep.equal(testState)
+      expect(uport.state).to.deep.equal(testState)
       expect(uport.pushTransport).to.be.a('function')
       const oldCredentials = uport.credentials
 
       uport.reset()
 
-      expect(uport.did).to.be.null
-      expect(uport.pushTransport).to.be.null
+      expect(uport.did).to.be.falsey
+      expect(uport.pushTransport).to.be.falsey
       expect(uport.credentials).not.to.equal(oldCredentials)
       expect(uport.credentials).not.to.deep.equal(oldCredentials)
     })
