@@ -100,7 +100,7 @@ class Connect {
       requestAddress: () => {
         const requestID = 'addressReqProvider'
         this.requestDisclosure({accountType: this.accountType || 'keypair'}, requestID)
-        return this.onResponse(requestID).then(({address}) => address)
+        return this.onResponse(requestID).then(payload => payload.res.address)
       },
       sendTransaction: (txObj) => {
         delete txObj['from']
