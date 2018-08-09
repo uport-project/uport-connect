@@ -32,7 +32,8 @@ class Connect {
    * @param    {Object}      [opts.provider=HttpProvider] Provider used as a base provider to be wrapped with uPort connect functionality
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
-   * @param    {Boolean}     [opts.storage=true]          When true, object state will be written to local storage on each state cz-conventional-change
+   * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
+   * @param    {Object}      [opts.store]                 Storage inteferface with synchronous get() => statObj and set(stateObj) functions, by default store is local storage. For asynchronous storage, set useStore false and handle manually.
    * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
@@ -48,7 +49,7 @@ class Connect {
     this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
-    this.storage = opts.storage === undefined ? true : opts.storage
+    this.useStore = opts.useStore === undefined ? true : opts.useStore
     this.usePush = opts.usePush === undefined ? true : opts.usePush
 
     // Disallow segregated account on mainnet
@@ -56,13 +57,16 @@ class Connect {
       throw new Error('Segregated accounts are not supported on mainnet')
     }
 
+    // Storage
+    this.store = opts.store || new LocalStorageStore()
+
     // Initialize private state
     this._state = NULL_STATE
 
     // Load any existing state if any
-    if (this.storage) this.getState()
+    if (this.useStore) this.getState()
     if (!this.keypair.did) this.keypair = Credentials.createIdentity()
-    if (this.storage) this.setState()
+    if (this.useStore) this.setState()
 
     // Transports
     this.PubSub = PubSub
@@ -147,9 +151,9 @@ class Connect {
     if (this.onloadResponse && this.onloadResponse.id === id) {
       const onloadResponse = this.onloadResponse
       this.onloadResponse = null
-      if (this.storage) this.setState()
+      if (this.useStore) this.setState()
       return parseResponse(onloadResponse).then(res => {
-        if (this.storage) this.setState()
+        if (this.useStore) this.setState()
         return res
       })
     }
@@ -158,7 +162,7 @@ class Connect {
       this.PubSub.subscribe(id, (msg, res) => {
         this.PubSub.unsubscribe(id)
         parseResponse(res).then(res => {
-          if (this.storage) this.setState()
+          if (this.useStore) this.setState()
           resolve(res)
         }, err => {
           reject(err)
@@ -384,8 +388,8 @@ class Connect {
     }
 
     // Write to localStorage
-    if (this.storage) {
-      store.set('connectState', JSON.stringify(this._state))
+    if (this.useStore) {
+      this.store.set(this._state)
     }
   }
 
@@ -397,9 +401,8 @@ class Connect {
    * @returns {String} The serialized connect state
    */
   getState() {
-    if (this.storage) {
-      const serialized = store.get('connectState')
-      const { address, mnid, did, doc, keypair, pushToken, publicEncKey } = JSON.parse(serialized || '{}')
+    if (this.useStore) {
+      const { address, mnid, did, doc, keypair, pushToken, publicEncKey } = this.store.get()
       this._state = { address, mnid, did, doc, keypair, pushToken, publicEncKey }
     }
     return JSON.stringify(this._state)
@@ -464,6 +467,20 @@ class Connect {
    */
   genCallback(reqId) {
     return this.isOnMobile ?  windowCallback(reqId) : transport.messageServer.genCallback()
+  }
+}
+
+class LocalStorageStore {
+  constructor (key = 'connectState') {
+    this.key = key
+  }
+
+  get() {
+    return JSON.parse(store.get('connectState') || '{}')
+  }
+
+  set(stateObj) {
+    store.set(this.key, JSON.stringify(stateObj))
   }
 }
 

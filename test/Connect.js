@@ -34,7 +34,7 @@ describe('Connect', () => {
       expect(uport.mobileTransport).to.be.a('function')
       expect(uport.usePush).to.be.true
       expect(uport.isOnMobile).to.be.a('boolean')
-      expect(uport.storage).to.be.true
+      expect(uport.useStore).to.be.true
     })
 
     it('sets config vals if given config object', () => {
@@ -45,7 +45,7 @@ describe('Connect', () => {
         // provider: new HttpProvider(this.network.rpcUrl),
         accountType: 'keypair',
         isMobile: true,
-        storage: false,
+        useStore: false,
         transport,
         mobileTransport
       }
@@ -53,7 +53,7 @@ describe('Connect', () => {
       expect(uport.network.id).to.equal('0x1')
       expect(uport.accountType).to.equal('keypair')
       expect(uport.isOnMobile).to.be.true
-      expect(uport.storage).to.be.false
+      expect(uport.useStore).to.be.false
       uport.transport('test')
       uport.mobileTransport('test')
       expect(transport).to.be.calledOnce
