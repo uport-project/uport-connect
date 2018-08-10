@@ -1,0 +1,7 @@
+#!/bin/bash
+# Clean/remove setup
+
+rm -r node_modules
+rm uportWeb3.js Connect.js karma.conf.js testData.json
+rm ../uport-connect-0.0.0-semantic-release.tgz
+rm -r coverage
