@@ -499,12 +499,15 @@ const connectTransport = (appName) => (request, {data, cancel}) => {
  * @private
  */
 const pushTransport = (pushToken, publicEncKey) => {
-  const send = transport.push.send(pushToken, publicEncKey)
+  const send = transport.push.sendAndNotify(pushToken, publicEncKey)
 
   return (uri, {message, type, redirectUrl, data}) => {
     if (transport.messageServer.isMessageServerCallback(uri)) {
       return transport.messageServer.URIHandlerSend(send)(uri, {message, type, redirectUrl})
-        .then(res => ({res, data}))
+        .then(res => {
+          transport.ui.close()
+          return {res, data}
+        })
     } else {
       // Return immediately for custom message server
       send(uri, {message, type, redirectUrl})
