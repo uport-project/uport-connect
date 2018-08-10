@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "0.8.14-alpha-43",
+  "version": "0.8.14-alpha-48",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/Connect.js",
   "scripts": {
@@ -111,7 +111,7 @@
     "uport": "0.7.0-alpha-8",
     "uport-did-resolver": "0.0.3",
     "uport-lite": "^1.0.2",
-    "uport-transports": "0.0.53",
+    "uport-transports": "0.0.58",
     "web3": "0.19.0"
   },
   "devDependencies": {
