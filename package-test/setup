@@ -3,6 +3,6 @@
 
 cd ..
 cp ./test/Connect.js ./test/karma.conf.js ./test/data.json package-test/
-npm pack
+mv `npm pack | tail -n 1` uport-connect.tgz
 cd package-test
 npm install
