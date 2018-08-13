@@ -8,7 +8,6 @@ import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
 
-
 class Connect {
   /**
    * Instantiates a new uPort Connect object.
@@ -19,7 +18,7 @@ class Connect {
    *
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
-   * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
+   * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {Object}      [opts.provider=HttpProvider] Provider used as a base provider to be wrapped with uPort connect functionality
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
@@ -30,7 +29,7 @@ class Connect {
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
    * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
-   * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRACATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
+   * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRECATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
    * @return   {Connect}                                  self
    */
   constructor (appName, opts = {}) {
@@ -109,14 +108,14 @@ class Connect {
     return subProvider
   }
 
-  // TODO offer listener and single resolve? or other both for this funct, by allowing optional cb instead
   /**
    *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is available. Listen instead, if looking for multiple responses of same id.
    *
-   *  @param    {String}    id             id of request you are waiting for a response for
-   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error
+   *  @param    {String}       id          id of request you are waiting for a response for
+   *  @param    {Function}     cb          an optional callback function, which is called each time a valid repsonse for a given id is available vs have a single promise returned
+   *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error, no promised returned if callback given
    */
-  onResponse(id) {
+  onResponse(id, cb) {
     const parseResponse = (payload) => {
       if (payload.error) return Promise.reject(Object.assign({id}, payload))
       if (message.util.isJWT(payload.res)) {
@@ -143,19 +142,30 @@ class Connect {
       return parseResponse(onloadResponse)
     }
 
-    return new Promise((resolve, reject) => {
+    if (cb) {
       this.PubSub.subscribe(id, (msg, res) => {
         this.PubSub.unsubscribe(id)
-        parseResponse(res).then(resolve, reject)
+        parseResponse(res).then(
+          (res) => { cb(null, res) },
+          (err) => { cb(err, null) }
+        )
       })
-    })
+    } else {
+      return new Promise((resolve, reject) => {
+        this.PubSub.subscribe(id, (msg, res) => {
+          this.PubSub.unsubscribe(id)
+          parseResponse(res).then(resolve, reject)
+        })
+      })
+    }
   }
 
   /**
-   * @private
-   * Extract relevant params from a payload from transports.url.listenResponse, and
-   * pass them along to this.PubSub in the proper format
-   * @param {Object} payload  the response from transports.url.listenrResponse
+   * Push a response payload to uPort connect to be handled. Useful if implementing your own transports
+   * and you are getting responses with your own functions, listeners, event handlers etc. It will
+   * parse the response and resolve it to any listening onResponse functions with the matching id.
+   *
+   * @param {Object} payload  a valid response payload, of form {id, res, data}, res and id required
    */
   pubResponse (payload) {
     if (!payload || !payload.id) throw new Error('Response payload requires an id')
@@ -175,19 +185,18 @@ class Connect {
     })
   }
 
-  //  TODO Name? request, transport or send?
  /**
-  *  Send a request URI string to a uport client.
+  *  Send a request message to a uPort client.
   *
   *  @param    {String}     request           a request message to send to a uport client
-  *  @param    {String}     id                id of request you are looking for a response for
+  *  @param    {String}     id                id of the request, which you will later use to handle the reponse
   *  @param    {Object}     [opts]            optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md]
-  *  @param    {String}     opts.redirectUrl  If on mobile client, the url you want to the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token.
-  *  @param    {String}     opts.data         A string of any data you want later returned with response. It may be contextual to the original request.
+  *  @param    {String}     opts.redirectUrl  If on mobile client, the url you want the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token.
+  *  @param    {String}     opts.data         A string of any data you want later returned with the response. It may be contextual to the original request.
   *  @param    {String}     opts.type         Type specifies the callback action. 'post' to send response to callback in request token or 'redirect' to send response in redirect url.
-  *  @param    {Function}   opts.cancel       When using the default QR, but handling the response yourself, this function will be called when a users closes the request modal.
+  *  @param    {Function}   opts.cancel       When using the default QR send, but handling the response yourself, this function will be called when a users closes the request modal.
   */
-  request (request, id, {redirectUrl, data, type, cancel} = {}) {
+  send (request, id, {redirectUrl, data, type, cancel} = {}) {
     if (!id) throw new Error('Requires request id')
     if (this.isOnMobile) {
       if (!redirectUrl & !type) type = 'redirect'
@@ -242,7 +251,7 @@ class Connect {
    sendTransaction (txObj, id='txReq') {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
      this.credentials.txRequest(txObj, {callbackUrl: this.genCallback(id)})
-                     .then(jwt => this.request(jwt, id))
+                     .then(jwt => this.send(jwt, id))
    }
 
   //  TODO this name is confusing
@@ -270,7 +279,7 @@ class Connect {
    */
   createVerificationRequest (reqObj, id = 'signClaimReq') {
     this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
-      .then(jwt => this.request(jwt, id))
+      .then(jwt => this.send(jwt, id))
   }
 
   /**
@@ -303,7 +312,7 @@ class Connect {
       callbackUrl: this.genCallback(id)
     }, reqObj)
     this.credentials.requestDisclosure(reqObj, reqObj.expiresIn)
-      .then(jwt => this.request(jwt, id))
+      .then(jwt => this.send(jwt, id))
   }
 
   /**
@@ -325,19 +334,17 @@ class Connect {
    * @param    {String}            [id='attestReq']       string to identify request, later used to get response
    */
   attest (credential, id) {
-    this.credentials.attest(credential).then(jwt => this.request(jwt, id))
+    this.credentials.attest(credential).then(jwt => this.send(jwt, id))
   }
 
   /**
    * Update the internal state of the connect instance and ensure that it is consistent
-   * with the state saved to localStorage.  You can pass in a serialized state object to
-   * restore a previous connect state, an object containing key-value pairs to update,
-   * or a function that returns updated key-value pairs as a function of the current state
+   * with the state saved to localStorage.  You can pass in an object containing key-value pairs to update,
+   * or a function that returns updated key-value pairs as a function of the current state.
    *
-   * @param {Function|String|Object} Update -- An object, serialized object string, or reducer
-   *                                           function specifying updates to the current Connect
-   *                                           state (as a function of the current state)
+   * @param {Function|Object} Update -- An object, or function specifying updates to the current Connect state (as a function of the current state)
    */
+   
   setState(update) {
     switch (typeof update) {
       case 'object':
@@ -408,6 +415,7 @@ class Connect {
   get mnid ()         { return this._state.mnid }
   get address ()      { return this._state.address }
   get keypair ()      { return {...this._state.keypair} }
+  get verified ()     { return this._state.verified }
   get pushToken ()    { return this._state.pushToken }
   get publicEncKey () { return this._state.publicEncKey }
 
@@ -420,6 +428,7 @@ class Connect {
   set doc (doc)                   { this.setState({doc}) }
   set mnid (mnid)                 { this.setState({mnid}) }
   set keypair (keypair)           { this.setState({keypair}) }
+  set verified (verified)         { this.setState({verified}) }
   set pushToken (pushToken)       { this.setState({pushToken}) }
   set publicEncKey (publicEncKey) { this.setState({publicEncKey}) }
 
@@ -458,15 +467,15 @@ class LocalStorageStore {
 }
 
 /**
- *  A transport created for uport connect. Bundles transport functionality from uport-transports. This implements the
+ *  A transport created for uPort connect. Bundles transport functionality from uport-transports. This implements the
  *  default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
  *  responses, it will by default poll Chasqui and return response. If given a request which specifies another
  *  callback to receive the response, for example your own server, it will show the request in the default QR
  *  modal and then instantly return. You can then handle how to get the response specific to your implementation.
  *
- *  @param    {String}       appName                 App name to displayed in QR code pop over modal
+ *  @param    {String}       appName                 App name displayed in QR pop over modal
  *  @return   {Function}                             Configured connectTransport function
- *  @param    {String}       uri                     uPort client request URI
+ *  @param    {String}       uri                     uPort client request message
  *  @param    {Object}       [config={}]             Optional config object
  *  @param    {String}       config.data             Additional data to be returned later with response
  *  @return   {Promise<Object, Error>}               Function to close the QR modal
