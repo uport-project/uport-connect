@@ -15,7 +15,7 @@
     "test": "npm run lint; npm run karma",
     "karma": "./node_modules/.bin/karma start test/karma.conf.js --single-run --browsers Chrome",
     "karma:watch": "./node_modules/.bin/karma start test/karma.conf.js --browsers Chrome",
-    "karma:package": "cd package-test && ./setup && cd .. && node karmawrapper start package-test/karma.conf.js --single-run --browsers PhantomJS",
+    "karma:package": "cd package-test && ./setup && cd .. && ./node_modules/.bin/karma start package-test/karma.conf.js --single-run --browsers Chrome && cd package-test && ./clean",
     "lint": "./node_modules/.bin/standard --verbose --fix src | ./node_modules/.bin/snazzy",
     "watch": "./node_modules/.bin/webpack --config webpack.config.js -w",
     "autotest": "./node_modules/.bin/supervisor -q -n exit -x ./node_modules/.bin/mocha -- --reporter spec",
