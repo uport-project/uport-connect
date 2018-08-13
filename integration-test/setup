@@ -1,0 +1,8 @@
+#!/bin/bash
+# Script to setup tests against the npm package (not only the files)
+
+cd ..
+cp ./test/uportWeb3.js ./test/Connect.js ./test/karma.conf.js ./test/testData.json integration-test/
+npm pack
+cd integration-test
+npm install
