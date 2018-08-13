@@ -146,21 +146,21 @@ describe('Connect', () => {
       uport.requestDisclosure({})
     })
 
-    it('calls request with request uri and id', (done) => {
-      const request = (uri, id) => {
+    it('calls send with request uri and id', (done) => {
+      const send = (uri, id) => {
         expect(/eyJ0eXA/.test(uri)).to.be.true
         expect(!!id).to.be.true
         done()
       }
       const uport = new Connect('testApp')
-      uport.request = request
+      uport.send = send
       uport.requestDisclosure({})
     })
 
     it('sets the accountType to none if not provided', (done) => {
       const uport = new Connect('test app none')
       uport.genCallback = sinon.stub()
-      uport.request = sinon.stub()
+      uport.send = sinon.stub()
       uport.credentials.requestDisclosure = (req) => {
         expect(req.accountType).to.equal('none')
         done()
@@ -173,7 +173,7 @@ describe('Connect', () => {
       const accountType = 'keypair'
       const uport = new Connect('test app keypair', {accountType})
       uport.genCallback = sinon.stub()
-      uport.request = sinon.stub()
+      uport.send = sinon.stub()
       uport.credentials.requestDisclosure = (req) => {
         expect(req.accountType).to.equal(accountType)
         done()
@@ -387,11 +387,11 @@ describe('Connect', () => {
 
   /*********************************************************************/
 
-  describe('request', () => {
+  describe('send', () => {
     it('calls mobile transport if on mobile client', () => {
       const mobileTransport = sinon.stub().callsFake(() => new Promise((resolve)=> resolve()))
       const uport = new Connect('testApp', { mobileTransport, isMobile: true})
-      uport.request('uri', 'id')
+      uport.send('uri', 'id')
       expect(mobileTransport).to.be.called
       expect(mobileTransport).to.be.calledWith('uri')
     })
@@ -399,7 +399,7 @@ describe('Connect', () => {
     it('calls transport if on desktop client', () => {
       const transport = sinon.stub().callsFake(() => new Promise((resolve)=> resolve('test')))
       const uport = new Connect('testapp', { transport, isMobile: false})
-      uport.request('uri', 'id')
+      uport.send('uri', 'id')
       expect(transport).to.be.called
       expect(transport).to.be.calledWith('uri')
     })
@@ -410,19 +410,19 @@ describe('Connect', () => {
       const uport = new Connect('test app', {transport, usePush: false})
       uport.pushTransport = pushTransport
 
-      uport.request('fake uri', 'fake id')
+      uport.send('fake uri', 'fake id')
       expect(pushTransport).not.to.be.called
       expect(transport).to.be.calledOnce
 
       uport.usePush = true
-      uport.request('fake uri', 'fake id')
+      uport.send('fake uri', 'fake id')
       expect(pushTransport).to.be.calledOnce
       expect(pushTransport).to.be.calledWith('fake uri')
     })
 
     it('requires a request id, throws error if none', () => {
       const uport = new Connect('testapp')
-      expect(() => uport.request()).to.throw
+      expect(() => uport.send()).to.throw
     })
 
     it('on desktop client it publishes response to subscriber once returned', (done) => {
@@ -433,7 +433,7 @@ describe('Connect', () => {
         expect(res).to.equal('test')
         done()
       })
-      uport.request('request', 'topic')
+      uport.send('request', 'topic')
     })
 
     it('publishes response to subscriber once returned when using pushTransport', (done) => {
@@ -444,7 +444,7 @@ describe('Connect', () => {
         expect(res).to.equal('test')
         done()
       })
-      uport.request('request', 'topic')
+      uport.send('request', 'topic')
     })
   })
 
@@ -458,7 +458,7 @@ describe('Connect', () => {
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
 
-      uport.request = (jwt) => {
+      uport.send = (jwt) => {
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.claim).to.deep.equal(cred.claim)
@@ -480,7 +480,7 @@ describe('Connect', () => {
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
 
-      uport.request = (jwt) => {
+      uport.send = (jwt) => {
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.unsignedClaim).to.deep.equal(cred.unsignedClaim)
@@ -516,50 +516,50 @@ describe('Connect', () => {
     const txObj = {to: "2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6", function: "updateStatus(string 'hello')"}
     const txObjAddress = {to: '0x71845bbfe5ddfdb919e780febfff5eda62a30fdc', function: "updateStatus(string 'hello')"}
 
-    it('call request with request uri including transaction jwt', (done) => {
-      const request = (uri) => {
+    it('call send with request uri including transaction jwt', (done) => {
+      const send = (uri) => {
         const jwt = getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
         done()
       }
       const uport = new Connect('testApp')
-      uport.request = request
+      uport.send = send
       uport.sendTransaction(txObj)
     })
 
     it('encodes transaction address as mnid with network id if not mnid', (done) => {
-      const request = (uri) => {
+      const send = (uri) => {
         const jwt = getURLJWT(uri)
         const decoded = decodeJWT(jwt)
         expect(decoded.payload.to).to.equal('2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6')
         done()
       }
       const uport = new Connect('testApp')
-      uport.request = request
+      uport.send = send
       uport.sendTransaction(txObjAddress)
     })
 
     it('sets chasqui as callback if not on mobile', (done) => {
-        const request = (uri) => {
+        const send = (uri) => {
           const jwt = message.util.getURLJWT(uri)
           const decoded = decodeJWT(jwt)
           expect(/chasqui/.test(decoded.payload.callback)).to.be.true
           done()
         }
         const uport = new Connect('testApp')
-        uport.request = request
+        uport.send = send
         uport.sendTransaction(txObj)
     })
 
     it('sets this window as callback if on mobile', () => {
-      const request = (uri) => {
+      const send = (uri) => {
         const jwt = message.util.getURLJWT(uri)
         const decoded = decodeJWT(jwt)
         expect(/localhost/.test(decoded.payload.callback)).to.be.true
         done()
       }
       const uport = new Connect('testApp', {isMobile: true})
-      uport.request = request
+      uport.send = send
       uport.sendTransaction(txObj)
     })
   })
