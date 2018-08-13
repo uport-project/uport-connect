@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "uport-connect": "../uport-connect-0.8.4.tgz"
+    "uport-connect": "../uport-connect.tgz"
   }
 }
