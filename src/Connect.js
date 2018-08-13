@@ -7,8 +7,11 @@ import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
 
+<<<<<<< HEAD
 import UportSubprovider from './UportSubprovider'
 
+=======
+>>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
 class Connect {
   /**
    * Instantiates a new uPort Connect object.
@@ -20,6 +23,10 @@ class Connect {
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
+<<<<<<< HEAD
+=======
+   * @param    {Object}      [opts.provider=HttpProvider] Provider used as a base provider to be wrapped with uPort connect functionality
+>>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
@@ -142,6 +149,10 @@ class Connect {
 
     if (cb) {
       this.PubSub.subscribe(id, (msg, res) => {
+<<<<<<< HEAD
+=======
+        this.PubSub.unsubscribe(id)
+>>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
         parseResponse(res).then(
           (res) => { cb(null, res) },
           (err) => { cb(err, null) }
@@ -332,12 +343,16 @@ class Connect {
    * @param    {String}            [id='attestReq']       string to identify request, later used to get response
    */
   attest (credential, id) {
+<<<<<<< HEAD
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
     this.credentials.attest(credential).then(jwt => {
       const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
       this.send(uri, id)
     })
+=======
+    this.credentials.attest(credential).then(jwt => this.send(jwt, id))
+>>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
   }
 
   /**
@@ -347,7 +362,11 @@ class Connect {
    *
    * @param {Function|Object} Update -- An object, or function specifying updates to the current Connect state (as a function of the current state)
    */
+<<<<<<< HEAD
 
+=======
+   
+>>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
   setState(update) {
     switch (typeof update) {
       case 'object':
@@ -478,7 +497,11 @@ class LocalStorageStore {
  *
  *  @param    {String}       appName                 App name displayed in QR pop over modal
  *  @return   {Function}                             Configured connectTransport function
+<<<<<<< HEAD
  *  @param    {String}       request                 uPort client request message
+=======
+ *  @param    {String}       uri                     uPort client request message
+>>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
  *  @param    {Object}       [config={}]             Optional config object
  *  @param    {String}       config.data             Additional data to be returned later with response
  *  @return   {Promise<Object, Error>}               Function to close the QR modal

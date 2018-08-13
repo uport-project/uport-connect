@@ -458,8 +458,12 @@ describe('Connect', () => {
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
 
+<<<<<<< HEAD
       uport.send = (url) => {
         const jwt = message.util.getURLJWT(url)
+=======
+      uport.send = (jwt) => {
+>>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.claim).to.deep.equal(cred.claim)
