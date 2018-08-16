@@ -344,7 +344,6 @@ class Connect {
    *
    * @param {Function|Object} Update -- An object, or function specifying updates to the current Connect state (as a function of the current state)
    */
-   
   setState(update) {
     switch (typeof update) {
       case 'object':
@@ -481,11 +480,11 @@ class LocalStorageStore {
  *  @return   {Promise<Object, Error>}               Function to close the QR modal
  *  @private
  */
-const connectTransport = (appName) => (uri, {data, cancel}) => {
-  if (transport.messageServer.isMessageServerCallback(uri)) {
-    return  transport.qr.chasquiSend({appName})(uri).then(res => ({res, data}))
+const connectTransport = (appName) => (request, {data, cancel}) => {
+  if (transport.messageServer.isMessageServerCallback(request)) {
+    return  transport.qr.chasquiSend({appName})(request).then(res => ({res, data}))
   } else {
-    transport.qr.send()(uri, {cancel})
+    transport.qr.send(appName)(request, {cancel})
     // TODO return close QR func?
     return Promise.resolve({data})
   }
@@ -499,12 +498,15 @@ const connectTransport = (appName) => (uri, {data, cancel}) => {
  * @private
  */
 const pushTransport = (pushToken, publicEncKey) => {
-  const send = transport.push.send(pushToken, publicEncKey)
+  const send = transport.push.sendAndNotify(pushToken, publicEncKey)
 
   return (uri, {message, type, redirectUrl, data}) => {
     if (transport.messageServer.isMessageServerCallback(uri)) {
       return transport.messageServer.URIHandlerSend(send)(uri, {message, type, redirectUrl})
-        .then(res => ({res, data}))
+        .then(res => {
+          transport.ui.close()
+          return {res, data}
+        })
     } else {
       // Return immediately for custom message server
       send(uri, {message, type, redirectUrl})
