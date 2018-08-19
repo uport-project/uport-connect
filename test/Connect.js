@@ -458,7 +458,8 @@ describe('Connect', () => {
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
 
-      uport.send = (jwt) => {
+      uport.send = (url) => {
+        const jwt = message.util.getURLJWT(url)
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.claim).to.deep.equal(cred.claim)
