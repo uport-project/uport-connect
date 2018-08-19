@@ -336,7 +336,12 @@ class Connect {
    * @param    {String}            [id='attestReq']       string to identify request, later used to get response
    */
   attest (credential, id) {
-    this.credentials.attest(credential).then(jwt => this.send(jwt, id))
+    // Callback and message form differ for this req, may be reconciled in the future
+    const cb = this.genCallback(id)
+    this.credentials.attest(credential).then(jwt => {
+      const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
+      this.send(uri, id)
+    })
   }
 
   /**
