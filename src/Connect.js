@@ -235,7 +235,7 @@ class Connect {
    *  const txobject = {
    *    to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
    *    value: '0.1',
-   *    function: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
+   *    fn: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
    *    appName: 'MyDapp'
    *  }
    *  connect.sendTransaction(txobject, 'setStatus')
@@ -244,10 +244,12 @@ class Connect {
    *  })
    *
    *  @param    {Object}    txObj
-   *  @param    {String}    [id='txReq']    string to identify request, later used to get response
+   *  @param    {String}    [id='txReq']    string to identify request, later used to get response, by default name of function, if not function call, by default 'txReq'
    */
-   sendTransaction (txObj, id='txReq') {
+   sendTransaction (txObj, id) {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
+     //  Create default id, where id is function name, or txReq if no function name
+     if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
      this.credentials.txRequest(txObj, {callbackUrl: this.genCallback(id)})
                      .then(jwt => this.send(jwt, id))
    }
@@ -472,7 +474,7 @@ class LocalStorageStore {
  *
  *  @param    {String}       appName                 App name displayed in QR pop over modal
  *  @return   {Function}                             Configured connectTransport function
- *  @param    {String}       uri                     uPort client request message
+ *  @param    {String}       request                 uPort client request message
  *  @param    {Object}       [config={}]             Optional config object
  *  @param    {String}       config.data             Additional data to be returned later with response
  *  @return   {Promise<Object, Error>}               Function to close the QR modal
@@ -498,16 +500,16 @@ const connectTransport = (appName) => (request, {data, cancel}) => {
 const pushTransport = (pushToken, publicEncKey) => {
   const send = transport.push.sendAndNotify(pushToken, publicEncKey)
 
-  return (uri, {message, type, redirectUrl, data}) => {
-    if (transport.messageServer.isMessageServerCallback(uri)) {
-      return transport.messageServer.URIHandlerSend(send)(uri, {message, type, redirectUrl})
+  return (request, { type, redirectUrl, data}) => {
+    if (transport.messageServer.isMessageServerCallback(request)) {
+      return transport.messageServer.URIHandlerSend(send)(request, {type, redirectUrl})
         .then(res => {
           transport.ui.close()
           return {res, data}
         })
     } else {
       // Return immediately for custom message server
-      send(uri, {message, type, redirectUrl})
+      send(request, {type, redirectUrl})
       return Promise.resolve({data})
     }
   }
