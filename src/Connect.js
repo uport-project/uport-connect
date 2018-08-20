@@ -32,6 +32,7 @@ class Connect {
    * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
    * @param    {Object}      [opts.store]                 Storage inteferface with synchronous get() => statObj and set(stateObj) functions, by default store is local storage. For asynchronous storage, set useStore false and handle manually.
    * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
+   * @param    {String}      [opts.issc]                  
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
@@ -47,6 +48,7 @@ class Connect {
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.useStore = opts.useStore === undefined ? true : opts.useStore
     this.usePush = opts.usePush === undefined ? true : opts.usePush
+    this.issc = opts.issc
 
     // Disallow segregated account on mainnet
     if (this.network === network.defaults.networks.mainnet && this.accountType === 'segregated') {
@@ -256,6 +258,7 @@ class Connect {
    *  @param    {Object}    txObj
    *  @param    {String}    [id='txReq']    string to identify request, later used to get response, by default name of function, if not function call, by default 'txReq'
    */
+<<<<<<< HEAD
    sendTransaction (txObj, id) {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
      //  Create default id, where id is function name, or txReq if no function name
@@ -263,6 +266,16 @@ class Connect {
      this.credentials.txRequest(txObj, {callbackUrl: this.genCallback(id)})
                      .then(jwt => this.send(jwt, id))
    }
+=======
+  sendTransaction (txObj, id='txReq') {
+    txObj = Object.assign({
+      to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
+      issc: this.issc
+    }, txObj)
+    this.credentials.txRequest(txObj, {callbackUrl: this.genCallback(id)})
+      .then(jwt => this.send(jwt, id))
+  }
+>>>>>>> feat: add support for issc field in requests and on connect obj
 
   //  TODO this name is confusing
   /**
@@ -288,6 +301,9 @@ class Connect {
    *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
    */
   createVerificationRequest (reqObj, id = 'signClaimReq') {
+    reqObj.unsignedClaim = Object.assign({
+      issc: this.issc
+    }, reqObj.unsignedClaim)
     this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
       .then(jwt => this.send(jwt, id))
   }
@@ -317,6 +333,7 @@ class Connect {
    */
   requestDisclosure (reqObj, id = 'disclosureReq') {
     reqObj = Object.assign({
+      issc: this.issc,
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
@@ -344,6 +361,7 @@ class Connect {
    */
   attest (credential, id) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
     this.credentials.attest(credential).then(jwt => {
@@ -351,6 +369,9 @@ class Connect {
       this.send(uri, id)
     })
 =======
+=======
+    credential = Object.assign({issc: this.issc}, credential)
+>>>>>>> feat: add support for issc field in requests and on connect obj
     this.credentials.attest(credential).then(jwt => this.send(jwt, id))
 >>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
   }
