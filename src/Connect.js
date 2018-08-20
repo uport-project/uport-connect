@@ -25,6 +25,7 @@ class Connect {
    * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
    * @param    {Object}      [opts.store]                 Storage inteferface with synchronous get() => statObj and set(stateObj) functions, by default store is local storage. For asynchronous storage, set useStore false and handle manually.
    * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
+   * @param    {String}      [opts.issc]                  
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
@@ -40,6 +41,7 @@ class Connect {
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.useStore = opts.useStore === undefined ? true : opts.useStore
     this.usePush = opts.usePush === undefined ? true : opts.usePush
+    this.issc = opts.issc
 
     // Disallow segregated account on mainnet
     if (this.network === network.defaults.networks.mainnet && this.accountType === 'segregated') {
@@ -259,13 +261,15 @@ class Connect {
    *  @param    {String}    [id='txReq']    string to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq'
    *  @param    {Object}    [sendOpts]      reference send function options
    */
-   sendTransaction (txObj, id, sendOpts) {
-     txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
-     //  Create default id, where id is function name, or txReq if no function name
-     if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
-     this.credentials.createTxRequest(txObj, {callbackUrl: this.genCallback(id)})
-                     .then(jwt => this.send(jwt, id, sendOpts))
-   }
+  sendTransaction (txObj, id, sendOpts) {
+    txObj = Object.assign({
+      to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
+      issc: this.issc
+    }, txObj)     //  Create default id, where id is function name, or txReq if no function name
+    if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
+    this.credentials.createTxRequest(txObj, {callbackUrl: this.genCallback(id)})
+      .then(jwt => this.send(jwt, id, sendOpts))
+  }
 
   /**
    *  Creates a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
@@ -290,6 +294,9 @@ class Connect {
    *  @param    {Object}     [sendOpts]             reference send function options
    */
   requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+    unsignedClaim = Object.assign({
+      issc: this.issc
+    }, unsignedClaim)
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
@@ -320,6 +327,7 @@ class Connect {
    */
   requestDisclosure (reqObj, id = 'disclosureReq', sendOpts) {
     reqObj = Object.assign({
+      issc: this.issc,
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
@@ -350,7 +358,7 @@ class Connect {
   sendVerification (verification, id = 'sendVerReq', sendOpts) {
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
-    if (!verification.sub) verification.sub = this.did
+    verification = { sub: this.did, issc: this.issc, ...verification }
     this.credentials.createVerification(verification).then(jwt => {
       const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
       this.send(uri, id, sendOpts)
@@ -364,7 +372,6 @@ class Connect {
    *
    * @param {Function|Object} Update -- An object, or function specifying updates to the current Connect state (as a function of the current state)
    */
-
   setState(update) {
     switch (typeof update) {
       case 'object':
