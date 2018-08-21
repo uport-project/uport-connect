@@ -457,7 +457,7 @@ class LocalStorageStore {
   }
 
   get() {
-    return JSON.parse(store.get('connectState') || '{}')
+    return JSON.parse(this.key || '{}')
   }
 
   set(stateObj) {
