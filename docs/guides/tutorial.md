@@ -1,5 +1,5 @@
 ---
-title: "How to integrate Uport-Connect"
+title: "How to Integrate uPort Connect with Web3"
 index: 0
 category: "tutorials"
 type: "content"

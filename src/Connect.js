@@ -304,7 +304,6 @@ class Connect {
    *  @param    {String}             reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
    *  @param    {Number}             reqObj.expiresIn      Seconds until expiry
    *  @param    {String}            [id='disclosureReq']   string to identify request, later used to get response
-   *  @return   {Promise<Object, Error>}                   a promise which resolves with a signed JSON Web Token or rejects with an error
    */
   requestDisclosure (reqObj, id = 'disclosureReq') {
     reqObj = Object.assign({
