@@ -39,10 +39,11 @@ The Connect library creates these request messages as part of an entire flow of 
 
 # <a name="communication"></a> Communication and Transports
 
-
 Once a request message is created, the second primary purpose of uPort Connect is to send it to a uPort client (Mobile App) and then get the repsonse from that client. The library does this by setting up and managing different communication channels depending on the environment in which your app runs and the parameters which you specify. Connect comes with a set of defaults by bundling transports from [uport-transports](https://github.com/uport-project/uport-transports). Transports are communication channels and are simply functions that consume request strings and additional transport params, then they send these strings to a uPort client. Some the tranports will also manage receiving a response to a given request.
 
  You can take a look at [uport-transports](https://github.com/uport-project/uport-transports) to see all the transports available. If the defaults in Connect are not useful for your use case, you may find using the functions and modules in uport-transports easier and more useful, or you may combine them to create your own transports. By default `uport-connect` offers a setup for sending requests from a desktop web client to a uPort mobile client, and a setup for sending requests from a mobile app to a mobile uPort client on the same device. Additionaly it will send requests in push notification if configured to do so. For all these transports, Connect by default will also handle getting the response.
+
+To support the variety of methods for passing messages between a browser and a uPort client, uPort Connect separates sending requests from handling responses.  Reqeusts are sent via a variety of methods, and each accepts a `requestId` parameter to identify it.  Response handlers are then registered by calling `onResponse` for the same `requestId`, which returns a promise that resolves when the response is available. In particular, this allows for responses to be handled even if the page sending the request is reloaded, or if the response is handled on a different page than the one from which a request is sent.  This is esepecially relevant to mobile browsers, and is discussed more [below](#default-mobile)
 
 ## Default QR flow
 
@@ -160,7 +161,7 @@ connect.onResponse(reqId).then(payload => {
 })
 ```
 
-## <a name="default-mobile"></a> Push Notification Requests
+## <a name="default-push"></a> Push Notification Requests
 
 As an alternative to QR codes on non-mobile clients, `uport-connect` can send request messages to a uPort client through a push notification. This is simply enabled by requesting push notification permissions from a user through a selective disclosure request. Once a user accepts, a push token will be returned in the response, this push token then allows `uport-connect` to setup a push notification transport or a for a developer to setup their own.
 
@@ -302,5 +303,7 @@ The following calls will initiate a uPort request, by default this will show a Q
 * `web3.eth.getAccounts()`- returns your uport address in a list, if not set already
 * `web3.eth.sendTransaction(txObj)` - returns a transaction hash
 * `myContract.myMethod()` - returns a transaction hash
+
+**Limitations**: it's important to note that because the web3 transaction handling is stateful, it requires that uPort requests and responses are handled on the same page.  This means that for some mobile browsers, using a web3 object with a uport subprovider to send transactions may not work properly.  Instead, for full mobile support we recommend using `Connect.sendTransaction`, or creating contracts via `Connect.contract`, and listening for responses from the mobile app with `Connect.onResponse`. _We are actively investigating more elegant solutions to seamless web3 integration.  If you are a developer integrating uport-connect with web3, feel free to open an issue to discuss how to better support your use case._
 
 ---------------------------------------------
