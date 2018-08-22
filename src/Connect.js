@@ -1,12 +1,13 @@
 import { Credentials, ContractFactory } from 'uport'
 import { verifyJWT, decodeJWT } from 'did-jwt'
 import MobileDetect from 'mobile-detect'
-import HttpProvider from 'web3/lib/web3/httpprovider' // Can use http provider from ethjs in the future.
 import { isMNID, encode, decode } from 'mnid'
-import { transport, message, network, provider } from 'uport-transports'
+import { transport, message, network } from 'uport-transports'
 import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
+
+import UportSubprovider from './UportSubprovider'
 
 class Connect {
   /**
@@ -19,7 +20,6 @@ class Connect {
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
-   * @param    {Object}      [opts.provider=HttpProvider] Provider used as a base provider to be wrapped with uPort connect functionality
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
@@ -36,7 +36,6 @@ class Connect {
     // Config
     this.appName = appName || 'uport-connect-app'
     this.network = network.config.network(opts.network)
-    this.provider = opts.provider || new HttpProvider(this.network.rpcUrl)
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.useStore = opts.useStore === undefined ? true : opts.useStore
@@ -87,9 +86,9 @@ class Connect {
   *
   *  @return          {UportSubprovider}    A web3 style provider wrapped with uPort functionality
   */
-  getProvider () {
+  getProvider (provider) {
     // TODO remove defaults, fix import
-    const subProvider = new provider.default({
+    const subProvider = new UportSubprovider({
       requestAddress: () => {
         const requestID = 'addressReqProvider'
         this.requestDisclosure({accountType: this.accountType || 'keypair'}, requestID)
@@ -101,8 +100,7 @@ class Connect {
         this.sendTransaction(txObj, requestID)
         return this.onResponse(requestID).then(payload => payload.res)
       },
-      provider: this.provider,
-      networkId: this.network.id
+      provider, network: this.network
     })
     if (this.address) subProvider.setAccount(this.address)
     return subProvider
@@ -457,7 +455,7 @@ class LocalStorageStore {
   }
 
   get() {
-    return JSON.parse(this.key || '{}')
+    return JSON.parse(store.get(this.key) || '{}')
   }
 
   set(stateObj) {
