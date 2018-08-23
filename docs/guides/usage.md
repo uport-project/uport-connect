@@ -1,5 +1,5 @@
 ---
-title: "Communication and Transactions"
+title: "Ethereum Transactions"
 index: 2
 category: "tutorials"
 type: "content"
