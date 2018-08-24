@@ -61,10 +61,10 @@ class UportSubprovider {
   }
 
   /**
-   *  Synchronous functionality not supported
+   * Replace sync send with async send
    */
-  send (payload) {
-    throw new Error('Uport Web3 SubProvider does not support synchronous requests.')
+  send (payload, callback) {
+    return this.sendAsync(payload, callback)
   }
 
   /**
@@ -111,7 +111,7 @@ class UportSubprovider {
           respond(err, tx)
         })
       default:
-        self.provider.sendAsync(payload, callback)
+        return self.provider.sendAsync(payload, callback)
     }
   }
 }
