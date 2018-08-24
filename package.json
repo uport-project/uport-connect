@@ -9,6 +9,7 @@
     "build:es5": "./node_modules/.bin/babel src -d lib",
     "build:dist": "./node_modules/.bin/webpack --config webpack.config.js --mode=development",
     "build:dist:prod": "./node_modules/.bin/webpack --config webpack.config.js --mode=production --output-filename uport-connect.min.js",
+    "clean": "rm -r dist lib",
     "docs": "npm run docs:html && npm run docs:md",
     "docs:html": "./node_modules/.bin/jsdoc src/* README.md -d docs",
     "docs:md": "./node_modules/jsdoc-to-markdown/bin/cli.js src/* > DOCS.md",
