@@ -3,10 +3,10 @@ module.exports = function (config) {
     basePath: '',
     browsers: ['Chrome'],
     frameworks: [ 'mocha', 'chai' ],
-    files: ['./Connect.js', '../src/*.js'],
+    files: ['./Connect.js', './UportSubprovider.js', '../src/*.js'],
     preprocessors: {
       '../src/*.js': ['webpack', 'sourcemap'],
-      './Connect.js': ['webpack']
+      './*.js': ['webpack']
     },
     reporters: [ 'mocha', 'coverage' ],
     webpack: {
