@@ -3,7 +3,7 @@ import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
 import Web3 from 'web3'
 
-import { Connect } from './uport-connect.js'
+import { Connect } from '../src'
 import { message } from 'uport-transports'
 import { Credentials } from 'uport'
 import { decodeJWT, verifyJWT } from 'did-jwt'
