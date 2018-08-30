@@ -144,7 +144,6 @@ class Connect {
 
     if (cb) {
       this.PubSub.subscribe(id, (msg, res) => {
-        this.PubSub.unsubscribe(id)
         parseResponse(res).then(
           (res) => { cb(null, res) },
           (err) => { cb(err, null) }
@@ -153,11 +152,20 @@ class Connect {
     } else {
       return new Promise((resolve, reject) => {
         this.PubSub.subscribe(id, (msg, res) => {
-          this.PubSub.unsubscribe(id)
           parseResponse(res).then(resolve, reject)
         })
       })
     }
+  }
+
+  /**
+   *  Unsubscribe response handler
+   *
+   *  @param    {String}       id          id of request you were waiting for a response for
+   *  @return   {void} 
+   */
+  unsubscribe(id) {
+    this.PubSub.unsubscribe(id)
   }
 
   /**
