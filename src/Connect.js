@@ -144,7 +144,6 @@ class Connect {
 
     if (cb) {
       this.PubSub.subscribe(id, (msg, res) => {
-        this.PubSub.unsubscribe(id)
         parseResponse(res).then(
           (res) => { cb(null, res) },
           (err) => { cb(err, null) }
