@@ -1,8 +1,8 @@
 ---
 title: "How to Integrate uPort Connect with Web3"
 index: 0
-category: "tutorials"
-type: "content"
+category: "uport-connect"
+type: "tutorial"
 source: "https://github.com/uport-project/uport-connect/blob/develop/docs/guides/tutorial.md"
 ---
 

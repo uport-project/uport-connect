@@ -1,8 +1,8 @@
 ---
 title: "Uport Connect"
 index: 0
-category: "reference"
-type: "content"
+category: "uport-connect"
+type: "reference"
 source: "https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md"
 ---
 
