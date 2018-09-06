@@ -62,6 +62,7 @@ class UportSubprovider {
 
   /**
    * Replace sync send with async send
+   * @private
    */
   send (payload, callback) {
     return this.sendAsync(payload, callback)
@@ -75,6 +76,7 @@ class UportSubprovider {
    *
    * @param       {Any}            payload           request payload
    * @param       {Function}       callback          called with response or error
+   * @private
    */
   sendAsync (payload, callback) {
     const self = this
