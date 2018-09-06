@@ -14,16 +14,17 @@ This guide describes the parts which make up Connect and provides further detail
 
 The following Connect object is the primary interface you will use. All details and additional documentation can be found in [our docs](https://developer.uport.me/uport-connect/reference/index). There is additional helper functions not referenced here, which can also be found in the docs.
 
-* [Connect]() ⇐ <code>[Connect]()</code>
-    * [new Connect(appName, [opts])](#new_Connect_new)
-    * [.requestDisclosure([reqObj], [id])](#Connect+requestDisclosure)
-    * [.getProvider()](#Connect+getProvider) ⇒ <code>UportSubprovider</code>
-    * [.contract(abi)](#Connect+contract) ⇒ <code>Object</code>
-    * [.createVerificationRequest(reqObj, [id])](#Connect+createVerificationRequest)
-    * [.attest([credential], [id])](#Connect+attest)
-    * [.send(request, id, [opts])](#Connect+send)
-    * [.onResponse(id, cb)](#Connect+onResponse) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.logout()](#Connect+logout)
+  * [Connect](#Connect)
+      * [new Connect(appName, [opts])](#new_Connect_new)
+      * [.getProvider()](#Connect+getProvider) ⇒ <code>[UportSubprovider](#UportSubprovider)</code>
+      * [.requestSignVerification(reqObj, [id])](#Connect+requestSignVerification)
+      * [.requestDisclosure([reqObj], [id])](#Connect+requestDisclosure)
+      * [.sendVerification([credential], [id])](#Connect+sendVerification)
+      * [.contract(abi)](#Connect+contract) ⇒ <code>Object</code>
+      * [.sendTransaction(txObj, [id])](#Connect+sendTransaction)
+      * [.onResponse(id, cb)](#Connect+onResponse) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
+      * [.send(request, id, [opts])](#Connect+send)
+      * [.logout()](#Connect+logout)
 
 # <a name="communication"></a> Messages
 

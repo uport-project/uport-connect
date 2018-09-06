@@ -3,7 +3,22 @@ title: "Uport Connect"
 index: 0
 category: "reference"
 type: "content"
+source: "https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md"
 ---
+
+
+
+## Classes
+
+<dl>
+<dt><a href="#Connect">Connect</a></dt>
+<dd></dd>
+<dt><a href="#UportSubprovider">UportSubprovider</a></dt>
+<dd><p>A web3 style provider which can easily be wrapped with uPort functionality.
+ Builds on a base provider. Used in Connect to wrap a provider with uPort specific
+ functionality.</p>
+</dd>
+</dl>
 
 <a name="Connect"></a>
 
@@ -12,17 +27,15 @@ type: "content"
 
 * [Connect](#Connect)
     * [new Connect(appName, [opts])](#new_Connect_new)
-    * [.state](#Connect+state)
-    * [.state](#Connect+state)
-    * [.getProvider()](#Connect+getProvider) ⇒ <code>UportSubprovider</code>
+    * [.getProvider()](#Connect+getProvider) ⇒ <code>[UportSubprovider](#UportSubprovider)</code>
     * [.onResponse(id, cb)](#Connect+onResponse) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
     * [.pubResponse(payload)](#Connect+pubResponse)
     * [.send(request, id, [opts])](#Connect+send)
     * [.contract(abi)](#Connect+contract) ⇒ <code>Object</code>
     * [.sendTransaction(txObj, [id])](#Connect+sendTransaction)
-    * [.createVerificationRequest(reqObj, [id])](#Connect+createVerificationRequest)
+    * [.requestSignVerification(reqObj, [id])](#Connect+requestSignVerification)
     * [.requestDisclosure([reqObj], [id])](#Connect+requestDisclosure)
-    * [.attest([credential], [id])](#Connect+attest)
+    * [.sendVerification([credential], [id])](#Connect+sendVerification)
     * [.setState(Update)](#Connect+setState)
     * [.loadState()](#Connect+loadState)
     * [.logout()](#Connect+logout)
@@ -40,7 +53,6 @@ Instantiates a new uPort Connect object.
 | appName | <code>String</code> |  | The name of your app |
 | [opts] | <code>Object</code> |  | optional parameters |
 | [opts.network] | <code>Object</code> | <code>&#x27;rinkeby&#x27;</code> | network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'. |
-| [opts.provider] | <code>Object</code> | <code>HttpProvider</code> | Provider used as a base provider to be wrapped with uPort connect functionality |
 | [opts.accountType] | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", or "none" |
 | [opts.isMobile] | <code>Boolean</code> |  | Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client |
 | [opts.useStore] | <code>Boolean</code> | <code>true</code> | When true, object state will be written to local storage on each state change |
@@ -57,22 +69,9 @@ Instantiates a new uPort Connect object.
 import  Connect  from 'uport-connect'
 const connect = new Connect('MydappName')
 ```
-<a name="Connect+state"></a>
-
-### connect.state
-Accessor methods for Connect state.  The state consists of the key-value pairs below
- (did, doc, mnid, address, keypair, pushToken, and publicEncKey)
-
-**Kind**: instance property of <code>[Connect](#Connect)</code>  
-<a name="Connect+state"></a>
-
-### connect.state
-Setter methods with appropriate validation
-
-**Kind**: instance property of <code>[Connect](#Connect)</code>  
 <a name="Connect+getProvider"></a>
 
-### connect.getProvider() ⇒ <code>UportSubprovider</code>
+### connect.getProvider() ⇒ <code>[UportSubprovider](#UportSubprovider)</code>
 Instantiates and returns a web3 styple provider wrapped with uPort functionality.
  For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
  to start a get address flow or to return an already received address. It also
@@ -80,13 +79,13 @@ Instantiates and returns a web3 styple provider wrapped with uPort functionality
  transaction to the uPort app.
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
-**Returns**: <code>UportSubprovider</code> - A web3 style provider wrapped with uPort functionality  
+**Returns**: <code>[UportSubprovider](#UportSubprovider)</code> - A web3 style provider wrapped with uPort functionality  
 **Example**  
 ```js
 const uportProvider = connect.getProvider()
  const web3 = new Web3(uportProvider)
 
-
+ 
 ```
 <a name="Connect+onResponse"></a>
 
@@ -117,14 +116,14 @@ parse the response and resolve it to any listening onResponse functions with the
 <a name="Connect+send"></a>
 
 ### connect.send(request, id, [opts])
-Send a request message to a uPort client.
+Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or when send a request you already created elsewhere.
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | request | <code>String</code> | a request message to send to a uport client |
-| id | <code>String</code> | id of the request, which you will later use to handle the reponse |
+| id | <code>String</code> | id of the request, which you will later use to handle the response |
 | [opts] | <code>Object</code> | optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md] |
 | opts.redirectUrl | <code>String</code> | If on mobile client, the url you want the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token. |
 | opts.data | <code>String</code> | A string of any data you want later returned with the response. It may be contextual to the original request. |
@@ -152,7 +151,8 @@ Builds and returns a contract object which can be used to interact with
 
 ### connect.sendTransaction(txObj, [id])
 Given a transaction object (similarly defined as the web3 transaction object)
- it creates a transaction sign request and sends it.
+ it creates a transaction request and sends it. Response later returned is the
+ transaction hash if the user selected to sign it.
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
@@ -171,14 +171,14 @@ const txobject = {
  }
  connect.sendTransaction(txobject, 'setStatus')
  connect.onResponse('setStatus').then(res => {
-   const txId = res.res
+   const txHash = res.res
  })
 
-
+ 
 ```
-<a name="Connect+createVerificationRequest"></a>
+<a name="Connect+requestSignVerification"></a>
 
-### connect.createVerificationRequest(reqObj, [id])
+### connect.requestSignVerification(reqObj, [id])
 Request uPort client/user to sign a claim or list of claims
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
@@ -201,11 +201,11 @@ const unsignedClaim = {
    },
    sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
  }
- connect.createVerificationRequest(unsignedClaim).then(jwt => {
+ connect.requestSignVerification(unsignedClaim).then(jwt => {
    ...
  })
 
-
+ 
 ```
 <a name="Connect+requestDisclosure"></a>
 
@@ -237,12 +237,12 @@ const req = { requested: ['name', 'country'],
      ...
  })
 
-
+ 
 ```
-<a name="Connect+attest"></a>
+<a name="Connect+sendVerification"></a>
 
-### connect.attest([credential], [id])
-Create a credential about connnected user
+### connect.sendVerification([credential], [id])
+Create and send a verification (credential) about connnected user
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
@@ -251,11 +251,11 @@ Create a credential about connnected user
 | [credential] | <code>Object</code> |  | a unsigned credential object |
 | credential.claim | <code>String</code> |  | claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}}) |
 | credential.exp | <code>String</code> |  | time at which this claim expires and is no longer valid (seconds since epoch) |
-| [id] | <code>String</code> | <code>&#x27;attestReq&#x27;</code> | string to identify request, later used to get response |
+| [id] | <code>String</code> | <code>&#x27;sendVerificationReq&#x27;</code> | string to identify request, later used to get response |
 
 **Example**  
 ```js
-connect.attest({
+connect.sendVerification({
   sub: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54',
   exp: <future timestamp>,
   claim: { name: 'John Smith' }
@@ -297,3 +297,24 @@ Clear the entire state of the connect instance, including the keypair, from memo
 and localStorage.  Rebuild this.credentials with a new app-instance identity
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
+<a name="UportSubprovider"></a>
+
+## UportSubprovider
+A web3 style provider which can easily be wrapped with uPort functionality.
+ Builds on a base provider. Used in Connect to wrap a provider with uPort specific
+ functionality.
+
+**Kind**: global class  
+<a name="new_UportSubprovider_new"></a>
+
+### new UportSubprovider(args)
+Instantiates a new wrapped provider
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| args | <code>Object</code> | required arguments |
+| args.requestAddress | <code>function</code> | function to get the address of a uPort identity. |
+| args.sendTransaction | <code>function</code> | function to handle passing transaction information to a uPort application |
+| args.provider | <code>Object</code> | a web3 sytle provider |
+

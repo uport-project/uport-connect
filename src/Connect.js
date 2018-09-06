@@ -183,10 +183,10 @@ class Connect {
   }
 
  /**
-  *  Send a request message to a uPort client.
+  *  Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or when send a request you already created elsewhere.
   *
   *  @param    {String}     request           a request message to send to a uport client
-  *  @param    {String}     id                id of the request, which you will later use to handle the reponse
+  *  @param    {String}     id                id of the request, which you will later use to handle the response
   *  @param    {Object}     [opts]            optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md]
   *  @param    {String}     opts.redirectUrl  If on mobile client, the url you want the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token.
   *  @param    {String}     opts.data         A string of any data you want later returned with the response. It may be contextual to the original request.
@@ -228,7 +228,8 @@ class Connect {
 
   /**
    *  Given a transaction object (similarly defined as the web3 transaction object)
-   *  it creates a transaction sign request and sends it.
+   *  it creates a transaction request and sends it. Response later returned is the
+   *  transaction hash if the user selected to sign it.
    *
    *  @example
    *  const txobject = {
@@ -239,7 +240,7 @@ class Connect {
    *  }
    *  connect.sendTransaction(txobject, 'setStatus')
    *  connect.onResponse('setStatus').then(res => {
-   *    const txId = res.res
+   *    const txHash = res.res
    *  })
    *
    *  @param    {Object}    txObj
@@ -253,7 +254,6 @@ class Connect {
                      .then(jwt => this.send(jwt, id))
    }
 
-  //  TODO this name is confusing
   /**
    *  Request uPort client/user to sign a claim or list of claims
    *
@@ -267,16 +267,16 @@ class Connect {
    *    },
    *    sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
    *  }
-   *  connect.createVerificationRequest(unsignedClaim).then(jwt => {
+   *  connect.requestSignVerification(unsignedClaim).then(jwt => {
    *    ...
    *  })
    *
    *  @param    {Object}      reqObj                 object with request params
    *  @param    {Object}      reqObj.unsignedClaim   an object that is an unsigned claim which you want the user to attest
    *  @param    {String}      reqObj.sub             the DID which the unsigned claim is about
-   *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
+   *  @param    {String}      [id='signVerReq']    string to identify request, later used to get response
    */
-  createVerificationRequest (reqObj, id = 'signClaimReq') {
+  requestSignVerification (reqObj, id = 'signVerReq') {
     this.credentials.createSignVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
       .then(jwt => this.send(jwt, id))
   }
@@ -302,7 +302,7 @@ class Connect {
    *  @param    {String}             reqObj.network_id     network id of Ethereum chain of identity eg. 0x4 for rinkeby
    *  @param    {String}             reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
    *  @param    {Number}             reqObj.expiresIn      Seconds until expiry
-   *  @param    {String}            [id='disclosureReq']   string to identify request, later used to get response
+   *  @param    {String}             [id='disclosureReq']  string to identify request, later used to get response
    */
   requestDisclosure (reqObj, id = 'disclosureReq') {
     reqObj = Object.assign({
@@ -314,10 +314,10 @@ class Connect {
   }
 
   /**
-   *  Create a credential about connnected user
+   *  Create and send a verification (credential) about connnected user
    *
    *  @example
-   *  connect.attest({
+   *  connect.sendVerification({
    *   sub: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54',
    *   exp: <future timestamp>,
    *   claim: { name: 'John Smith' }
@@ -329,9 +329,9 @@ class Connect {
    * @param    {Object}            [credential]           a unsigned credential object
    * @param    {String}            credential.claim       claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
    * @param    {String}            credential.exp         time at which this claim expires and is no longer valid (seconds since epoch)
-   * @param    {String}            [id='attestReq']       string to identify request, later used to get response
+   * @param    {String}            [id='sendVerReq']       string to identify request, later used to get response
    */
-  attest (credential, id) {
+  sendVerification (credential, id = 'sendVerReq') {
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
     this.credentials.createVerification(credential).then(jwt => {
@@ -411,6 +411,7 @@ class Connect {
   /**
    * Accessor methods for Connect state.  The state consists of the key-value pairs below
    *  (did, doc, mnid, address, keypair, pushToken, and publicEncKey)
+   * @private
    */
   get state ()        { return this._state }
   get did ()          { return this._state.did }
@@ -424,6 +425,7 @@ class Connect {
 
   /**
    * Setter methods with appropriate validation
+   * @private
    */
 
   set state (state)               { throw new Error('Use setState to set state object') }

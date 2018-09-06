@@ -450,7 +450,7 @@ describe('Connect', () => {
 
   /*********************************************************************/
 
-  describe('attest', () => {
+  describe('sendVerification', () => {
     it('Creates a JWT signed by the configured keypair', (done) => {
       const uport = new Connect('testApp')
       const cred = {
@@ -467,13 +467,13 @@ describe('Connect', () => {
         })
       }
 
-      uport.attest(cred)
+      uport.sendVerification(cred)
     })
   })
 
   /*********************************************************************/
 
-  describe('createVerificationRequest', () => {
+  describe('requestSignVerification', () => {
     it('Creates a JWT signed by the configured keypair', (done) => {
       const uport = new Connect('testApp')
       const cred = {
@@ -489,7 +489,7 @@ describe('Connect', () => {
         })
       }
 
-      uport.createVerificationRequest(cred)
+      uport.requestSignVerification(cred)
     })
   })
 
