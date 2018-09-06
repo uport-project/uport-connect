@@ -102,7 +102,7 @@ const unsignedClaim = {
   sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
 }
 
-uport .createVerificationRequest(unsignedClaim)
+uport .requestSignVerification(unsignedClaim)
 
 uport.onResponse('signClaimReq').then(payload => {
   const signedClaim = payload.res
