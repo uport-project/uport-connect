@@ -161,7 +161,7 @@ describe('Connect', () => {
       const uport = new Connect('test app none')
       uport.genCallback = sinon.stub()
       uport.send = sinon.stub()
-      uport.credentials.requestDisclosure = (req) => {
+      uport.credentials.createDisclosureRequest = (req) => {
         expect(req.accountType).to.equal('none')
         done()
       }
@@ -174,7 +174,7 @@ describe('Connect', () => {
       const uport = new Connect('test app keypair', {accountType})
       uport.genCallback = sinon.stub()
       uport.send = sinon.stub()
-      uport.credentials.requestDisclosure = (req) => {
+      uport.credentials.createDisclosureRequest = (req) => {
         expect(req.accountType).to.equal(accountType)
         done()
       }
@@ -188,7 +188,7 @@ describe('Connect', () => {
       const uport = new Connect('test app', {accountType: configAccountType})
       uport.genCallback = sinon.stub()
 
-      uport.credentials.requestDisclosure = (req) => {
+      uport.credentials.createDisclosureRequest = (req) => {
         expect(req.accountType).to.equal(accountType)
         done()
       }

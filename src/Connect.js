@@ -249,7 +249,7 @@ class Connect {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
      //  Create default id, where id is function name, or txReq if no function name
      if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
-     this.credentials.txRequest(txObj, {callbackUrl: this.genCallback(id)})
+     this.credentials.createTxRequest(txObj, {callbackUrl: this.genCallback(id)})
                      .then(jwt => this.send(jwt, id))
    }
 
@@ -277,7 +277,7 @@ class Connect {
    *  @param    {String}      [id='signClaimReq']    string to identify request, later used to get response
    */
   createVerificationRequest (reqObj, id = 'signClaimReq') {
-    this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
+    this.credentials.createSignVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
       .then(jwt => this.send(jwt, id))
   }
 
@@ -309,7 +309,7 @@ class Connect {
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
-    this.credentials.requestDisclosure(reqObj, reqObj.expiresIn)
+    this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
       .then(jwt => this.send(jwt, id))
   }
 
@@ -334,7 +334,7 @@ class Connect {
   attest (credential, id) {
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
-    this.credentials.attest(credential).then(jwt => {
+    this.credentials.createVerification(credential).then(jwt => {
       const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
       this.send(uri, id)
     })
