@@ -229,7 +229,7 @@ describe('Connect', () => {
 
       // Fake response
       const resId = 'addressReqProvider'
-      const res = { id: resId, res: resJWT, data: '' }
+      const res = { id: resId, payload: resJWT, data: '' }
       uport.pubResponse(res)
     })
 
@@ -251,7 +251,7 @@ describe('Connect', () => {
       })
       // Fake response
       const resId = 'txReqProvider'
-      const res = { id: resId, res: txHashTest, data: '' }
+      const res = { id: resId, payload: txHashTest, data: '' }
       uport.PubSub.publish(resId, res)
     })
 
@@ -273,10 +273,10 @@ describe('Connect', () => {
     const JWTReq = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MjcxODM0ODcsImV4cCI6MTUyNzE4NDA4NywicmVxdWVzdGVkIjpbIm5hbWUiLCJwaG9uZSIsImNvdW50cnkiXSwicGVybWlzc2lvbnMiOlsibm90aWZpY2F0aW9ucyJdLCJjYWxsYmFjayI6Imh0dHBzOi8vY2hhc3F1aS51cG9ydC5tZS9hcGkvdjEvdG9waWMvS3JzRkxnSDFQa3RwOGZ0eSIsInR5cGUiOiJzaGFyZVJlcSIsImlzcyI6ImRpZDp1cG9ydDoyb2VYdWZIR0RwVTUxYmZLQnNaRGR1N0plOXdlSjNyN3NWRyJ9.bJC2dWT0tCdFOeC0JlN_Dx9PwyI18wtVHz2MOp-9I7QPNhgA8SlbqdqJiMrmZfc1PdM3AjNVD31HmuDoQYQMNQ'
 
     it('resolves once a response with given id available from pub', (done) => {
-      const response = { res: 'test', data: ''}
+      const response = { payload: 'test', data: ''}
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
-        expect(res.res).to.equal('test')
+        expect(res.payload).to.equal('test')
         done()
         return
       })
@@ -288,7 +288,8 @@ describe('Connect', () => {
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
         // TODO move to vars above
-        expect(res.res).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
+        console.log(res)
+        expect(res.payload).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
         done()
       })
       window.location.hash = `access_token=0x00521965e7bd230323c423d96c657db5b79d099f&id=test`
@@ -300,7 +301,7 @@ describe('Connect', () => {
       uport.verifyResponse = verifyResponse
       uport.onResponse(id).then((res) => {
         expect(verifyResponse).to.be.called
-        expect(res.res).to.deep.equal(JWTParse)
+        expect(res.payload).to.deep.equal(JWTParse)
         done()
       })
       window.location.hash = `access_token=${JWTReq}&id=${id}`
@@ -309,7 +310,7 @@ describe('Connect', () => {
     it('handles tx hashes response, by just returning them', (done) => {
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
-        expect(res.res).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
+        expect(res.payload).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
         done()
       })
       window.location.hash = `access_token=0x00521965e7bd230323c423d96c657db5b79d099f&id=test`
@@ -320,7 +321,7 @@ describe('Connect', () => {
       window.location.hash = `access_token=0x00521965e7bd230323c423d96c657db5b79d099f&id=test`
       const uport = new Connect('testApp')
       return uport.onResponse(id).then((res) => {
-        expect(res.res).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
+        expect(res.payload).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
         return
       })
     })
@@ -358,7 +359,7 @@ describe('Connect', () => {
         done()
       }).catch(console.log)
 
-      uport.PubSub.publish(id, {res: resJWT})
+      uport.PubSub.publish(id, {payload: resJWT})
     })
 
     it('rejects if pubsub payload has an error', (done) => {
@@ -381,7 +382,7 @@ describe('Connect', () => {
         done()
       })
 
-      uport.PubSub.publish('id', {res: resJWT})
+      uport.PubSub.publish('id', {payload: resJWT})
     })
   })
 
