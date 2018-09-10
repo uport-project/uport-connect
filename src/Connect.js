@@ -62,9 +62,9 @@ class Connect {
     this.mobileTransport = opts.mobileTransport || transport.url.send()
     this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
     this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
-    transport.url.listenResponse((err, payload) => {
+    transport.url.listenResponse((err, res) => {
       if (err) throw err
-      this.pubResponse(payload)
+      this.pubResponse(res)
     })
 
     // Credential (uport-js) config for verification
@@ -92,13 +92,13 @@ class Connect {
       requestAddress: () => {
         const requestID = 'addressReqProvider'
         this.requestDisclosure({accountType: this.accountType || 'keypair'}, requestID)
-        return this.onResponse(requestID).then(payload => payload.res.address)
+        return this.onResponse(requestID).then(res => res.payload.address)
       },
       sendTransaction: (txObj) => {
         delete txObj['from']
         const requestID = 'txReqProvider'
         this.sendTransaction(txObj, requestID)
-        return this.onResponse(requestID).then(payload => payload.res)
+        return this.onResponse(requestID).then(res => res.payload)
       },
       provider, network: this.network
     })
@@ -114,23 +114,23 @@ class Connect {
    *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error, no promised returned if callback given
    */
   onResponse(id, cb) {
-    const parseResponse = (payload) => {
-      if (payload.error) return Promise.reject(Object.assign({id}, payload))
-      if (message.util.isJWT(payload.res)) {
-        const jwt = payload.res
+    const parseResponse = (res) => {
+      if (res.error) return Promise.reject(Object.assign({id}, res))
+      if (message.util.isJWT(res.payload)) {
+        const jwt = res.payload
         const decoded = decodeJWT(jwt)
         if (decoded.payload.claim){
-          return Promise.resolve(Object.assign({id}, payload))
+          return Promise.resolve(Object.assign({id}, res))
         }
-        return this.verifyResponse(jwt).then(res => {
+        return this.verifyResponse(jwt).then(parsedRes => {
           // Set identifiers present in the response
           // TODO maybe just change name in uport-js
-          if (res.boxPub) res.publicEncKey = res.boxPub
-          this.setState(res)
-          return {id, res, data: payload.data}
+          if (parsedRes.boxPub) parsedRes.publicEncKey = parsedRes.boxPub
+          this.setState(parsedRes)
+          return {id, payload: parsedRes, data: res.data}
         })
       } else {
-        return Promise.resolve(Object.assign({id}, payload))
+        return Promise.resolve(Object.assign({id}, res))
       }
     }
 
@@ -160,13 +160,15 @@ class Connect {
   /**
    * Push a response payload to uPort connect to be handled. Useful if implementing your own transports
    * and you are getting responses with your own functions, listeners, event handlers etc. It will
-   * parse the response and resolve it to any listening onResponse functions with the matching id.
+   * parse the response and resolve it to any listening onResponse functions with the matching id. A
+   * response object in connect is of the form {id, res, data}, where res and id required. Res is the
+   * response payload (url or JWT) from a uPort client.
    *
-   * @param {Object} payload  a valid response payload, of form {id, res, data}, res and id required
+   * @param {Object} response  a wrapped response payload, of form {id, res, data}, res and id required
    */
-  pubResponse (payload) {
-    if (!payload || !payload.id) throw new Error('Response payload requires an id')
-    this.PubSub.publish(payload.id, {res: payload.res, data: payload.data})
+  pubResponse (response) {
+    if (!response || !response.id) throw new Error('Response payload requires an id')
+    this.PubSub.publish(response.id, {payload: response.payload, data: response.data})
   }
 
   /**
@@ -240,7 +242,7 @@ class Connect {
    *  }
    *  connect.sendTransaction(txobject, 'setStatus')
    *  connect.onResponse('setStatus').then(res => {
-   *    const txHash = res.res
+   *    const txHash = res.payload
    *  })
    *
    *  @param    {Object}    txObj
@@ -488,7 +490,7 @@ class LocalStorageStore {
  */
 const connectTransport = (appName) => (request, {data, cancel}) => {
   if (transport.messageServer.isMessageServerCallback(request)) {
-    return  transport.qr.chasquiSend({appName})(request).then(res => ({res, data}))
+    return  transport.qr.chasquiSend({appName})(request).then(res => ({payload: res, data}))
   } else {
     transport.qr.send(appName)(request, {cancel})
     // TODO return close QR func?
@@ -511,7 +513,7 @@ const pushTransport = (pushToken, publicEncKey) => {
       return transport.messageServer.URIHandlerSend(send)(request, {type, redirectUrl})
         .then(res => {
           transport.ui.close()
-          return {res, data}
+          return {payload: res, data}
         })
     } else {
       // Return immediately for custom message server
