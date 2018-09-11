@@ -185,7 +185,7 @@ class Connect {
   }
 
  /**
-  *  Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or when send a request you already created elsewhere.
+  *  Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or send a request you already created elsewhere.".
   *
   *  @param    {String}     request           a request message to send to a uport client
   *  @param    {String}     id                id of the request, which you will later use to handle the response
@@ -269,17 +269,16 @@ class Connect {
    *    },
    *    sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
    *  }
-   *  connect.requestSignVerification(unsignedClaim).then(jwt => {
+   *  connect.requestVerificationSignature(unsignedClaim).then(jwt => {
    *    ...
    *  })
    *
-   *  @param    {Object}      reqObj                 object with request params
-   *  @param    {Object}      reqObj.unsignedClaim   an object that is an unsigned claim which you want the user to attest
-   *  @param    {String}      reqObj.sub             the DID which the unsigned claim is about
-   *  @param    {String}      [id='signVerReq']    string to identify request, later used to get response
+   *  @param    {Object}      unsignedClaim          an object that is an unsigned claim which you want the user to attest
+   *  @param    {String}      sub                    the DID which the unsigned claim is about
+   *  @param    {String}      [id='signVerReq']      string to identify request, later used to get response
    */
-  requestSignVerification (reqObj, id = 'signVerReq') {
-    this.credentials.createSignVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
+  requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq') {
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id)})
       .then(jwt => this.send(jwt, id))
   }
 
@@ -301,7 +300,7 @@ class Connect {
    *  @param    {Array}              reqObj.verified       an array of attributes for which you are requesting verified credentials to be shared for
    *  @param    {Boolean}            reqObj.notifications  boolean if you want to request the ability to send push notifications
    *  @param    {String}             reqObj.callbackUrl    the url which you want to receive the response of this request
-   *  @param    {String}             reqObj.network_id     network id of Ethereum chain of identity eg. 0x4 for rinkeby
+   *  @param    {String}             reqObj.networkId      network id of Ethereum chain of identity eg. 0x4 for rinkeby
    *  @param    {String}             reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
    *  @param    {Number}             reqObj.expiresIn      Seconds until expiry
    *  @param    {String}             [id='disclosureReq']  string to identify request, later used to get response

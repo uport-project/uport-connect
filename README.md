@@ -93,18 +93,17 @@ To request a user to sign a claim
 
 ```javascript
 const unsignedClaim = {
-  claim: {
     "Citizen of city X": {
       "Allowed to vote": true,
       "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
     }
-  },
-  sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
 }
 
-uport .requestSignVerification(unsignedClaim)
+const sub ="did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
 
-uport.onResponse('signClaimReq').then(payload => {
+uport .requestVerificationSignature(unsignedClaim, sub)
+
+uport.onResponse('verSigReq').then(payload => {
   const signedClaim = payload.res
 })
 ```
