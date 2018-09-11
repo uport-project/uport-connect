@@ -1,10 +1,6 @@
 {
   "name": "uport-connect",
-<<<<<<< HEAD
-  "version": "1.0.0-alpha-1",
-=======
   "version": "0.8.14-alpha-38",
->>>>>>> feat: load state example, doc cleanup, request -> send, verified get/set, cb option onresponse
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/Connect.js",
   "scripts": {
