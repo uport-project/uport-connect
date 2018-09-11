@@ -29,11 +29,11 @@ source: "https://github.com/uport-project/uport-connect/blob/develop/docs/refere
     * [new Connect(appName, [opts])](#new_Connect_new)
     * [.getProvider()](#Connect+getProvider) ⇒ <code>[UportSubprovider](#UportSubprovider)</code>
     * [.onResponse(id, cb)](#Connect+onResponse) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.pubResponse(payload)](#Connect+pubResponse)
+    * [.pubResponse(response)](#Connect+pubResponse)
     * [.send(request, id, [opts])](#Connect+send)
     * [.contract(abi)](#Connect+contract) ⇒ <code>Object</code>
     * [.sendTransaction(txObj, [id])](#Connect+sendTransaction)
-    * [.requestSignVerification(reqObj, [id])](#Connect+requestSignVerification)
+    * [.requestVerificationSignature(unsignedClaim, sub, [id])](#Connect+requestVerificationSignature)
     * [.requestDisclosure([reqObj], [id])](#Connect+requestDisclosure)
     * [.sendVerification([credential], [id])](#Connect+sendVerification)
     * [.setState(Update)](#Connect+setState)
@@ -102,21 +102,23 @@ Get response by id of earlier request, returns promise which resolves when first
 
 <a name="Connect+pubResponse"></a>
 
-### connect.pubResponse(payload)
+### connect.pubResponse(response)
 Push a response payload to uPort connect to be handled. Useful if implementing your own transports
 and you are getting responses with your own functions, listeners, event handlers etc. It will
-parse the response and resolve it to any listening onResponse functions with the matching id.
+parse the response and resolve it to any listening onResponse functions with the matching id. A
+response object in connect is of the form {id, res, data}, where res and id required. Res is the
+response payload (url or JWT) from a uPort client.
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| payload | <code>Object</code> | a valid response payload, of form {id, res, data}, res and id required |
+| response | <code>Object</code> | a wrapped response payload, of form {id, res, data}, res and id required |
 
 <a name="Connect+send"></a>
 
 ### connect.send(request, id, [opts])
-Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or when send a request you already created elsewhere.
+Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or send a request you already created elsewhere.".
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
@@ -171,24 +173,23 @@ const txobject = {
  }
  connect.sendTransaction(txobject, 'setStatus')
  connect.onResponse('setStatus').then(res => {
-   const txHash = res.res
+   const txHash = res.payload
  })
 
  
 ```
-<a name="Connect+requestSignVerification"></a>
+<a name="Connect+requestVerificationSignature"></a>
 
-### connect.requestSignVerification(reqObj, [id])
+### connect.requestVerificationSignature(unsignedClaim, sub, [id])
 Request uPort client/user to sign a claim or list of claims
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| reqObj | <code>Object</code> |  | object with request params |
-| reqObj.unsignedClaim | <code>Object</code> |  | an object that is an unsigned claim which you want the user to attest |
-| reqObj.sub | <code>String</code> |  | the DID which the unsigned claim is about |
-| [id] | <code>String</code> | <code>&#x27;signClaimReq&#x27;</code> | string to identify request, later used to get response |
+| unsignedClaim | <code>Object</code> |  | an object that is an unsigned claim which you want the user to attest |
+| sub | <code>String</code> |  | the DID which the unsigned claim is about |
+| [id] | <code>String</code> | <code>&#x27;signVerReq&#x27;</code> | string to identify request, later used to get response |
 
 **Example**  
 ```js
@@ -201,7 +202,7 @@ const unsignedClaim = {
    },
    sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
  }
- connect.requestSignVerification(unsignedClaim).then(jwt => {
+ connect.requestVerificationSignature(unsignedClaim).then(jwt => {
    ...
  })
 
@@ -221,7 +222,7 @@ Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/sp
 | reqObj.verified | <code>Array</code> |  | an array of attributes for which you are requesting verified credentials to be shared for |
 | reqObj.notifications | <code>Boolean</code> |  | boolean if you want to request the ability to send push notifications |
 | reqObj.callbackUrl | <code>String</code> |  | the url which you want to receive the response of this request |
-| reqObj.network_id | <code>String</code> |  | network id of Ethereum chain of identity eg. 0x4 for rinkeby |
+| reqObj.networkId | <code>String</code> |  | network id of Ethereum chain of identity eg. 0x4 for rinkeby |
 | reqObj.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", or "none" |
 | reqObj.expiresIn | <code>Number</code> |  | Seconds until expiry |
 | [id] | <code>String</code> | <code>&#x27;disclosureReq&#x27;</code> | string to identify request, later used to get response |
@@ -251,7 +252,7 @@ Create and send a verification (credential) about connnected user
 | [credential] | <code>Object</code> |  | a unsigned credential object |
 | credential.claim | <code>String</code> |  | claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}}) |
 | credential.exp | <code>String</code> |  | time at which this claim expires and is no longer valid (seconds since epoch) |
-| [id] | <code>String</code> | <code>&#x27;sendVerificationReq&#x27;</code> | string to identify request, later used to get response |
+| [id] | <code>String</code> | <code>&#x27;sendVerReq&#x27;</code> | string to identify request, later used to get response |
 
 **Example**  
 ```js

@@ -288,7 +288,6 @@ describe('Connect', () => {
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
         // TODO move to vars above
-        console.log(res)
         expect(res.payload).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
         done()
       })
@@ -474,23 +473,21 @@ describe('Connect', () => {
 
   /*********************************************************************/
 
-  describe('requestSignVerification', () => {
-    it('Creates a JWT signed by the configured keypair', (done) => {
+  describe('requestVerificationSignature', () => {
+    it('Creates sign verification request signed by the configured keypair', (done) => {
       const uport = new Connect('testApp')
-      const cred = {
-        unsignedClaim: { hello: 'world' },
-        sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
-      }
+      const unsignedClaim = { hello: 'world' }
+      const sub = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 
       uport.send = (jwt) => {
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
-          expect(payload.unsignedClaim).to.deep.equal(cred.unsignedClaim)
+          expect(payload.unsignedClaim).to.deep.equal(unsignedClaim)
           done()
         })
       }
 
-      uport.requestSignVerification(cred)
+      uport.requestVerificationSignature(unsignedClaim, sub)
     })
   })
 
