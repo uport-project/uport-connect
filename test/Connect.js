@@ -46,6 +46,7 @@ describe('Connect', () => {
         accountType: 'keypair',
         isMobile: true,
         useStore: false,
+        issc: {someDetails: 'details'},
         transport,
         mobileTransport
       }
@@ -54,6 +55,7 @@ describe('Connect', () => {
       expect(uport.accountType).to.equal('keypair')
       expect(uport.isOnMobile).to.be.true
       expect(uport.useStore).to.be.false
+      expect(uport.issc).to.deep.equal({someDetails: 'details'})
       uport.transport('test')
       uport.mobileTransport('test')
       expect(transport).to.be.calledOnce
@@ -163,6 +165,37 @@ describe('Connect', () => {
       uport.send = sinon.stub()
       uport.credentials.requestDisclosure = (req) => {
         expect(req.accountType).to.equal('none')
+        done()
+      }
+
+      uport.requestDisclosure({})
+    })
+
+    it('uses configured issc if not provided in request', (done) => {
+      const issc = {details: 'details'}
+      const uport = new Connect('test app', {issc})
+
+      uport.genCallback = sinon.stub()
+      uport.send = sinon.stub()
+
+      uport.credentials.requestDisclosure = (req) => {
+        expect(req.issc).to.deep.equal(issc)
+        done()
+      }
+
+      uport.requestDisclosure({})
+    })
+
+    it('uses issc provided in the request', () => {
+      const wrongIssc = {details: 'bad'}
+      const issc = {details: 'good'}
+      const uport = new Connect('test app', {issc: wrongIssc})
+
+      uport.genCallback = sinon.stub()
+      uport.send = sinon.stub()
+
+      uport.credentials.requestDisclosure = (req) => {
+        expect(req.issc).to.deep.equal(issc)
         done()
       }
 
@@ -458,8 +491,7 @@ describe('Connect', () => {
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
 
-      uport.send = (url) => {
-        const jwt = message.util.getURLJWT(url)
+      uport.send = (jwt) => {
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.claim).to.deep.equal(cred.claim)
