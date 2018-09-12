@@ -1,8 +1,8 @@
 {
   "name": "uport-connect",
-  "version": "1.0.0-alpha-2",
+  "version": "1.0.0-alpha-3",
   "description": "Library for integrating uPort into your app frontend",
-  "main": "lib/Connect.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "yarn build:es5 && yarn build:dist && yarn build:dist:prod",
     "build:npm": "npm run build:es5 && npm run build:dist && npm run build:dist:prod",
@@ -110,7 +110,7 @@
     "pubsub-js": "^1.6.0",
     "qs": "^6.2.1",
     "store": "^2.0.12",
-    "uport": "0.7.0-alpha-12",
+    "uport": "0.7.0-alpha-13",
     "uport-did-resolver": "0.0.3",
     "uport-lite": "^1.0.2",
     "uport-transports": "0.0.65"
