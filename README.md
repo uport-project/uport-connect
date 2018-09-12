@@ -37,7 +37,7 @@ npm install uport-connect
 First we will instantiate the uPort object, by default it is configured on the Rinkeby test network, reference docs for additional config arguments which can be passed.
 
 ```javascript
-import Connect from 'uport-connect'
+import { Connect } from 'uport-connect'
 const uport = new Connect('MyDAppName')
 // or on mainnet
 // const uport = new Connect('MyDAppName', {network: 'mainnet'})
