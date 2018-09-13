@@ -34,7 +34,7 @@ For additional documentation on all functionality [visit our docs](https://githu
 npm install uport-connect
 ```
 
-First we will instantiate the uPort object, by default it is configured on the Rinkeby test network, reference docs for additional config arguments which can be passed.
+First we will instantiate the uPort object, by default it is configured on the Rinkeby test network, reference the docs for additional config arguments which can be passed.
 
 ```javascript
 import { Connect } from 'uport-connect'
@@ -48,8 +48,8 @@ To request the DID and address of user use `requestDisclosure()`:
 ```javascript
 uport.requestDisclosure({})
 
-uport.onResponse('disclosureReq').then(payload => {
-  const did = payload.res.did
+uport.onResponse('disclosureReq').then(res => {
+  const did = res.payload.did
   ...
 })
 ```
@@ -62,7 +62,9 @@ const reqObj = { requested: ['name', 'country'],
 
 uport.requestDisclosure(reqObj)
 
-uport.onResponse('disclosureReq').then(payload => {
+uport.onResponse('disclosureReq').then(res => {
+  const did = res.payload.did
+  const verified = res.payload.verified // An array of shared verified credentials, matching requested
   ...
 })
 ```
@@ -77,7 +79,7 @@ if (uport.did) {
 }
 ```
 
-To send a request message you created on your server or elsewhere use `send()`:
+To send a request message (JWT) you created on your server or elsewhere use `send()`:
 
 ```javascript
 const reqID = 'myRequestID'
@@ -101,10 +103,10 @@ const unsignedClaim = {
 
 const sub ="did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
 
-uport .requestVerificationSignature(unsignedClaim, sub)
+uport.requestVerificationSignature(unsignedClaim, sub)
 
-uport.onResponse('verSigReq').then(payload => {
-  const signedClaim = payload.res
+uport.onResponse('verSigReq').then(res => {
+  const signedClaim = res.payload
 })
 ```
 
@@ -127,8 +129,8 @@ const txObj = {
   value: 1 * 1.0e18
 }
 uport.sendTransaction(txObj, 'ethSendReq')
-uport.onResponse('ethSendReq').then(payload => {
-  const txId = payload.res
+uport.onResponse('ethSendReq').then(res => {
+  const txId = res.payload
 })
 ```
 ### <a name="quick-start"></a> Quick Start with Provider (web3)
