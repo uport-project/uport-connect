@@ -40,15 +40,15 @@ The Connect library creates these request messages as part of an entire flow of 
 
 # <a name="communication"></a> Communication and Transports
 
-Once a request message is created, the second primary purpose of uPort Connect is to send it to a uPort client (Mobile App) and then get the repsonse from that client. The library does this by setting up and managing different communication channels depending on the environment in which your app runs and the parameters which you specify. Connect comes with a set of defaults by bundling transports from [uport-transports](https://github.com/uport-project/uport-transports). Transports are communication channels and are simply functions that consume request strings and additional transport params, then they send these strings to a uPort client. Some the tranports will also manage receiving a response to a given request.
+Once a request message is created, the second primary purpose of uPort Connect is to send it to a uPort client (Mobile App) and then get the repsonse from that client. The library does this by setting up and managing different communication channels depending on the environment in which your app runs and the parameters which you specify. Connect comes with a set of defaults by bundling transports from [uport-transports](https://github.com/uport-project/uport-transports). Transports are communication channels, they are simply functions that consume request strings and additional transport params, then they send these strings to a uPort client. Some tranports will also manage receiving a response to a given request.
 
- You can take a look at [uport-transports](https://github.com/uport-project/uport-transports) to see all the transports available. If the defaults in Connect are not useful for your use case, you may find using the functions and modules in uport-transports easier and more useful, or you may combine them to create your own transports. By default `uport-connect` offers a setup for sending requests from a desktop web client to a uPort mobile client, and a setup for sending requests from a mobile app to a mobile uPort client on the same device. Additionaly it will send requests in push notification if configured to do so. For all these transports, Connect by default will also handle getting the response.
+ You can take a look at [uport-transports](https://github.com/uport-project/uport-transports) to see all the transports available. If the defaults in Connect are not useful for your use case, you may find using the functions and modules in `uport-transports` easier and more useful, or you may combine them to create your own transports. By default `uport-connect` offers a setup for sending requests from a desktop web client to a uPort mobile client, and a setup for sending requests from a mobile app to a mobile uPort client on the same device. Additionaly it will send requests in push notification if configured to do so. For all these transports, Connect by default will also handle getting the response.
 
 To support the variety of methods for passing messages between a browser and a uPort client, uPort Connect separates sending requests from handling responses.  Reqeusts are sent via a variety of methods, and each accepts a `requestId` parameter to identify it.  Response handlers are then registered by calling `onResponse` for the same `requestId`, which returns a promise that resolves when the response is available. In particular, this allows for responses to be handled even if the page sending the request is reloaded, or if the response is handled on a different page than the one from which a request is sent.  This is esepecially relevant to mobile browsers, and is discussed more [below](#default-mobile)
 
 ## Default QR flow
 
-When the library is loaded on a non-mobile client the library will use QR codes to pass a request from the browser to the uPort mobile application. We provide a default QR-code display function, which injects a `<div>` containing a modal with a QR-code into the DOM. If the request was created on the client side (i.e in Connect) then the response will be relayed through our messaging server Chasqui. In the future you will have the option to run your own messaging server as well. If the request was created on your own server, and you set a URL at your server as the callback, then the response will be returned there. In that case the library will pass the request in a QR code, then you will handle the response as necessary since it will be directly returned to your server.
+When the library is loaded on a non-mobile client the library will use QR codes to pass a request from the browser to the uPort mobile application. We provide a default QR-code display function, which injects a `<div>`into the DOM, containing a modal with a QR-code. If the request was created on the client side (i.e in Connect) then the response will be relayed through our messaging server Chasqui. In the future you will have the option to run your own messaging server as well. If the request was created on your own server, and you set a URL at your server as the callback, then the response will be returned there. In that case, the library will pass the request in a QR code, then you will handle the response as necessary since it will be directly returned to your server.
 
 Example of request created client-side with `uport-connect` which will use the messaging server Chasqui to relay the response.
 ```javascript
@@ -56,8 +56,8 @@ Example of request created client-side with `uport-connect` which will use the m
 connect.requestDisclosure()
 
 // Polls messaging server for response, resolve promise once response available.
-connect.onResponse('disclosureReq').then(payload => {
-  const did = payload.res.did
+connect.onResponse('disclosureReq').then(res => {
+  const did = res.payload.did
 })
 ```
 
@@ -71,14 +71,14 @@ const reqID = 'myRequestID'
 // Displays QR with request
 connect.request(requestToken, reqId)
 
-connect.onResponse(reqId).then(payload => {
+connect.onResponse(reqId).then(res => {
   // Now handle specific to your use case
-  // Payload will include payload.id and payload.data but not payload.res, as you will have get what you want from your server.
-  // This function simply tells you now it is time to look for any response handling.
+  // Payload will include res.id and res.data but not res.payload, as you will have get what you want from your server.
+  // This function simply tells you now it is time to look for any response handling, and any context or reference you passed in the data option.
 })
 ```
 
-Similarly if are handling the reponse on your server, you may want to pass additional context with the request. For example you may attach a unique id to a request to then later map to a response, you pass this data in the `data` option.
+Similarly if you are handling the reponse on your server, you may want to pass additional context with the request. For example you may attach a unique id to a request, such that it is later mapped to a response. This can be passed in the `data` option.
 
 ```javascript
 // Request created and signed on your server.
@@ -89,16 +89,16 @@ const reqID = 'myRequestID'
 connect.request(requestToken, reqId, {data: 'anyRequestContextorID'})
 
 // data option can be useful as this function may be called on another page, or page load of new page
-connect.onResponse(reqId).then(payload => {
-  const data = payload.data
-  const id = payload.id
+connect.onResponse(reqId).then(res => {
+  const data = res.data
+  const id = res.id
   // Now handle specific to your use case
 })
 ```
 
 ## <a name="default-mobile"></a> Default Mobile Requests
 
-By default `uport-connect` will detect if the library is loaded in a mobile client. When in a mobile client it assumes that the uPort mobile app is on the same device, it will set the window URL to the request URI which will bring up a prompt to open that request URI in the uPort mobile app. If the request was created on the client side (i.e in Connect) then the response will be returned by the mobile app calling a URL which encodes the response and returns control to the calling app. If the request was created on your own server, then by default the response will be returned there, and mobile app will return (redirect) control to the calling app where you can then handle the response as you need for your use case.
+By default `uport-connect` will detect if the library is loaded in a mobile client. When in a mobile client, it assumes that the uPort mobile app is on the same device, it will set the window URL to the request URI which will bring up a prompt to open that request URI in the uPort mobile app. If the request was created on the client side (i.e in Connect), then the response will be returned by the mobile app calling a URL which encodes the response and returns control to the calling app. If the request was created on your own server, then by default the response will be returned there, and mobile app will return (redirect) control to the calling app, where you can then handle the response as you need for your use case.
 
 Example of request created client-side with `uport-connect`
 ```javascript
@@ -106,12 +106,12 @@ Example of request created client-side with `uport-connect`
 connect.requestDisclosure()
 
 // When the response returns to the window with this code, this promise will resolve with a response
-connect.onResponse('disclosureReq').then(payload => {
-  const did = payload.res.did
+connect.onResponse('disclosureReq').then(res => {
+  const did = res.payload.did
 })
 ```
 
-Example of request where you create the request token on your own server and then send it through `uport-connect`: Similarly to above you can also pass context between the request and response through the data option.
+Example of a request where you create the request token on your own server and then send it through `uport-connect`: Similarly to above, you can also pass context between the request and response through the data option.
 
 ```javascript
 // Request created and signed on your server.
@@ -122,7 +122,7 @@ const reqID = 'myRequestID'
 connect.request(requestToken, reqId)
 
 // When the response returns to the window with this code, this promise will resolve with a response
-connect.onResponse(reqId).then(payload => {
+connect.onResponse(reqId).then(res => {
   // Now handle specific to your use case
 })
 ```
@@ -138,12 +138,12 @@ const reqID = 'myRequestID'
 connect.request(requestToken, reqId, {redirectUrl: 'http://otherapppage.com/page'})
 
 // Code now in 'http://otherapppage.com/page'
-connect.onResponse(reqId).then(payload => {
+connect.onResponse(reqId).then(res => {
   // Now handle specific to your use case
 })
 ```
 
-Again create a request token on your server, but tell the uPort mobile client to return the response in the URL rather than POSTing the response to the callback in the request token.
+Again, create a request token on your server, but tell the uPort mobile client to return the response in the URL rather than POSTing the response to the callback in the request token.
 
 ```javascript
 // Request created and signed on your server.
@@ -154,10 +154,10 @@ const reqID = 'myRequestID'
 connect.request(requestToken, reqId, {redirectUrl: 'http://myurl.com/handle', type: 'redirect'})
 
 // Code now in 'http://otherapppage.com/page'
-connect.onResponse(reqId).then(payload => {
-  const response = payload.res
-  // The response if available here since you told the mobile uPort client to return it here.
-  // If this block of code may be loaded on both desktop and mobile clients you will want a branch of code to handle both
+connect.onResponse(reqId).then(res => {
+  const response = res.payload
+  // The response is available here since you told the mobile uPort client to return it here.
+  // This block of code may be loaded on both desktop and mobile clients you will want a branch of code to handle both
   // i.e. if (payload.res) { //Was returned from mobile } else { //Was on desktop and posted to your server, now handle it }
 })
 ```
@@ -172,16 +172,15 @@ You can request push notification permissions as follows:
 // Opens this first request in a QR code,
 connect.requestDisclosure({ notifications: true })
 
-connect.onResponse('disclosureReq').then(payload => {
-  const did = payload.res.did
-  // can ignore, as this is saved in the background to connect, and push transport is configured
-  // const pushToken = payload.res.pushToken  
+connect.onResponse('disclosureReq').then(res => {
+  const did = res.payload.did
+  // const pushToken = res.payload.pushToken  
+  // ^ can ignore, as this is saved in the background to connect, and push transport is configured
 
   // Now once you make another request, the request will be sent in a push instead of QR code
   // Mobile flow still remains the same
 })
 ```
-
 
 ### Configurations
 
@@ -229,7 +228,7 @@ Get the address of a uPort Id:
 ```javascript
 connect.requestDisclosure()
 
-connect.onResponse('disclosureReq').then(payload => {
+connect.onResponse('disclosureReq').then(res => {
   const address = connect.address
   const did = connect.did
 })
@@ -243,8 +242,8 @@ const txObj = {
   value: 1 * 1.0e18
 }
 connect.sendTransaction(txObj, 'ethSendReq')
-connect.onResponse('ethSendReq').then(payload => {
-  const txId = payload.res
+connect.onResponse('ethSendReq').then(res => {
+  const txId = res.payload
 })
 ```
 
@@ -272,8 +271,8 @@ Using this object over the provider examples below gives you more flexibility an
   const reqId = 'updateStatus'
   statusContract.updateStatus('hello', reqId)
 
-  connect.onResponse(reqId).then(payload => {
-    const txId = payload.res
+  connect.onResponse(reqId).then(res => {
+    const txId = res.payload
   })
 ```
 
