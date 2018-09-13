@@ -41,7 +41,8 @@ Consider the necessary code to set up the `web3` object with the uPort provider:
 const Connect = window.uportconnect.Connect
 const appName = 'UportTutorial'
 const connect = new Connect(appName, {network: 'rinkeby'})
-const web3 = connect.getWeb3()
+const provider = connect.getProvider()
+const web3 = new Web3(provider)
 ```
 
 The uPort library sets up the web3 object using a web3 provider. This is the mechanism that interprets calls to web3 functions and this is what will trigger the QR codes for connecting your uPort and signing transactions.

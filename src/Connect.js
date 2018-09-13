@@ -83,11 +83,10 @@ class Connect {
   *  @example
   *  const uportProvider = connect.getProvider()
   *  const web3 = new Web3(uportProvider)
-  *
-  *  @return          {UportSubprovider}    A web3 style provider wrapped with uPort functionality
+  *  @param      {Object}           [provider]    An optional web3 style provider to wrap, default is a http provider, non standard provider may cause unexpected behavior, using default is suggested.
+  *  @return     {UportSubprovider}               A web3 style provider wrapped with uPort functionality
   */
   getProvider (provider) {
-    // TODO remove defaults, fix import
     const subProvider = new UportSubprovider({
       requestAddress: () => {
         const requestID = 'addressReqProvider'
@@ -107,10 +106,12 @@ class Connect {
   }
 
   /**
-   *  Get response by id of earlier request, returns promise which resolves when first reponse with given id is available. Listen instead, if looking for multiple responses of same id.
+   *  Get response by id of earlier request, returns promise which resolves when first
+   *  reponse with given id is available. If looking for multiple responses of same id,
+   *  listen instead by passing a callback.
    *
    *  @param    {String}       id          id of request you are waiting for a response for
-   *  @param    {Function}     cb          an optional callback function, which is called each time a valid repsonse for a given id is available vs have a single promise returned
+   *  @param    {Function}     cb          an optional callback function, which is called each time a valid repsonse for a given id is available vs having a single promise returned
    *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error, no promised returned if callback given
    */
   onResponse(id, cb) {
@@ -161,7 +162,7 @@ class Connect {
    * Push a response payload to uPort connect to be handled. Useful if implementing your own transports
    * and you are getting responses with your own functions, listeners, event handlers etc. It will
    * parse the response and resolve it to any listening onResponse functions with the matching id. A
-   * response object in connect is of the form {id, res, data}, where res and id required. Res is the
+   * response object in connect is of the form {id, payload, data}, where payload and id required. Payload is the
    * response payload (url or JWT) from a uPort client.
    *
    * @param {Object} response  a wrapped response payload, of form {id, res, data}, res and id required
@@ -185,15 +186,15 @@ class Connect {
   }
 
  /**
-  *  Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or send a request you already created elsewhere.".
+  *  Send a request message to a uPort client. Useful function if you want to pass additional transport options and/or send a request you already created elsewhere.
   *
-  *  @param    {String}     request           a request message to send to a uport client
+  *  @param    {String}     request           a request message to send to a uPort client
   *  @param    {String}     id                id of the request, which you will later use to handle the response
   *  @param    {Object}     [opts]            optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md]
   *  @param    {String}     opts.redirectUrl  If on mobile client, the url you want the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response or it may be returned to the callback in the request token.
-  *  @param    {String}     opts.data         A string of any data you want later returned with the response. It may be contextual to the original request.
+  *  @param    {String}     opts.data         A string of any data you want later returned with the response. It may be contextual to the original request. (i.e. a request id from your server)
   *  @param    {String}     opts.type         Type specifies the callback action. 'post' to send response to callback in request token or 'redirect' to send response in redirect url.
-  *  @param    {Function}   opts.cancel       When using the default QR send, but handling the response yourself, this function will be called when a users closes the request modal.
+  *  @param    {Function}   opts.cancel       When using the default QR send, but handling the response yourself, this function will be called when a user closes the request modal.
   */
   send (request, id, {redirectUrl, data, type, cancel} = {}) {
     if (!id) throw new Error('Requires request id')
@@ -219,7 +220,6 @@ class Connect {
   *  @return   {Object}                                             contract object
   */
   contract (abi) {
-    //TODO could have default id as method name instead of txReq?
     const txObjHandler = (txObj, id) => {
       txObj.fn = txObj.function
       delete txObj['function']
@@ -230,8 +230,8 @@ class Connect {
 
   /**
    *  Given a transaction object (similarly defined as the web3 transaction object)
-   *  it creates a transaction request and sends it. Response later returned is the
-   *  transaction hash if the user selected to sign it.
+   *  it creates a transaction request and sends it. A transaction hash is later
+   *  returned as the response if the user selected to sign it.
    *
    *  @example
    *  const txobject = {
@@ -246,7 +246,7 @@ class Connect {
    *  })
    *
    *  @param    {Object}    txObj
-   *  @param    {String}    [id='txReq']    string to identify request, later used to get response, by default name of function, if not function call, by default 'txReq'
+   *  @param    {String}    [id='txReq']    string to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq'
    */
    sendTransaction (txObj, id) {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
@@ -257,7 +257,7 @@ class Connect {
    }
 
   /**
-   *  Request uPort client/user to sign a claim or list of claims
+   *  Request uPort client/user to sign a claim
    *
    *  @example
    *  const unsignedClaim = {
@@ -273,7 +273,7 @@ class Connect {
    *    ...
    *  })
    *
-   *  @param    {Object}      unsignedClaim          an object that is an unsigned claim which you want the user to attest
+   *  @param    {Object}      unsignedClaim          unsigned claim object which you want the user to attest
    *  @param    {String}      sub                    the DID which the unsigned claim is about
    *  @param    {String}      [id='signVerReq']      string to identify request, later used to get response
    */
@@ -315,11 +315,12 @@ class Connect {
   }
 
   /**
-   *  Create and send a verification (credential) about connnected user
+   *  Create and send a verification (credential) about connnected user. Verification is signed by
+   *  temporary session keys created by Connect. If you want to create a verification with a different
+   *  keypair/did use uPort credentials and send it with the Connect send function.
    *
    *  @example
    *  connect.sendVerification({
-   *   sub: 'did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54',
    *   exp: <future timestamp>,
    *   claim: { name: 'John Smith' }
    *  }, 'REQUEST_ID')
@@ -327,15 +328,16 @@ class Connect {
    *   ...
    *  })
    *
-   * @param    {Object}            [credential]           a unsigned credential object
-   * @param    {String}            credential.claim       claim about subject single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
-   * @param    {String}            credential.exp         time at which this claim expires and is no longer valid (seconds since epoch)
-   * @param    {String}            [id='sendVerReq']       string to identify request, later used to get response
+   * @param    {Object}            [verification]           a unsigned verification object, by default the sub is the connected user
+   * @param    {String}            verification.claim       a claim about the subject, single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
+   * @param    {String}            verification.exp         time at which this verification expires and is no longer valid (seconds since epoch)
+   * @param    {String}            [id='sendVerReq']        string to identify request, later used to get response
    */
-  sendVerification (credential, id = 'sendVerReq') {
+  sendVerification (verification, id = 'sendVerReq') {
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
-    this.credentials.createVerification(credential).then(jwt => {
+    if (!verification.sub) verification.sub = this.did
+    this.credentials.createVerification(verification).then(jwt => {
       const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
       this.send(uri, id)
     })
@@ -477,7 +479,7 @@ class LocalStorageStore {
  *  default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
  *  responses, it will by default poll Chasqui and return response. If given a request which specifies another
  *  callback to receive the response, for example your own server, it will show the request in the default QR
- *  modal and then instantly return. You can then handle how to get the response specific to your implementation.
+ *  modal and then instantly return. You can then handle how to fetch the response specific to your implementation.
  *
  *  @param    {String}       appName                 App name displayed in QR pop over modal
  *  @return   {Function}                             Configured connectTransport function
@@ -499,7 +501,7 @@ const connectTransport = (appName) => (request, {data, cancel}) => {
 
 /**
  * Wrap push transport from uport-transports, providing stored pushToken and publicEncKey from the
- * provided connect instance
+ * provided Connect instance
  * @param   {Connect} connect   The Connect instance holding the pushToken and publicEncKey
  * @returns {Function}          Configured pushTransport function
  * @private
