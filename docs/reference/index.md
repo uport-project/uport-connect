@@ -32,10 +32,10 @@ source: "https://github.com/uport-project/uport-connect/blob/develop/docs/refere
     * [.pubResponse(response)](#Connect+pubResponse)
     * [.send(request, id, [opts])](#Connect+send)
     * [.contract(abi)](#Connect+contract) ⇒ <code>Object</code>
-    * [.sendTransaction(txObj, [id])](#Connect+sendTransaction)
-    * [.requestVerificationSignature(unsignedClaim, sub, [id])](#Connect+requestVerificationSignature)
-    * [.requestDisclosure([reqObj], [id])](#Connect+requestDisclosure)
-    * [.sendVerification([verification], [id])](#Connect+sendVerification)
+    * [.sendTransaction(txObj, [id], [sendOpts])](#Connect+sendTransaction)
+    * [.requestVerificationSignature(unsignedClaim, sub, [id], [sendOpts])](#Connect+requestVerificationSignature)
+    * [.requestDisclosure([reqObj], [id], [sendOpts])](#Connect+requestDisclosure)
+    * [.sendVerification([verification], [id], [sendOpts])](#Connect+sendVerification)
     * [.setState(Update)](#Connect+setState)
     * [.loadState()](#Connect+loadState)
     * [.logout()](#Connect+logout)
@@ -89,6 +89,7 @@ Instantiates and returns a web3 styple provider wrapped with uPort functionality
 ```js
 const uportProvider = connect.getProvider()
  const web3 = new Web3(uportProvider)
+
  
 ```
 <a name="Connect+onResponse"></a>
@@ -155,9 +156,21 @@ Builds and returns a contract object which can be used to interact with
 | --- | --- | --- |
 | abi | <code>Object</code> | contract ABI |
 
+**Example**  
+```js
+const abi = [{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"}]
+const StatusContract = connect.contract(abi).at('0x70A804cCE17149deB6030039798701a38667ca3B')
+const reqId = 'updateStatus'
+StatusContract.updateStatus('helloStatus', reqId)
+ connect.onResponse('reqId').then(res => {
+   const txHash = res.payload
+ })
+
+ 
+```
 <a name="Connect+sendTransaction"></a>
 
-### connect.sendTransaction(txObj, [id])
+### connect.sendTransaction(txObj, [id], [sendOpts])
 Given a transaction object (similarly defined as the web3 transaction object)
  it creates a transaction request and sends it. A transaction hash is later
  returned as the response if the user selected to sign it.
@@ -168,6 +181,7 @@ Given a transaction object (similarly defined as the web3 transaction object)
 | --- | --- | --- | --- |
 | txObj | <code>Object</code> |  |  |
 | [id] | <code>String</code> | <code>&#x27;txReq&#x27;</code> | string to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq' |
+| [sendOpts] | <code>Object</code> |  | reference send function options |
 
 **Example**  
 ```js
@@ -186,8 +200,8 @@ const txobject = {
 ```
 <a name="Connect+requestVerificationSignature"></a>
 
-### connect.requestVerificationSignature(unsignedClaim, sub, [id])
-Request uPort client/user to sign a claim
+### connect.requestVerificationSignature(unsignedClaim, sub, [id], [sendOpts])
+Creates a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
@@ -196,6 +210,7 @@ Request uPort client/user to sign a claim
 | unsignedClaim | <code>Object</code> |  | unsigned claim object which you want the user to attest |
 | sub | <code>String</code> |  | the DID which the unsigned claim is about |
 | [id] | <code>String</code> | <code>&#x27;signVerReq&#x27;</code> | string to identify request, later used to get response |
+| [sendOpts] | <code>Object</code> |  | reference send function options |
 
 **Example**  
 ```js
@@ -216,8 +231,8 @@ const unsignedClaim = {
 ```
 <a name="Connect+requestDisclosure"></a>
 
-### connect.requestDisclosure([reqObj], [id])
-Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md)
+### connect.requestDisclosure([reqObj], [id], [sendOpts])
+Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md) and sends request message to uPort client.
 
 **Kind**: instance method of <code>[Connect](#Connect)</code>  
 
@@ -232,6 +247,7 @@ Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/sp
 | reqObj.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", or "none" |
 | reqObj.expiresIn | <code>Number</code> |  | Seconds until expiry |
 | [id] | <code>String</code> | <code>&#x27;disclosureReq&#x27;</code> | string to identify request, later used to get response |
+| [sendOpts] | <code>Object</code> |  | reference send function options |
 
 **Example**  
 ```js
@@ -248,7 +264,7 @@ const req = { requested: ['name', 'country'],
 ```
 <a name="Connect+sendVerification"></a>
 
-### connect.sendVerification([verification], [id])
+### connect.sendVerification([verification], [id], [sendOpts])
 Create and send a verification (credential) about connnected user. Verification is signed by
  temporary session keys created by Connect. If you want to create a verification with a different
  keypair/did use uPort credentials and send it with the Connect send function.
@@ -258,9 +274,10 @@ Create and send a verification (credential) about connnected user. Verification 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | [verification] | <code>Object</code> |  | a unsigned verification object, by default the sub is the connected user |
-| verification.claim | <code>String</code> |  | a claim about the subject, single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}}) |
+| verification.claim | <code>Object</code> |  | a claim about the subject, single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}}) |
 | verification.exp | <code>String</code> |  | time at which this verification expires and is no longer valid (seconds since epoch) |
 | [id] | <code>String</code> | <code>&#x27;sendVerReq&#x27;</code> | string to identify request, later used to get response |
+| [sendOpts] | <code>Object</code> |  | reference send function options |
 
 **Example**  
 ```js
