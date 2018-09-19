@@ -83,6 +83,7 @@ class Connect {
   *  @example
   *  const uportProvider = connect.getProvider()
   *  const web3 = new Web3(uportProvider)
+  *
   *  @param      {Object}           [provider]    An optional web3 style provider to wrap, default is a http provider, non standard provider may cause unexpected behavior, using default is suggested.
   *  @return     {UportSubprovider}               A web3 style provider wrapped with uPort functionality
   */
@@ -216,14 +217,23 @@ class Connect {
   *  a transaction, as these are the only calls which require interaction with a uPort client.
   *  For reading and/or events use web3 alongside or a similar library.
   *
-  *  @param    {Object}       abi                                   contract ABI
-  *  @return   {Object}                                             contract object
+  * @example
+  * const abi = [{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"}]
+  * const StatusContract = connect.contract(abi).at('0x70A804cCE17149deB6030039798701a38667ca3B')
+  * const reqId = 'updateStatus'
+  * StatusContract.updateStatus('helloStatus', reqId)
+  *  connect.onResponse('reqId').then(res => {
+  *    const txHash = res.payload
+  *  })
+  *
+  *  @param    {Object}       abi      contract ABI
+  *  @return   {Object}                contract object
   */
   contract (abi) {
-    const txObjHandler = (txObj, id) => {
+    const txObjHandler = (txObj, id, sendOpts) => {
       txObj.fn = txObj.function
       delete txObj['function']
-      return this.sendTransaction(txObj, id)
+      return this.sendTransaction(txObj, id, sendOpts)
     }
     return ContractFactory(txObjHandler.bind(this))(abi)
   }
@@ -247,17 +257,18 @@ class Connect {
    *
    *  @param    {Object}    txObj
    *  @param    {String}    [id='txReq']    string to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq'
+   *  @param    {Object}    [sendOpts]      reference send function options
    */
-   sendTransaction (txObj, id) {
+   sendTransaction (txObj, id, sendOpts) {
      txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
      //  Create default id, where id is function name, or txReq if no function name
      if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
      this.credentials.createTxRequest(txObj, {callbackUrl: this.genCallback(id)})
-                     .then(jwt => this.send(jwt, id))
+                     .then(jwt => this.send(jwt, id, sendOpts))
    }
 
   /**
-   *  Request uPort client/user to sign a claim
+   *  Creates a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
    *
    *  @example
    *  const unsignedClaim = {
@@ -273,17 +284,18 @@ class Connect {
    *    ...
    *  })
    *
-   *  @param    {Object}      unsignedClaim          unsigned claim object which you want the user to attest
-   *  @param    {String}      sub                    the DID which the unsigned claim is about
-   *  @param    {String}      [id='signVerReq']      string to identify request, later used to get response
+   *  @param    {Object}     unsignedClaim          unsigned claim object which you want the user to attest
+   *  @param    {String}     sub                    the DID which the unsigned claim is about
+   *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
+   *  @param    {Object}     [sendOpts]             reference send function options
    */
-  requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq') {
+  requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id)})
-      .then(jwt => this.send(jwt, id))
+      .then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
-   *  Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md)
+   *  Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md) and sends request message to uPort client.
    *
    *  @example
    *  const req = { requested: ['name', 'country'],
@@ -295,23 +307,24 @@ class Connect {
    *      ...
    *  })
    *
-   *  @param    {Object}             [reqObj={}]           request params object
-   *  @param    {Array}              reqObj.requested      an array of attributes for which you are requesting credentials to be shared for
-   *  @param    {Array}              reqObj.verified       an array of attributes for which you are requesting verified credentials to be shared for
-   *  @param    {Boolean}            reqObj.notifications  boolean if you want to request the ability to send push notifications
-   *  @param    {String}             reqObj.callbackUrl    the url which you want to receive the response of this request
-   *  @param    {String}             reqObj.networkId      network id of Ethereum chain of identity eg. 0x4 for rinkeby
-   *  @param    {String}             reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
-   *  @param    {Number}             reqObj.expiresIn      Seconds until expiry
-   *  @param    {String}             [id='disclosureReq']  string to identify request, later used to get response
+   *  @param    {Object}     [reqObj={}]           request params object
+   *  @param    {Array}      reqObj.requested      an array of attributes for which you are requesting credentials to be shared for
+   *  @param    {Array}      reqObj.verified       an array of attributes for which you are requesting verified credentials to be shared for
+   *  @param    {Boolean}    reqObj.notifications  boolean if you want to request the ability to send push notifications
+   *  @param    {String}     reqObj.callbackUrl    the url which you want to receive the response of this request
+   *  @param    {String}     reqObj.networkId      network id of Ethereum chain of identity eg. 0x4 for rinkeby
+   *  @param    {String}     reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
+   *  @param    {Number}     reqObj.expiresIn      Seconds until expiry
+   *  @param    {String}     [id='disclosureReq']  string to identify request, later used to get response
+   *  @param    {Object}     [sendOpts]            reference send function options
    */
-  requestDisclosure (reqObj, id = 'disclosureReq') {
+  requestDisclosure (reqObj, id = 'disclosureReq', sendOpts) {
     reqObj = Object.assign({
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
-      .then(jwt => this.send(jwt, id))
+      .then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
@@ -328,18 +341,19 @@ class Connect {
    *   ...
    *  })
    *
-   * @param    {Object}            [verification]           a unsigned verification object, by default the sub is the connected user
-   * @param    {String}            verification.claim       a claim about the subject, single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
-   * @param    {String}            verification.exp         time at which this verification expires and is no longer valid (seconds since epoch)
-   * @param    {String}            [id='sendVerReq']        string to identify request, later used to get response
+   * @param    {Object}     [verification]        a unsigned verification object, by default the sub is the connected user
+   * @param    {Object}     verification.claim    a claim about the subject, single key value or key mapping to object with multiple values (ie { address: {street: ..., zip: ..., country: ...}})
+   * @param    {String}     verification.exp      time at which this verification expires and is no longer valid (seconds since epoch)
+   * @param    {String}     [id='sendVerReq']     string to identify request, later used to get response
+   * @param    {Object}     [sendOpts]            reference send function options
    */
-  sendVerification (verification, id = 'sendVerReq') {
+  sendVerification (verification, id = 'sendVerReq', sendOpts) {
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
     if (!verification.sub) verification.sub = this.did
     this.credentials.createVerification(verification).then(jwt => {
       const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
-      this.send(uri, id)
+      this.send(uri, id, sendOpts)
     })
   }
 
