@@ -18,7 +18,7 @@ jobs:
 
       - run:
           name: test
-          command: npm run karma-CI
+          command: npm run test
 
       - run:
           name: code-coverage
@@ -26,7 +26,7 @@ jobs:
 
       - run:
           name: dist
-          command: npm run build-dist && npm run build-dist-prod
+          command: npm run build:dist && npm run build:dist:prod
 
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
