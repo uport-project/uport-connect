@@ -19,13 +19,14 @@ class Connect {
    *
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
+   * @param    {String}      [opts.desc]           A short description of your app that can be displayed to users when making requests
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
    * @param    {Object}      [opts.store]                 Storage inteferface with synchronous get() => statObj and set(stateObj) functions, by default store is local storage. For asynchronous storage, set useStore false and handle manually.
    * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
-   * @param    {String}      [opts.issc]                  
+   * @param    {String}      [opts.vc]                    An array of verified claims describing this identity
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
@@ -36,12 +37,13 @@ class Connect {
   constructor (appName, opts = {}) {
     // Config
     this.appName = appName || 'uport-connect-app'
+    this.desc = opts.desc
     this.network = network.config.network(opts.network)
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.useStore = opts.useStore === undefined ? true : opts.useStore
     this.usePush = opts.usePush === undefined ? true : opts.usePush
-    this.issc = opts.issc
+    this.vc = opts.vc || []
 
     // Disallow segregated account on mainnet
     if (this.network === network.defaults.networks.mainnet && this.accountType === 'segregated') {
@@ -73,6 +75,20 @@ class Connect {
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     this.resolverConfigs = {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }
     this.credentials = new Credentials(Object.assign(this.keypair, this.resolverConfigs))     // TODO can resolver configs not be passed through
+
+    // Self-attest to Name and Domain
+    if (typeof window !== 'undefined') {
+      const profile = {
+        appName: this.appName,
+        desc: this.desc,
+        host: window.location.host, 
+      }
+
+      // Upload to ipfs
+      this.credentials.signJWT(profile)
+        .then(jwt => ipfsAdd(jwt))
+        .then(hash => this.vc.unshift(`/ipfs/${hash}`))
+    }
   }
 
  /**
@@ -249,10 +265,11 @@ class Connect {
    *  @param    {String}    [id='txReq']    string to identify request, later used to get response, by default name of function, if not function call, by default 'txReq'
    */
   sendTransaction (txObj, id) {
-    txObj = Object.assign({
+    txObj = {
+      vc: this.vc, ...txObj, 
       to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
-      issc: this.issc
-    }, txObj)
+    }
+
     //  Create default id, where id is function name, or txReq if no function name
     if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
     this.credentials.txRequest(txObj, {callbackUrl: this.genCallback(id)})
@@ -284,7 +301,7 @@ class Connect {
    */
   createVerificationRequest (reqObj, id = 'signClaimReq') {
     reqObj.unsignedClaim = Object.assign({
-      issc: this.issc
+      vc: this.vc
     }, reqObj.unsignedClaim)
     this.credentials.createVerificationRequest(reqObj.unsignedClaim, reqObj.sub, this.genCallback(id), this.did)
       .then(jwt => this.send(jwt, id))
@@ -315,7 +332,7 @@ class Connect {
    */
   requestDisclosure (reqObj, id = 'disclosureReq') {
     reqObj = Object.assign({
-      issc: this.issc,
+      vc: this.vc,
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
@@ -342,7 +359,7 @@ class Connect {
    * @param    {String}            [id='attestReq']       string to identify request, later used to get response
    */
   attest (credential, id) {
-    credential = Object.assign({issc: this.issc}, credential)
+    credential = Object.assign({vc: this.vc}, credential)
     this.credentials.attest(credential).then(jwt => this.send(jwt, id))
   }
 
@@ -548,6 +565,30 @@ const isMobile = () => {
   if (typeof navigator !== 'undefined') {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
+}
+
+/**
+ * Post a json document to ipfs
+ * 
+ */
+function ipfsAdd(jwt) {
+  return new Promise((resolve, reject) => {
+    // Create new FormData to hold stringified JSON
+    const payload = new FormData()
+    payload.append("file", new Blob([jwt]))
+    const req = new XMLHttpRequest()
+    // Resolve to hash on success
+    req.onreadystatechange = () => {
+      if (req.readyState !== 4) return
+      if (req.status != 200) reject(`D'OH ${req.responseText}`)
+      else resolve(JSON.parse(req.responseText).Hash)
+    }
+    // Send request
+    req.open('POST', 'https://ipfs.infura.io:5001/api/v0/add')
+    req.setRequestHeader('accept','application/json')
+    req.enctype = 'multipart/form-data'
+    req.send(payload)
+  })
 }
 
 export default Connect
