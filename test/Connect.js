@@ -5,7 +5,7 @@ import Web3 from 'web3'
 
 import { Connect } from '../src'
 import { message } from 'uport-transports'
-import { Credentials } from 'uport'
+import { Credentials } from 'uport-credentials'
 import { decodeJWT, verifyJWT } from 'did-jwt'
 
 chai.use(sinonChai)

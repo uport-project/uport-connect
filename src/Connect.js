@@ -1,4 +1,4 @@
-import { Credentials, ContractFactory } from 'uport'
+import { Credentials, ContractFactory } from 'uport-credentials'
 import { verifyJWT, decodeJWT } from 'did-jwt'
 import MobileDetect from 'mobile-detect'
 import { isMNID, encode, decode } from 'mnid'
