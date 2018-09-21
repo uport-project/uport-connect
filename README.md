@@ -10,9 +10,13 @@
 
 # <a name="introduction"></a> Introduction
 
-**Required Upgrade v1.0.0 or v0.7.5 **
-**v0.7.5 to support new uPort Clients and legacy uPort Clients - [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
-**v1.0.0 to support new uPort Clients and to use new features and fixes [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
+**Required Upgrade v1.0.0 or v0.7.5**
+
+**v0.7.5 to support new both new uPort Mobile Clients and legacy uPort Mobile Clients - [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
+
+**v1.0.0 to support only new uPort Mobile Clients and to use new features and fixes**
+
+:bangbang: :warning: **v1.0.0** is released at the npm next tag at **uport-connect@next**. Only the newest uPort Mobile Client release will work with **v1.0.0**. It will become the default release once the newest uPort Mobile Client release is widely adopted (~ 2 weeks). Reference master branch for docs and info on current default release **v0.7.5**. Documentation for **v1.0.0** can only be found here and in the docs folder. The [developer site](https://developer.uport.me) will not contain **v1.0.0** documentation until it is the default release :warning: :bangbang:
 
 **uPort** is a collection of tools and protocols for building decentralized user-centric applications. It is built on open standards and open source libraries. uPort identities can be created and interacted with through uPort clients, including the uPort mobile app. Identities are fully owned and controlled by the creator, and don't rely on centralized third-parties for creation, control or validation.
 
