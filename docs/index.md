@@ -3,7 +3,7 @@ title: "uPort Connect"
 index: 0
 category: "uport-connect"
 type: "landing"
-source: "https://github.com/uport-project/uport-connect/blob/develop/docs/landing.md"
+source: "https://github.com/uport-project/uport-connect/blob/develop/docs/index.md"
 ---
 
 uPort Connect
@@ -25,4 +25,4 @@ Using uPort Connect allows you to:
 
 -   Use frictionless app linking for mobile browsers
 
-The uport-connect library is a client-side library that allows you to interact with a user's uPort identity&mdash;through the mobile app. Over this communication channel, you can create requests for a user's data, share credentials, and generate signature requests for transactions on a user's mobile app.
+The uport-connect library is a client-side library that allows you to interact with a user's uPort identity&mdash;through the mobile app. Over this communication channel, you can create requests for a user's data, share credentials, and generate transactions to be signed on the user's mobile app.

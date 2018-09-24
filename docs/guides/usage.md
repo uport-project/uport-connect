@@ -1,6 +1,6 @@
 ---
-title: "Connect Library"
-index: 2
+title: "Connect Library Guide"
+index: 1
 category: "uport-connect"
 type: "guide"
 source: "https://github.com/uport-project/uport-connect/blob/develop/docs/guides/usage.md"
