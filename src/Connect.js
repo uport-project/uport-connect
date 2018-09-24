@@ -19,7 +19,7 @@ class Connect {
    *
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
-   * @param    {String}      [opts.desc]           A short description of your app that can be displayed to users when making requests
+   * @param    {String}      [opts.desc]                  A short description of your app that can be displayed to users when making requests
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
@@ -277,7 +277,7 @@ class Connect {
    *  @param    {String}    [id='txReq']    string to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq'
    *  @param    {Object}    [sendOpts]      reference send function options
    */
-sendTransaction (txObj, id, sendOpts) {
+  sendTransaction (txObj, id, sendOpts) {
     txObj = {
       vc: this.vc, ...txObj, 
       to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
@@ -311,12 +311,12 @@ sendTransaction (txObj, id, sendOpts) {
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]             reference send function options
    */
-requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
-  reqObj.unsignedClaim = Object.assign({
+  requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+    unsignedClaim = Object.assign({
       vc: this.vc
     }, unsignedClaim)
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id)})
-    .then(jwt => this.send(jwt, id, sendOpts))
+      .then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
