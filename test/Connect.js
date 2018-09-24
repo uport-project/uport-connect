@@ -178,12 +178,12 @@ describe('Connect', () => {
       uport.genCallback = sinon.stub()
       uport.send = sinon.stub()
 
-      uport.credentials.requestDisclosure = (req) => {
+      uport.credentials.createDisclosureRequest = (req) => {
         expect(req.vc).to.deep.equal(vc)
         done()
       }
 
-      uport.requestDisclosure({})
+      uport.requestDisclosure()
     })
 
     it('uses vc provided in the request', (done) => {
@@ -194,7 +194,7 @@ describe('Connect', () => {
       uport.genCallback = sinon.stub()
       uport.send = sinon.stub()
 
-      uport.credentials.requestDisclosure = (req) => {
+      uport.credentials.createDisclosureRequest = (req) => {
         expect(req.vc).to.deep.equal(vc)
         done()
       }
