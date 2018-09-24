@@ -1,3 +1,11 @@
+---
+title: "uPort Connect"
+index: 0
+category: "uport-connect"
+type: "landing"
+source: "https://github.com/uport-project/uport-connect/blob/develop/docs/landing.md"
+---
+
 uPort Connect
 =============
 
