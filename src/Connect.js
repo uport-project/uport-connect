@@ -312,10 +312,7 @@ class Connect {
    *  @param    {Object}     [sendOpts]             reference send function options
    */
   requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
-    unsignedClaim = Object.assign({
-      vc: this.vc
-    }, unsignedClaim)
-    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id)})
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 
