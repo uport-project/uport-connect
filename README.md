@@ -10,9 +10,9 @@
 
 # <a name="introduction"></a> Introduction
 
-**Required Upgrade v1.0.0 or v0.7.5**
+**Required Upgrade v1.0.0 or ^0.7.5**
 
-**v0.7.5 to support new both new uPort Mobile Clients and legacy uPort Mobile Clients - [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
+**^0.7.5 to support new both new uPort Mobile Clients and legacy uPort Mobile Clients - [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
 
 **v1.0.0 to support only new uPort Mobile Clients and to use new features and fixes**
 
