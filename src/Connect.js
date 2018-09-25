@@ -26,7 +26,7 @@ class Connect {
    * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
    * @param    {Object}      [opts.store]                 Storage inteferface with synchronous get() => statObj and set(stateObj) functions, by default store is local storage. For asynchronous storage, set useStore false and handle manually.
    * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
-   * @param    {String}      [opts.vc]                    An array of verified claims describing this identity
+   * @param    {String[]}    [opts.vc]                    An array of verified claims describing this identity
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
@@ -43,7 +43,7 @@ class Connect {
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.useStore = opts.useStore === undefined ? true : opts.useStore
     this.usePush = opts.usePush === undefined ? true : opts.usePush
-    this.vc = opts.vc || []
+    this.vc = Array.isArray(opts.vc) ? opts.vc : []
 
     // Disallow segregated account on mainnet
     if (this.network === network.defaults.networks.mainnet && this.accountType === 'segregated') {
@@ -75,20 +75,6 @@ class Connect {
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     this.resolverConfigs = {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }
     this.credentials = new Credentials(Object.assign(this.keypair, this.resolverConfigs))     // TODO can resolver configs not be passed through
-
-    // Self-attest to Name and Domain
-    if (typeof window !== 'undefined') {
-      const profile = {
-        appName: this.appName,
-        desc: this.desc,
-        host: window.location.host, 
-      }
-
-      // Upload to ipfs
-      this.credentials.signJWT(profile)
-        .then(jwt => ipfsAdd(jwt))
-        .then(hash => this.vc.unshift(`/ipfs/${hash}`))
-    }
   }
 
  /**
@@ -277,7 +263,8 @@ class Connect {
    *  @param    {String}    [id='txReq']    string to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq'
    *  @param    {Object}    [sendOpts]      reference send function options
    */
-  sendTransaction (txObj, id, sendOpts) {
+  async sendTransaction (txObj = {}, id, sendOpts) {
+    if (!txObj.vc) await this.signAndUploadProfile()
     txObj = {
       vc: this.vc, ...txObj, 
       to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
@@ -311,7 +298,8 @@ class Connect {
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]             reference send function options
    */
-  requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+  async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+    await this.signAndUploadProfile()
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
@@ -340,12 +328,16 @@ class Connect {
    *  @param    {String}     [id='disclosureReq']  string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]            reference send function options
    */
-  requestDisclosure (reqObj, id = 'disclosureReq', sendOpts) {
+  async requestDisclosure (reqObj = {}, id = 'disclosureReq', sendOpts) {
+    if (!reqObj.vc) await this.signAndUploadProfile()
+    console.log('made it!', this.vc)
+    // Augment request object with verified claims, accountType, and a callback url
     reqObj = Object.assign({
       vc: this.vc,
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
+    // Create and send request
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
       .then(jwt => this.send(jwt, id, sendOpts))
   }
@@ -370,7 +362,8 @@ class Connect {
    * @param    {String}     [id='sendVerReq']     string to identify request, later used to get response
    * @param    {Object}     [sendOpts]            reference send function options
    */
-  sendVerification (verification, id = 'sendVerReq', sendOpts) {
+  async sendVerification (verification = {}, id = 'sendVerReq', sendOpts) {
+    if (!verification.vc) await this.signAndUploadProfile()
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
     verification = { sub: this.did, vc: this.vc, ...verification }
@@ -492,6 +485,32 @@ class Connect {
   genCallback(reqId) {
     return this.isOnMobile ?  windowCallback(reqId) : transport.messageServer.genCallback()
   }
+
+  /**
+   * @private
+   * Sign a profile object with this.credentials, and upload it to ipfs, prepending
+   * the instance array of verified claims (this.vc) with the ipfs uri.  If a profile
+   * object is not provided, create one on the fly 
+   * @param {Object}  [profile]         the profile object to be signed and uploaded
+   * @returns {Promise<String, Error>}  a promise resolving to the ipfs hash, or rejecting with an error
+   */
+  signAndUploadProfile(profile) {
+    if (!profile && this.profileHash) return
+    profile = profile || {
+      appName: this.appName,
+      desc: this.desc,
+      host: (typeof window !== 'undefined') ? window.location.host : undefined, 
+    }
+    
+    // Upload to ipfs
+    return this.credentials.signJWT(profile)
+      .then(jwt => ipfsAdd(jwt))
+      .then(hash => {
+        this.vc.unshift(`/ipfs/${hash}`)
+        this.profileHash = hash
+        return hash
+      })
+  }
 }
 
 const LOCALSTOREKEY = 'connectState'
@@ -599,7 +618,7 @@ function ipfsAdd(jwt) {
     // Resolve to hash on success
     req.onreadystatechange = () => {
       if (req.readyState !== 4) return
-      if (req.status != 200) reject(`D'OH ${req.responseText}`)
+      if (req.status != 200) reject(`Error ${req.status}: ${req.responseText}`)
       else resolve(JSON.parse(req.responseText).Hash)
     }
     // Send request
