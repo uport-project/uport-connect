@@ -46,6 +46,7 @@ describe('Connect', () => {
         accountType: 'keypair',
         isMobile: true,
         useStore: false,
+        vc: ['jwt'],
         transport,
         mobileTransport
       }
@@ -54,6 +55,7 @@ describe('Connect', () => {
       expect(uport.accountType).to.equal('keypair')
       expect(uport.isOnMobile).to.be.true
       expect(uport.useStore).to.be.false
+      expect(uport.vc).to.deep.equal(['jwt'])
       uport.transport('test')
       uport.mobileTransport('test')
       expect(transport).to.be.calledOnce
@@ -167,6 +169,37 @@ describe('Connect', () => {
       }
 
       uport.requestDisclosure({})
+    })
+
+    it('uses configured vc if not provided in request', (done) => {
+      const vc = ['details']
+      const uport = new Connect('test app', {vc})
+
+      uport.genCallback = sinon.stub()
+      uport.send = sinon.stub()
+
+      uport.credentials.createDisclosureRequest = (req) => {
+        expect(req.vc).to.deep.equal(vc)
+        done()
+      }
+
+      uport.requestDisclosure()
+    })
+
+    it('uses vc provided in the request', (done) => {
+      const wrongvc = ['bad']
+      const vc = ['good']
+      const uport = new Connect('test app', {vc: wrongvc})
+
+      uport.genCallback = sinon.stub()
+      uport.send = sinon.stub()
+
+      uport.credentials.createDisclosureRequest = (req) => {
+        expect(req.vc).to.deep.equal(vc)
+        done()
+      }
+
+      uport.requestDisclosure({vc})
     })
 
     it('sets the accountType to configured default if not provided in request', (done) => {
@@ -460,6 +493,7 @@ describe('Connect', () => {
 
       uport.send = (url) => {
         const jwt = message.util.getURLJWT(url)
+
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.claim).to.deep.equal(cred.claim)
