@@ -138,6 +138,7 @@
     "eslint": "^3.2.2",
     "ethjs-signer": "^0.1.1",
     "ganache-cli": "^6.1.0",
+    "ipfs-mini": "^1.1.2",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc": "^3.4.3",
