@@ -244,25 +244,24 @@ describe('Connect', () => {
 
     it('uploads a self-signed profile to ipfs if none is configured or provided', async function() {
       this.timeout(20000) // could take a while
-      const uport = new Connect('test app', {desc: 'It tests'})
+      const uport = new Connect('test app', {description: 'It tests'})
       
       const jwt = {
-        appName: 'test app',
-        desc: 'It tests',
-        host: 'localhost:9876'
+        name: 'test app',
+        description: 'It tests',
+        url: 'localhost:9876'
       }
 
       await uport.signAndUploadProfile()
 
       expect(uport.vc[0]).to.match(/^\/ipfs\//)
-
       return new Promise((resolve, reject) => {
         ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
           if (err) reject(err)
           const { payload } = decodeJWT(res)
-          expect(payload.appName).to.equal(jwt.appName)
-          expect(payload.desc).to.equal(jwt.desc)
-          expect(payload.host).to.equal(jwt.host)
+          expect(payload.name).to.equal(jwt.name)
+          expect(payload.description).to.equal(jwt.description)
+          expect(payload.url).to.equal(jwt.url)
           resolve()
         }) 
       })
