@@ -330,7 +330,6 @@ class Connect {
    */
   async requestDisclosure (reqObj = {}, id = 'disclosureReq', sendOpts) {
     if (!reqObj.vc) await this.signAndUploadProfile()
-    console.log('made it!', this.vc)
     // Augment request object with verified claims, accountType, and a callback url
     reqObj = Object.assign({
       vc: this.vc,
@@ -495,7 +494,7 @@ class Connect {
    * @returns {Promise<String, Error>}  a promise resolving to the ipfs hash, or rejecting with an error
    */
   signAndUploadProfile(profile) {
-    if (!profile && this.profileHash) return
+    if (!profile && this.vc.length > 0) return
     profile = profile || {
       appName: this.appName,
       desc: this.desc,
@@ -507,7 +506,6 @@ class Connect {
       .then(jwt => ipfsAdd(jwt))
       .then(hash => {
         this.vc.unshift(`/ipfs/${hash}`)
-        this.profileHash = hash
         return hash
       })
   }
