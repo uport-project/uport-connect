@@ -19,7 +19,7 @@ class Connect {
    *
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
-   * @param    {String}      [opts.desc]                  A short description of your app that can be displayed to users when making requests
+   * @param    {String}      [opts.description]           A short description of your app that can be displayed to users when making requests
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
@@ -37,7 +37,7 @@ class Connect {
   constructor (appName, opts = {}) {
     // Config
     this.appName = appName || 'uport-connect-app'
-    this.desc = opts.desc
+    this.description = opts.description
     this.network = network.config.network(opts.network)
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
@@ -496,9 +496,9 @@ class Connect {
   signAndUploadProfile(profile) {
     if (!profile && this.vc.length > 0) return
     profile = profile || {
-      appName: this.appName,
-      desc: this.desc,
-      host: (typeof window !== 'undefined') ? window.location.host : undefined, 
+      name: this.appName,
+      description: this.description,
+      url: (typeof window !== 'undefined') ? window.location.host : undefined, 
     }
     
     // Upload to ipfs
