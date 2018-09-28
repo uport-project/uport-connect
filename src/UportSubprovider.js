@@ -123,7 +123,7 @@ class UportSubprovider {
       case 'eth_signTypedData':
         let typedData = payload.params[0]
         return self.signTypedData(typedData, (err, result) => {
-          response(err, result)
+          respond(err, result)
         })
       default:
         return self.provider.sendAsync(payload, callback)

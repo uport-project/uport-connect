@@ -546,8 +546,7 @@ describe('Connect', () => {
   /*********************************************************************/
 
   describe('requestVerificationSignature', () => {
-    const vc = ['fake']
-    it('Creates sign verification request signed by the configured keypair', (done) => {
+    it('Creates a verification signature request signed by the configured keypair', (done) => {
       const uport = new Connect('testApp', {vc})
       const unsignedClaim = { hello: 'world' }
       const sub = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
@@ -564,6 +563,53 @@ describe('Connect', () => {
     })
   })
 
+  describe('requestTypedDataSignature', () => {
+    it('creates a typed data signature request signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp')
+      const typedData = {
+        types: {
+          EIP712Domain: [
+            {name: 'name', type: 'string'},
+            {name: 'version', type: 'string'},
+            {name: 'chainId', type: 'uint256'},
+            {name: 'verifyingContract', type: 'address'},
+            {name: 'salt', type: 'bytes32'}
+          ],
+          Greeting: [
+            {name: 'text', type: 'string'},
+            {name: 'subject', type: 'string'},
+          ]
+        },
+        domain: {
+          name: 'My dapp', 
+          version: '1.0', 
+          chainId: 1, 
+          verifyingContract: '0xdeadbeef',
+          salt: '0x999999999910101010101010'
+        },
+        primaryType: 'Greeting',
+        message: {
+          text: 'Hello',
+          subject: 'World'
+        }
+      } 
+
+      const testId = 'test_signTypedData'
+      const opts = {data: 'woop', type: 'woop', cancel: 'woop'}
+
+      uport.send = (jwt, sendId, sendOpts) => {
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.typedData).to.deep.equal(typedData)
+          expect(id).to.equal(testId)
+          expect(sendOpts).to.equal(opts)
+          done()
+        })
+      }
+
+      uport.requestTypedDataSignature(typedData, testId, opts)
+    })
+  })
 
   /*********************************************************************/
 
