@@ -10,14 +10,19 @@
 
 # <a name="introduction"></a> Introduction
 
-**Required Upgrade to v0.7.5 to support new uPort Clients - [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
+**Required Upgrade v1.0.0 or ^0.7.5**
 
-**uPort** is a system for self-sovereign digital identity anchored in Ethereum.
-The uPort technology primarily consists of smart contracts, developer libraries, and a mobile app. uPort identities are fully owned and controlled by the creator, and don't rely on centralized third-parties for creation, control or validation. In the current implementation of the system this is achievable by having the mobile app act as the primary secure container for data related to your identity and for a set of keys which allow you sign transactions, grant authorization and sign credentials. The identity is anchored in the blockchain with an identifier and public data is stored in IPFS.
+**^0.7.5 to support new both new uPort Mobile Clients and legacy uPort Mobile Clients - [View Details](https://github.com/uport-project/uport-connect/releases/tag/v0.7.5)**
 
-`uport-connect` is the client side library that allows you interact with user's uPort identities through the mobile app. It handles the communication channel between your app and the uPort mobile app, which can vary depending on the environment which your application runs. Over this communication channel you can create requests for a user's data, share credentials and generate transactions to be signed in the user's mobile app.
+**v1.0.0 to support only new uPort Mobile Clients and to use new features and fixes**
 
-For more information about our system and other products visit [uport.me](https://www.uport.me). View our [protocol specs](https://github.com/uport-project/specs/) if interested in understanding some of the lower level details.
+:bangbang: :warning: **v1.0.0** is released at the npm next tag at **uport-connect@next**. Only the newest uPort Mobile Client release will work with **v1.0.0**. It will become the default release once the newest uPort Mobile Client release is widely adopted (~ 2 weeks). Reference master branch for docs and info on current default release **v0.7.5**. Documentation for **v1.0.0** can only be found here and in the docs folder. The [developer site](https://developer.uport.me) will not contain **v1.0.0** documentation until it is the default release :warning: :bangbang:
+
+**uPort** is a collection of tools and protocols for building decentralized user-centric applications. It is built on open standards and open source libraries. uPort identities can be created and interacted with through uPort clients, including the uPort mobile app. Identities are fully owned and controlled by the creator, and don't rely on centralized third-parties for creation, control or validation.
+
+`uport-connect` is the client side library that allows you interact with a user's uPort identity through a uPort client, primarily the mobile app. It handles the communication channel between your app and a uPort client, which can vary depending on the environment which your application runs. Over this communication channel you can send requests for a user's data, share credentials, generate transactions to be signed by a user and relay requests you originally created on your server with [uport-credentials](https://github.com/uport-project/uport-credentials). This library offers the default quick start implementation to integrate with uPort, but if it doesn't offer exactly what you need, you may be interested in using [uport-tranports](https://github.com/uport-project/uport-transports) and [uport-credentials](https://github.com/uport-project/uport-credentials) instead.
+
+For more information about our system and other products visit [uport.me](https://www.uport.me). View our [protocol specs](https://github.com/uport-project/specs/) if interested in understanding the lower level details.
 
 For any questions or library support reach out to the [uPort team on riot](https://chat.uport.me/#/login) or create a [Github issue](https://github.com/uport-project/uport-connect/issues).
 
@@ -25,9 +30,7 @@ For any questions or library support reach out to the [uPort team on riot](https
 
 ## <a name="getting-started"></a>Getting started with uPort
 
-For additional documentation on all functionality [visit our docs](https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md). For a quick start continue below.
-
-For a more interactive quick start visit [developer.uport.me](https://developer.uport.me/gettingstarted)
+For additional documentation on all functionality [visit our docs](https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md). For a more interactive intro visit [developer.uport.me](https://developer.uport.me/gettingstarted). For a quick start continue below.
 
 ### <a name="quick-start"></a> Quick Start
 
@@ -35,30 +38,130 @@ For a more interactive quick start visit [developer.uport.me](https://developer.
 npm install uport-connect
 ```
 
-First we will instantiate the uPort object, by default it is configured on the Rinkeby test network.
+First we will instantiate the uPort object, by default it is configured on the Rinkeby test network, reference the docs for additional config arguments which can be passed.
 
 ```javascript
 import { Connect } from 'uport-connect'
-
-const uport = new Connect('MyDApp')
+const uport = new Connect('MyDAppName')
+// or on mainnet
+// const uport = new Connect('MyDAppName', {network: 'mainnet'})
 ```
 
-To ask the user for their credentials use `requestCredentials()`. With no additional params this will return a user's public profile.
+To request the DID and address of user use `requestDisclosure()`:
 
 ```javascript
-uport.requestCredentials().then((credentials) => {
-  console.log(credentials)
+uport.requestDisclosure({})
+
+uport.onResponse('disclosureReq').then(res => {
+  const did = res.payload.did
+  ...
 })
 ```
 
-If all we want is the address of the connected user we can use `requestAddress()`:
+Or to request addtional credentials, along with the DID.
 
 ```javascript
-uport.requestAddress().then((address) => {
-  console.log(address)
+const reqObj = { requested: ['name', 'country'],
+                  notifications: true }
+
+uport.requestDisclosure(reqObj)
+
+uport.onResponse('disclosureReq').then(res => {
+  const did = res.payload.did
+  const verified = res.payload.verified // An array of shared verified credentials, matching requested
+  ...
 })
 ```
 
+uPort Connect will save session data and data from prior requests to localStorage and will load it on instantiation. You can check if it is available before creating a selective disclosure request again.
+
+```javascript
+if (uport.did) {
+  // Already connected, reference docs to see data which will be available
+} else {
+  // Create a request if necessary
+}
+```
+
+To send a request message (JWT) you created on your server or elsewhere use `send()`:
+
+```javascript
+const reqID = 'myRequestID'
+const request = `eyJ0eXAiOiJKV1QiLCJhbG...`
+uport.send(request, reqID)
+uport.onResponse(reqID).then(payload => {
+  // Response is available now, handle as necessary to your implementation
+  // If the response was returned your server, you may poll for it now
+})
+```
+
+To request a user to sign a claim
+
+```javascript
+const unsignedClaim = {
+    "Citizen of city X": {
+      "Allowed to vote": true,
+      "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
+    }
+}
+
+const sub ="did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
+
+uport.requestVerificationSignature(unsignedClaim, sub)
+
+uport.onResponse('verSigReq').then(res => {
+  const signedClaim = res.payload
+})
+```
+
+To create a transaction request use `contract()` or `sendTransaction()`:
+
+```javascript
+const abi = [{"constant": false,"inputs": [{"name": "status","type": "string"}],"name": "updateStatus","outputs": [],"type": "function"}]
+const contractAddress = '0x71845bbfe5ddfdb919e780febfff5eda62a30fdc'
+const statusContract = uport.contract(abi).at(contractAddress)
+
+statusContract.updateStatus('hello', 'updateStatusReq')
+uport.onResponse('updateStatusReq').then(payload => {
+  const txId = payload.res
+})
+```
+
+```javascript
+const txObj = {
+  address: '0x71845bbfe5ddfdb919e780febfff5eda62a30fdc',
+  value: 1 * 1.0e18
+}
+uport.sendTransaction(txObj, 'ethSendReq')
+uport.onResponse('ethSendReq').then(res => {
+  const txId = res.payload
+})
+```
+### <a name="quick-start"></a> Quick Start with Provider (web3)
+
+Get provider and instantiate web3 or other provider supported library.
+
+```javascript
+const provider = uport.getProvider()
+const web3 = new Web3(provider)
+```
+
+To request the address of user:
+
+```javascript
+web3.eth.getCoinbase((error, address) => { ... })
+```
+
+To call contract:
+```javascript
+const statusContract = web3.eth.contract(abi).at(contractAddress)
+statusContract.updateStatus('hello', (error, txHash) => { ... })
+```
+
+To send transaction:
+```javascript
+web3.eth.sendTransaction(txObj, (error, txHash) => {...})
+```
 ### <a name="browser-quick-start"></a> Browser Window Quick Start
 
 For use directly in the browser you can reference the uport-connect distribution files from a number of places. They can be found in our npm package in the 'dist' folder or you can build them locally from this repo.
@@ -78,8 +181,8 @@ To see all available dist files on unpkg, vist [unpkg.com/uport-connect/dist/](h
 Then to instantiate the uPort object from the browser window object:
 
 ```js
-var uportconnect = window.uportconnect
-var uport = new uportconnect.Connect('MyDApp')
+const Connect = window.uportconnect
+const uport = new Connect('MyDApp')
 ```
 
 ### <a name="tutorials"></a> Tutorial and Examples
@@ -98,32 +201,32 @@ Download this repo or your fork, then run `npm install`.
 
 All builds are created from files in `/src`
 
-To transpile to ES5. All files are output to `/lib`. The entry of our npm package is `/lib/index.js`
+To transpile to ES5. All files are output to `/lib`. The entry of our npm package is `/lib/Connect.js`
 
 ```shell
-$ npm run build-es5
+$ npm run build:es5
 ```
 
 To generate a bundle/distributable. We use webpack for our builds. The output dist is `/dist/uport-connect.js` and source map `/dist/uport-connect.map.js`
 
 ```shell
-$ npm run build-dist
+$ npm run build:dist
 ```
 
 To generate a production bundle/distributable. Includes build optimizations related to size and code is minified. The output dist is `/dist/uport-connect.min.js` and source map `/dist/uport-connect.min.map.js`
 
 ```shell
-$ npm run build-dist-prod
+$ npm run build:dist:prod
 ```
 
 #### <a name="test"></a> Tests
 
-We write our tests using [mocha](http://mochajs.org) and run them with [karma](https://karma-runner.github.io/1.0/index.html). [TestRPC](https://github.com/ethereumjs/testrpc) runs in the background during tests.
+We write our tests using [mocha](http://mochajs.org) and run them with [karma](https://karma-runner.github.io/1.0/index.html).
 
 To run our tests:
 
 ```shell
-$ npm run karma
+$ npm test
 ```
 
 #### <a name="coverage"></a> Code Coverage
@@ -131,7 +234,7 @@ $ npm run karma
 Code coverage reports are generated when tests are run and can be viewed in browser. Reports are also published on [CodeCov](https://codecov.io/gh/uport-project/uport-connect) when pushed to github.
 
 ```shell
-$ npm run karma
+$ npm test
 $ open test/coverage/html/index.html
 ```
 

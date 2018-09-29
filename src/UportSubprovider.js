@@ -1,5 +1,6 @@
 import async from 'async'
 import { isMNID, decode } from 'mnid'
+import HttpProvider from 'ethjs-provider-http'
 
 /**
 *  A web3 style provider which can easily be wrapped with uPort functionality.
@@ -16,10 +17,17 @@ class UportSubprovider {
    * @param       {Object}            args.provider          a web3 sytle provider
    * @return      {UportSubprovider}                         self
    */
-  constructor ({requestAddress, sendTransaction, provider, networkId}) {
+  constructor ({requestAddress, sendTransaction, provider, network}) {
     const self = this
-    this.provider = provider
-    this.networkId = networkId
+
+    if (!provider) {
+      this.provider = new HttpProvider(network.rpcUrl)
+    } else {
+      this.provider = provider
+      console.warn('Uport functionality may not be entirely compatible with custom providers.')
+    }
+
+    this.network = network
     this.getAddress = (cb) => {
       if (self.address) return cb(null, self.address)
       requestAddress().then(
@@ -39,9 +47,9 @@ class UportSubprovider {
   }
 
   setAccount(address) {
-    if (this.networkId && isMNID(address)) {
+    if (this.network.id && isMNID(address)) {
       const mnid = decode(address)
-      if (this.networkId === mnid.network) {
+      if (this.network.id === mnid.network) {
         this.address = mnid.address
         return true
       }
@@ -53,10 +61,11 @@ class UportSubprovider {
   }
 
   /**
-   *  Synchronous functionality not supported
+   * Replace sync send with async send
+   * @private
    */
-  send (payload) {
-    throw new Error('Uport Web3 SubProvider does not support synchronous requests.')
+  send (payload, callback) {
+    return this.sendAsync(payload, callback)
   }
 
   /**
@@ -67,6 +76,7 @@ class UportSubprovider {
    *
    * @param       {Any}            payload           request payload
    * @param       {Function}       callback          called with response or error
+   * @private
    */
   sendAsync (payload, callback) {
     const self = this
@@ -103,7 +113,7 @@ class UportSubprovider {
           respond(err, tx)
         })
       default:
-        self.provider.sendAsync(payload, callback)
+        return self.provider.sendAsync(payload, callback)
     }
   }
 }

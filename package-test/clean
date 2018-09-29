@@ -1,0 +1,7 @@
+#!/bin/bash
+# Clean/remove setup
+
+rm -rf node_modules
+rm Connect.js karma.conf.js data.json package-lock.json
+rm ../uport-connect.tgz
+rm -r coverage

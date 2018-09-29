@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+main, section {
+  padding: 1em;
+}
+
+section {
+	display: inline-block;
+	vertical-align: top;
+	width: 30%;
+}
+
+code {
+  color: #d00;
+  padding: 0.1em 0.25em;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-radius: 0.25em;
+}
+
+label {
+  display: block;
+}
+
+input {
+	margin: 0 1em;
+	border-radius: 0.25em;
+}
