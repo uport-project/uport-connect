@@ -59,11 +59,15 @@ class Connect {
     // Transports
     this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
-    this.mobileTransport = opts.mobileTransport || transport.url.send()
+    this.mobileTransport = opts.mobileTransport || transport.url.send({
+      messageToURI: (m) => this.useDeepLinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
+    })
     this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
     this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
     transport.url.listenResponse((err, res) => {
       if (err) throw err
+      // Switch to deep links after first universal link success
+      this.useDeepLinks = true
       this.pubResponse(res)
     })
 
