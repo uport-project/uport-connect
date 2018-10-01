@@ -27,6 +27,7 @@ class Connect {
    * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
+   * @param    {Function}    [opts.mobileUriHandler]      Optional uri handler for mobile requests, if using default transports
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
    * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
    * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRECATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
@@ -60,14 +61,15 @@ class Connect {
     this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
     this.mobileTransport = opts.mobileTransport || transport.url.send({
-      messageToURI: (m) => this.useDeepLinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
+      uriHandler: opts.mobileUriHandler,
+      messageToURI: (m) => this.useDeeplinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
     })
     this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
     this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
     transport.url.listenResponse((err, res) => {
       if (err) throw err
       // Switch to deep links after first universal link success
-      this.useDeepLinks = true
+      this.useDeeplinks = true
       this.pubResponse(res)
     })
 
