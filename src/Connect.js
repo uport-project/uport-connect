@@ -20,6 +20,8 @@ class Connect {
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
    * @param    {String}      [opts.description]           A short description of your app that can be displayed to users when making requests
+   * @param    {String}      [opts.profileImage]          A URL for an image to be displayed as the avatar for this app in requests
+   * @param    {String}      [opts.bannerImage]           A URL for an image to be displayed as the banner for this app in requests
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
@@ -38,6 +40,8 @@ class Connect {
     // Config
     this.appName = appName || 'uport-connect-app'
     this.description = opts.description
+    this.profileImage = opts.profileImage
+    this.bannerImage = opts.bannerImage
     this.network = network.config.network(opts.network)
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
@@ -481,7 +485,7 @@ class Connect {
   /**
    *  @private
    */
-  genCallback(reqId) {
+  genCallback (reqId) {
     return this.isOnMobile ?  windowCallback(reqId) : transport.messageServer.genCallback()
   }
 
@@ -493,18 +497,21 @@ class Connect {
    * @param {Object}  [profile]         the profile object to be signed and uploaded
    * @returns {Promise<String, Error>}  a promise resolving to the ipfs hash, or rejecting with an error
    */
-  signAndUploadProfile(profile) {
+  signAndUploadProfile (profile) {
     if (!profile && this.vc.length > 0) return
     profile = profile || {
       name: this.appName,
       description: this.description,
-      url: (typeof window !== 'undefined') ? window.location.host : undefined, 
+      url: (typeof window !== 'undefined') ? window.location.host : undefined,
+      profileImage: this.profileImage,
+      bannerImage: this.bannerImage,
     }
     
     // Upload to ipfs
-    return this.credentials.signJWT(profile)
+    return this.credentials.createVerification({sub: this.did, claim: {profile}})
       .then(jwt => ipfsAdd(jwt))
       .then(hash => {
+        console.log('uploaded, ', this.vc)
         this.vc.unshift(`/ipfs/${hash}`)
         return hash
       })

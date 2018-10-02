@@ -253,15 +253,15 @@ describe('Connect', () => {
       }
 
       await uport.signAndUploadProfile()
-
       expect(uport.vc[0]).to.match(/^\/ipfs\//)
       return new Promise((resolve, reject) => {
         ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
           if (err) reject(err)
           const { payload } = decodeJWT(res)
-          expect(payload.name).to.equal(jwt.name)
-          expect(payload.description).to.equal(jwt.description)
-          expect(payload.url).to.equal(jwt.url)
+          const { profile } = payload.claim
+          expect(profile.name).to.equal(jwt.name)
+          expect(profile.description).to.equal(jwt.description)
+          expect(profile.url).to.equal(jwt.url)
           resolve()
         }) 
       })
