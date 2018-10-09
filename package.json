@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "1.0.0-alpha-5",
+  "version": "1.1.0-alpha-1",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -110,7 +110,7 @@
     "pubsub-js": "^1.6.0",
     "qs": "^6.2.1",
     "store": "^2.0.12",
-    "uport-credentials": "^1.0.0-alpha-4",
+    "uport-credentials": "1.1.0-alpha-2",
     "uport-did-resolver": "0.0.3",
     "uport-lite": "^1.0.2",
     "uport-transports": "0.0.65"
@@ -138,6 +138,7 @@
     "eslint": "^3.2.2",
     "ethjs-signer": "^0.1.1",
     "ganache-cli": "^6.1.0",
+    "ipfs-mini": "^1.1.2",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc": "^3.4.3",
