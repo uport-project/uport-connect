@@ -596,8 +596,8 @@ describe('Connect', () => {
 
       const testId = 'test_signTypedData'
       const opts = {data: 'woop', type: 'woop', cancel: 'woop'}
-
-      uport.send = (jwt, sendId, sendOpts) => {
+    
+      uport.send = (jwt, id, sendOpts) => {
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.typedData).to.deep.equal(typedData)
