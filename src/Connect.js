@@ -31,6 +31,7 @@ class Connect {
    * @param    {String[]}    [opts.vc]                    An array of verified claims describing this identity
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
+   * @param    {Function}    [opts.mobileUriHandler]      Optional uri handler for mobile requests, if using default transports
    * @param    {Object}      [opts.muportConfig]          Configuration object for muport did resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver)
    * @param    {Object}      [opts.ethrConfig]            Configuration object for ethr did resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver)
    * @param    {Object}      [opts.registry]              Configuration for uPort DID Resolver (DEPRECATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver)
@@ -67,11 +68,16 @@ class Connect {
     // Transports
     this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
-    this.mobileTransport = opts.mobileTransport || transport.url.send()
+    this.mobileTransport = opts.mobileTransport || transport.url.send({
+      uriHandler: opts.mobileUriHandler,
+      messageToURI: (m) => this.useDeeplinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
+    })
     this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
     this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
     transport.url.listenResponse((err, res) => {
       if (err) throw err
+      // Switch to deep links after first universal link success
+      this.useDeeplinks = true
       this.pubResponse(res)
     })
 

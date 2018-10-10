@@ -4,9 +4,9 @@
       "plugins": ["transform-es2015-modules-umd"]
     }, 
   },
-  "presets": ["es2015"],
+  "presets": ["env"],
   "plugins": [
-    "syntax-object-rest-spread",
+    "transform-runtime",
     "transform-object-rest-spread", 
     "istanbul"
   ]
