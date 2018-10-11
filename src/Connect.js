@@ -114,6 +114,11 @@ class Connect {
         this.sendTransaction(txObj, requestID)
         return this.onResponse(requestID).then(res => res.payload)
       },
+      signTypedData: (typedData) => {
+        const requestID = 'typedDataSigReqProvider'
+        this.requestTypedDataSignature(typedData, requestID)
+        return this.onResponse(requestID).then(res => res.payload)
+      },
       provider, network: this.network
     })
     if (this.address) subProvider.setAccount(this.address)
@@ -287,7 +292,7 @@ class Connect {
   }
 
   /**
-   *  Creates a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
+   *  Creates and sends a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
    *
    *  @example
    *  const unsignedClaim = {
@@ -311,6 +316,18 @@ class Connect {
   async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
     await this.signAndUploadProfile()
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
+      .then(jwt => this.send(jwt, id, sendOpts))
+  }
+
+  /**
+   * Creates and sends a request to a user to sign a piece of ERC712 Typed Data
+   * 
+   * @param     {Object}    typedData             an object containing unsigned typed, structured data that follows the ERC712 specification  
+   * @param     {String}    [id='signVerReq']     string to identify request, later used to get response
+   * @param     {Object}    [sendOpts]            reference send function options
+   */
+  requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
+    this.credentials.createTypedDataSignatureRequest(typedData, {aud: this.did, callbackUrl: this.genCallback(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 

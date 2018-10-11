@@ -83,4 +83,15 @@ describe('UportSubprovider', () => {
   		done()
   	})
   })
+	
+  it('Calls the passed signTypedData function for `eth_signTypedData` request', (done) => {
+	const response = 'res'
+	const signTypedData = sinon.stub().resolves(response)
+	const uSub = new UportSubprovider({signTypedData, network})
+	uSub.sendAsync({method: 'eth_signTypedData', params: [{data: 'fake'}]}, (err, {result}) => {
+		expect(err).to.be.null
+		expect(result).to.equal(response)
+		done()
+  	})
+  })
 })
