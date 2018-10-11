@@ -546,6 +546,7 @@ describe('Connect', () => {
   /*********************************************************************/
 
   describe('requestVerificationSignature', () => {
+    const vc = ['fake']
     it('Creates a verification signature request signed by the configured keypair', (done) => {
       const uport = new Connect('testApp', {vc})
       const unsignedClaim = { hello: 'world' }
@@ -564,8 +565,9 @@ describe('Connect', () => {
   })
 
   describe('requestTypedDataSignature', () => {
+    const vc = ['fake']
     it('creates a typed data signature request signed by the configured keypair', (done) => {
-      const uport = new Connect('testApp')
+      const uport = new Connect('testApp', {vc})
       const typedData = {
         types: {
           EIP712Domain: [
@@ -608,6 +610,28 @@ describe('Connect', () => {
       }
 
       uport.requestTypedDataSignature(typedData, testId, opts)
+    })
+
+    it('is called with the correct arguments from a UportSubprovider', (done) => {
+      const uport = new Connect('test app', {vc})
+      const subprovider = uport.getProvider()
+
+      // Test that the request/response pair is the same
+      let reqId
+      uport.requestTypedDataSignature = (_, id) => reqId = id
+      uport.onResponse = (id) => {
+        expect(id).to.equal(reqId)
+        return Promise.resolve({payload: 'result'})
+      }
+
+      const payload = {method: 'eth_signTypedData', id: 'test', params: []}
+      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
+        expect(err).to.be.null
+        expect(id).to.equal(payload.id)
+        expect(jsonrpc).to.equal('2.0')
+        expect(result).to.equal('result')
+        done()
+      })
     })
   })
 

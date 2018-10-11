@@ -116,7 +116,7 @@ class Connect {
       },
       signTypedData: (typedData) => {
         const requestID = 'typedDataSigReqProvider'
-        this.requestTypedDataSignature(typeData, requestID)
+        this.requestTypedDataSignature(typedData, requestID)
         return this.onResponse(requestID).then(res => res.payload)
       },
       provider, network: this.network

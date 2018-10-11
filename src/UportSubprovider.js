@@ -116,15 +116,11 @@ class UportSubprovider {
         })
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
-        return self.sendTransaction(txParams, (err, tx) => {
-          respond(err, tx)
-        })
+        return self.sendTransaction(txParams, respond)
       case 'eth_signTypedData_v3':
       case 'eth_signTypedData':
         let typedData = payload.params[0]
-        return self.signTypedData(typedData, (err, result) => {
-          respond(err, result)
-        })
+        return self.signTypedData(typedData, respond)
       default:
         return self.provider.sendAsync(payload, callback)
     }
