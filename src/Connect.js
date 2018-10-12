@@ -531,7 +531,7 @@ class Connect {
     }
     
     // Upload to ipfs
-    return this.credentials.createVerification({sub: this.did, claim: {profile}})
+    return this.credentials.createVerification({sub: this.did, claim: profile})
       .then(jwt => ipfsAdd(jwt))
       .then(hash => {
         console.log('uploaded, ', this.vc)
