@@ -258,6 +258,7 @@ describe('Connect', () => {
         ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
           if (err) reject(err)
           const { payload } = decodeJWT(res)
+          expect(payload.sub).to.equal(uport.keypair.did)
           const profile = payload.claim
           expect(profile.name).to.equal(jwt.name)
           expect(profile.description).to.equal(jwt.description)
