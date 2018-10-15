@@ -8,7 +8,7 @@ source: "https://github.com/uport-project/uport-connect/blob/develop/docs/guides
 
 # <a name="usage-guide"></a> Connect Library Guide
 
-The uPort Connect library is a client-side library that allows you to interact with a user's uPort identity through a uPort client, primarily the uPort mobile app. It bundles functionality from our other libraries into a singular, easy to use interface.
+The uPort Connect library is a client-side library that allows you to interact with a user's uPort identity through a uPort client, primarily the uPort mobile app. The Connect library bundles functionality from our other libraries into a singular, easy to use interface.
 
 This guide describes the parts which make-up Connect and provides further details on how to configure it for your specific use case. While Connect is likely the best solution for most use cases, you may decide you need greater optionality and control over certain use cases, in that situation, you may be interested in using [uport-tranports](https://github.com/uport-project/uport-transports) and [uport-credentials](https://github.com/uport-project/uport-credentials) as an alternative.
 
@@ -26,7 +26,7 @@ The following Connect object is the primary interface you will use. All details 
       * [.send(request, id, [opts])](#Connect+send)
       * [.logout()](#Connect+logout)
 
-# <a name="communication"></a> Messages
+## <a name="communication"></a> Messages
 
 All uPort messages, once encoded, are simply strings. For example, a selective disclosure request for a user's ID/address looks as follows:
 
@@ -38,7 +38,7 @@ All requests are defined in the [uport specs](https://github.com/uport-project/u
 
 The Connect library creates these request messages as a part of an entire flow of creating a request and then sending it to a uPort client. If you only want to create a request message, [uport-credentials](https://github.com/uport-project/uport-credentials) can be used. uPort-Credentials primarily handles message creation, signing, encoding, decoding, and verification.
 
-# <a name="communication"></a> Communication and Transports
+## <a name="communication"></a> Communication and Transports
 
 Once a request message is created, the second primary purpose of uPort Connect is to send it to a uPort client (Mobile App) and then get the response from that client. The library does this by setting up and managing different communication channels depending on the environment in which your app runs and the parameters which you specify. Connect comes with a set of defaults by bundling transports from [uport-transports](https://github.com/uport-project/uport-transports). Transports are communication channels; they are functions that consume request strings and additional transport params before they send these strings to a uPort client. Some transports will also manage receiving a response to a given request.
 
@@ -46,7 +46,7 @@ You can take a look at [uport-transports](https://github.com/uport-project/uport
 
 To support the variety of methods for passing messages between a browser and a uPort client, uPort Connect separates sending requests from handling responses. You can send requests through a variety of methods, and each accepts a `requestId` parameter to identify it. Response handlers are then registered by calling `onResponse` for the same `requestId`, which returns a promise that resolves when the response is available. This allows for responses to be handled even if the page sending the request is reloaded, or if the response is handled on a different page than the one from which a request is sent. This is especially relevant to mobile browsers and is discussed more [below](#default-mobile)
 
-## Default QR Flow
+### Default QR Flow
 
 When the library is loaded on a non-mobile client, the library will use QR codes to pass a request from the browser to the uPort mobile application. We provide a default QR code display function, which injects a `<div>` into the DOM, containing a modal with a QR code. If the request was created on the client-side (e.g., Connect), then the response will be relayed through our messaging server, Chasqui. In the future, you will have the option to run your messaging server as well. If the request is created on your server, and you set a URL at your server as the callback, then the response will be returned there. In that case, the library will pass the request in a QR code, then you will handle the response as necessary since it will directly return to your server.
 
@@ -96,7 +96,7 @@ connect.onResponse(reqId).then(res => {
 })
 ```
 
-## <a name="default-mobile"></a> Default Mobile Requests
+### <a name="default-mobile"></a> Default Mobile Requests
 
 By default, `uport-connect` will detect if the library is loaded in a mobile client. When loaded in a mobile client, it assumes that the uPort mobile app is on the same device, it will set the window URL to the request URI, which will bring up a prompt to open that request URI in the uPort mobile app. If the request is created on the client side (e.g., Connect), then the response will be returned by the mobile app calling a URL, which encodes the response and returns control to the calling app. If the request is created on your server, then by default the response will be returned there, and the mobile app will return (redirect) control to the calling app, where you can then handle the response as you need for your use case.
 
@@ -162,7 +162,7 @@ connect.onResponse(reqId).then(res => {
 })
 ```
 
-## <a name="default-push"></a> Push Notification Requests
+### <a name="default-push"></a> Push Notification Requests
 
 As an alternative to QR codes on non-mobile clients, `uport-connect` can send request messages to a uPort client through a push notification. This is simply enabled by requesting push notification permissions from a user through a selective disclosure request. Once a user accepts, a push token will be returned in the response, this push token then allows `uport-connect` to setup a push notification transport or for a developer to setup their own.
 
@@ -182,9 +182,9 @@ connect.onResponse('disclosureReq').then(payload => {
 })
 ```
 
-### Configurations
+### Transports Configuration
 
-If you do not want to rely on our default device detection and want to include your own or a different set of rules, then you can simply set the `isMobile` config Boolean. This may also be useful if you know your application will always run in a particular environment, such as a native app.
+If you don't want to rely on our default device detection, you can include additional transport methods or devise a different set of rules, in which case you can set the `isMobile` config Boolean. This may also be useful if you know your application will always run in a particular environment, such as a native app.
 
 ```js
 const uport = new Connect('MyDApp', {
@@ -199,7 +199,7 @@ const uport = new Connect('MyDApp', {
   mobileTransport: yourMobileTransport
 })
 ```
-# <a name="both-default"></a> Combining Both Flows
+## <a name="both-default"></a> Combining Both Flows
 
 Since your code can run on both desktop and mobile clients, we expect the defaults to work for both without it requiring you to write different code branches for each case. You can pass in mobile transport flow specific params without them affecting the desktop flow. For example, the following code can be written and the redirectUrl param will simply be ignored when on a desktop client, while you can handle both responses from each flow in the same way.
 
@@ -217,7 +217,7 @@ connect.onResponse(reqId).then(payload => {
 })
 ```
 
-# <a name="ethereum"></a> Ethereum Interactions and Transactions
+## <a name="ethereum"></a> Ethereum Interactions and Transactions
 
 `uport-connect` offers two Ethereum interaction models. The first is like the one above, where all Ethereum interactions get encoded as uPort requests for a uPort client. You can create these requests in both `uport-connect` and `uport-credentials`, and then send them the same way as the examples above. The second one allows you to create a web3 style provider wrapped with uPort functionality.
 
