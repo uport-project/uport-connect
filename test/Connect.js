@@ -589,7 +589,7 @@ describe('transports', () => {
     })
   })
 
-  it('uses universal links on first mobile request, and deep links thereafter', (done) => {
+  it.skip('uses universal links on first mobile request, and deep links thereafter', (done) => {
     // Set up uriHandler to check uri scheme
     let shouldBeDeeplink = false
     const mobileUriHandler = (uri) => {
