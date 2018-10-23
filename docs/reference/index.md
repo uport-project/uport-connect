@@ -1,40 +1,18 @@
 ---
-title: "Uport Connect"
-index: 0
-category: "reference"
-type: "content"
+title: "Library Reference"
+index: 10
+category: "uport-connect"
+type: "reference"
+source: "https://github.com/uport-project/uport-connect/blob/develop/docs/reference/index.md"
 ---
 
 
 
-## Modules
-
-<dl>
-<dt><a href="#module_uport-connect/topicFactory">uport-connect/topicFactory</a></dt>
-<dd><p>Manages the communication channel between the uport-connect library and a
- uPort mobile app. The functionality is dependent on the context. If on a
- desktop device the communication channel is through a server. uPort offers a
- server called chasqui to implement this, but you may also run you own server.
- If on a mobile device the communication channel between the broswer and app
- is managed by passing data with URIs/URLs</p>
-</dd>
-</dl>
-
 ## Classes
 
 <dl>
-<dt><a href="#Connect">Connect</a> ⇐ <code><a href="#ConnectCore">ConnectCore</a></code></dt>
-<dd><p>Primary object for frontend interactions with uPort. Bundles all neccesary functionality.</p>
-</dd>
-<dt><a href="#ConnectCore">ConnectCore</a></dt>
-<dd><p>Primary object for frontend interactions with uPort. ConnectCore excludes
- some functionality found in Connect for a more customizable and lightweight integration.
- It does not provide any web3 functionality althought you can still use getProvider
- to get a provider to use with web3 or other libraries. It removes all default
- QR injection functionality. Your can choose how you want to handle the UX and/or
- QR generation and use any QR library you choose. For example, if used in a
- mobile native app QR generation is not even necessary.</p>
-</dd>
+<dt><a href="#Connect">Connect</a></dt>
+<dd></dd>
 <dt><a href="#UportSubprovider">UportSubprovider</a></dt>
 <dd><p>A web3 style provider which can easily be wrapped with uPort functionality.
  Builds on a base provider. Used in Connect to wrap a provider with uPort specific
@@ -42,487 +20,308 @@ type: "content"
 </dd>
 </dl>
 
-<a name="module_uport-connect/topicFactory"></a>
-
-## uport-connect/topicFactory
-Manages the communication channel between the uport-connect library and a
- uPort mobile app. The functionality is dependent on the context. If on a
- desktop device the communication channel is through a server. uPort offers a
- server called chasqui to implement this, but you may also run you own server.
- If on a mobile device the communication channel between the broswer and app
- is managed by passing data with URIs/URLs
-
-
-* [uport-connect/topicFactory](#module_uport-connect/topicFactory)
-    * [~TopicFactory(isOnMobile, pollingInterval, chasquiUrl)](#module_uport-connect/topicFactory..TopicFactory) ⇒ <code>function</code>
-        * [~waitForHashChange(topicName, cb)](#module_uport-connect/topicFactory..TopicFactory..waitForHashChange)
-        * [~pollForResult(topicName, url, cb, cancelled)](#module_uport-connect/topicFactory..TopicFactory..pollForResult)
-        * [~clearTopic(url)](#module_uport-connect/topicFactory..TopicFactory..clearTopic)
-        * [~newTopic(topicName)](#module_uport-connect/topicFactory..TopicFactory..newTopic) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-
-<a name="module_uport-connect/topicFactory..TopicFactory"></a>
-
-### uport-connect/topicFactory~TopicFactory(isOnMobile, pollingInterval, chasquiUrl) ⇒ <code>function</code>
-Returns a function enclosed with the necessary settings which creates topics
- (or communication channels).
-
-**Kind**: inner method of [<code>uport-connect/topicFactory</code>](#module_uport-connect/topicFactory)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| isOnMobile | <code>Boolean</code> |  | true if in on mobile device, false otherwise |
-| pollingInterval | <code>String</code> | <code>2000</code> | the rate at which the messaging server is polled |
-| chasquiUrl | <code>String</code> |  | the url of the message server |
-
-
-* [~TopicFactory(isOnMobile, pollingInterval, chasquiUrl)](#module_uport-connect/topicFactory..TopicFactory) ⇒ <code>function</code>
-    * [~waitForHashChange(topicName, cb)](#module_uport-connect/topicFactory..TopicFactory..waitForHashChange)
-    * [~pollForResult(topicName, url, cb, cancelled)](#module_uport-connect/topicFactory..TopicFactory..pollForResult)
-    * [~clearTopic(url)](#module_uport-connect/topicFactory..TopicFactory..clearTopic)
-    * [~newTopic(topicName)](#module_uport-connect/topicFactory..TopicFactory..newTopic) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-
-<a name="module_uport-connect/topicFactory..TopicFactory..waitForHashChange"></a>
-
-#### TopicFactory~waitForHashChange(topicName, cb)
-Waits for a window.onhashchange event, which occurs when control is returned
- from the mobile uPort app to the mobile browser.
-
-**Kind**: inner method of [<code>TopicFactory</code>](#module_uport-connect/topicFactory..TopicFactory)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| topicName | <code>String</code> | the topic you are waiting for a response |
-| cb | <code>function</code> | a callback which receives a response or error |
-
-<a name="module_uport-connect/topicFactory..TopicFactory..pollForResult"></a>
-
-#### TopicFactory~pollForResult(topicName, url, cb, cancelled)
-Polls a given url (messaging server) for given topic response
- from the mobile uPort app to the mobile browser.
-
-**Kind**: inner method of [<code>TopicFactory</code>](#module_uport-connect/topicFactory..TopicFactory)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| topicName | <code>String</code> | the topic you are waiting for a response |
-| url | <code>String</code> | url to poll for a response |
-| cb | <code>function</code> | function which is called with a response or error |
-| cancelled | <code>function</code> | function which returns true if the polling has been cancelled |
-
-<a name="module_uport-connect/topicFactory..TopicFactory..clearTopic"></a>
-
-#### TopicFactory~clearTopic(url)
-Clear a topic on the messaging server, typically used to remove data after a response is received
-
-**Kind**: inner method of [<code>TopicFactory</code>](#module_uport-connect/topicFactory..TopicFactory)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| url | <code>String</code> | url endpoint which to clear topic |
-
-<a name="module_uport-connect/topicFactory..TopicFactory..newTopic"></a>
-
-#### TopicFactory~newTopic(topicName) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Creates a topic and random url endpoint on the messaging server. Passes this
- url in requests to the mobile app. Starts polling for a response from the
- mobile app at that url. Returns a promise which resolves a response or rejects
- an error (or timeout).
-
-**Kind**: inner method of [<code>TopicFactory</code>](#module_uport-connect/topicFactory..TopicFactory)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a response or rejects with an error.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| topicName | <code>String</code> | the topic you are waiting for a response |
-
 <a name="Connect"></a>
 
-## Connect ⇐ [<code>ConnectCore</code>](#ConnectCore)
-Primary object for frontend interactions with uPort. Bundles all neccesary functionality.
-
+## Connect
 **Kind**: global class  
-**Extends**: [<code>ConnectCore</code>](#ConnectCore)  
 
-* [Connect](#Connect) ⇐ [<code>ConnectCore</code>](#ConnectCore)
+* [Connect](#Connect)
     * [new Connect(appName, [opts])](#new_Connect_new)
-    * [.getWeb3()](#Connect+getWeb3) ⇒ <code>web3</code>
-    * [.getProvider()](#ConnectCore+getProvider) ⇒ [<code>UportSubprovider</code>](#UportSubprovider)
-    * [.requestCredentials([request], [uriHandler])](#ConnectCore+requestCredentials) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.requestAddress([uriHandler])](#ConnectCore+requestAddress) ⇒ <code>Promise.&lt;String, Error&gt;</code>
-    * [.attestCredentials(credential, [uriHandler])](#ConnectCore+attestCredentials) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.request(request)](#ConnectCore+request) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.contract(abi)](#ConnectCore+contract) ⇒ <code>Object</code>
-    * [.sendTransaction(txobj)](#ConnectCore+sendTransaction) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
+    * [.getProvider([provider])](#Connect+getProvider) ⇒ <code>[UportSubprovider](#UportSubprovider)</code>
+    * [.onResponse(id, cb)](#Connect+onResponse) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
+    * [.pubResponse(response)](#Connect+pubResponse)
+    * [.send(request, id, [opts])](#Connect+send)
+    * [.contract(abi)](#Connect+contract) ⇒ <code>Object</code>
+    * [.sendTransaction(txObj, [id], [sendOpts])](#Connect+sendTransaction)
+    * [.requestVerificationSignature(unsignedClaim, sub, [id], [sendOpts])](#Connect+requestVerificationSignature)
+    * [.requestDisclosure([reqObj], [id], [sendOpts])](#Connect+requestDisclosure)
+    * [.sendVerification([verification], [id], [sendOpts])](#Connect+sendVerification)
+    * [.setState(Update)](#Connect+setState)
+    * [.loadState()](#Connect+loadState)
+    * [.logout()](#Connect+logout)
+    * [.reset()](#Connect+reset)
 
 <a name="new_Connect_new"></a>
 
 ### new Connect(appName, [opts])
-Instantiates a new uPort connect object.
+Instantiates a new uPort Connect object.
 
+**Returns**: <code>[Connect](#Connect)</code> - self  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| appName | <code>String</code> |  | the name of your app |
-| [opts] | <code>Object</code> |  | optional parameters |
-| opts.credentials | <code>Object</code> |  | pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests |
-| opts.signer | <code>function</code> |  | signing function which will be used to sign JWT's in the credentials object |
-| opts.clientId | <code>String</code> |  | uport identifier for your application this will be used in the default credentials object |
-| [opts.network] | <code>Object</code> | <code>&#x27;kovan&#x27;</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten'. |
-| opts.rpcUrl | <code>String</code> |  | JSON rpc url (defaults to https://ropsten.infura.io) |
-| opts.infuraApiKey | <code>String</code> |  | Infura API Key (register here http://infura.io/register.html) |
-| opts.topicFactory | <code>function</code> |  | function which generates topics and deals with requests and response |
-| opts.uriHandler | <code>function</code> |  | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
-| opts.mobileUriHandler | <code>function</code> |  | default function to consume generated URIs for requests on mobile |
-| opts.closeUriHandler | <code>function</code> |  | default function called after a request receives a response, can be to close QR codes or other custom UX |
+| appName | <code>String</code> |  | The name of your app |
+| [opts] | <code>Object</code> |  | Optional parameters |
+| [opts.network] | <code>Object</code> | <code>&#x27;rinkeby&#x27;</code> | Network config object or string name, e.g., { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'Kovan', 'Mainnet', 'Ropsten', 'Rinkeby'. |
+| [opts.accountType] | <code>String</code> |  | Ethereum account type: "general", "segregated", "key pair", or "none" |
+| [opts.isMobile] | <code>Boolean</code> |  | Configured by default by detecting client, but can optionally pass Boolean to indicate whether this is instantiated on a mobile client |
+| [opts.useStore] | <code>Boolean</code> | <code>true</code> | When true, object state will be written to local storage on each state change |
+| [opts.store] | <code>Object</code> |  | Storage inteterface with synchronous get() => statObj and set(stateObj) functions, by default store is local storage. For asynchronous storage, set useStore false and handle manually. |
+| [opts.usePush] | <code>Boolean</code> | <code>true</code> | Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport |
+| [opts.transport] | <code>function</code> |  | Optional custom transport for desktop, non-push requests |
+| [opts.mobileTransport] | <code>function</code> |  | Optional custom transport for mobile requests |
+| [opts.muportConfig] | <code>Object</code> |  | Configuration object for muport DID Resolver. See [muport-did-resolver](https://github.com/uport-project/muport-did-resolver) |
+| [opts.ethrConfig] | <code>Object</code> |  | Configuration object for Ethr DID Resolver. See [ethr-did-resolver](https://github.com/uport-project/ethr-did-resolver) |
+| [opts.registry] | <code>Object</code> |  | Configuration for uPort DID Resolver (DEPRECATED) See [uport-did-resolver](https://github.com/uport-project/uport-did-resolver) |
 
-<a name="Connect+getWeb3"></a>
+**Example**  
+```js
+import Connect from 'uport-connect'
+const connect = new Connect('MydappName')
+```
+<a name="Connect+getProvider"></a>
 
-### connect.getWeb3() ⇒ <code>web3</code>
-Instantiates and returns a web3 object wrapped with uPort functionality. For
- more details see uportSubprovider and getProvider in connectCore.
-
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
-**Returns**: <code>web3</code> - A uPort web3 object  
-<a name="ConnectCore+getProvider"></a>
-
-### connect.getProvider() ⇒ [<code>UportSubprovider</code>](#UportSubprovider)
+### connect.getProvider([provider]) ⇒ <code>[UportSubprovider](#UportSubprovider)</code>
 Instantiates and returns a web3 styple provider wrapped with uPort functionality.
- For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
- to start a get address flow or to return an already received address. It also
- overrides eth_sendTransaction to start the send transaction flow to pass the
- transaction to the uPort app.
+For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
+to start a get address flow or to return an already received address. It also
+overrides eth_sendTransaction to start the send transaction flow to pass the
+transaction to the uPort app.
 
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
-**Returns**: [<code>UportSubprovider</code>](#UportSubprovider) - A web3 style provider wrapped with uPort functionality  
-<a name="ConnectCore+requestCredentials"></a>
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Returns**: <code>[UportSubprovider](#UportSubprovider)</code> - A web3 style provider wrapped with uPort functionality  
 
-### connect.requestCredentials([request], [uriHandler]) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Creates a request given a request object, will also always return the user's
- uPort address. Calls given uriHandler with the uri. Returns a promise to
- wait for the response.
-
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a response object or rejects with an error.  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [request] | <code>Object</code> | <code>{}</code> | request object |
-| [request.requested] | <code>Array</code> |  | specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile |
-| [request.verified] | <code>Array</code> |  | specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support. |
-| [request.notifications] | <code>Boolean</code> |  | boolean if you want to request the ability to send push notifications |
-| [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
+| Param | Type | Description |
+| --- | --- | --- |
+| [provider] | <code>Object</code> | An optional web3 style provider to wrap, default is a http provider, nonstandard provider may cause unexpected behavior, using default is suggested. |
 
 **Example**  
 ```js
-const req = { requested: ['name', 'country'], verified: ['GithubUser']}
- connect.requestCredentials(req).then(credentials => {
-     const address = credentials.address
-     const name = credentials.name
-     ...
- })
+const uportProvider = connect.getProvider()
+ const web3 = new Web3(uportProvider)
 
  
 ```
-<a name="ConnectCore+requestAddress"></a>
+<a name="Connect+onResponse"></a>
 
-### connect.requestAddress([uriHandler]) ⇒ <code>Promise.&lt;String, Error&gt;</code>
-Creates a request for only the address of the uPort identity. Calls given
- uriHandler with the uri. Returns a promise to wait for the response.
+### connect.onResponse(id, cb) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
+Get response by ID of earlier request, returns promise which resolves when first
+response with given ID is available. If looking for multiple responses of same ID,
+listen instead by passing a callback.
 
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
-**Returns**: <code>Promise.&lt;String, Error&gt;</code> - a promise which resolves with an address or rejects with an error.  
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise resolves once valid response for given id is available, otherwise rejects with error, no promised returned if callback given  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
+| Param | Type | Description |
+| --- | --- | --- |
+| id | <code>String</code> | ID of request you are waiting for a response for |
+| cb | <code>function</code> | An optional callback function, which is called each time a valid response for a given ID is available vs having a single promise returned |
 
-<a name="ConnectCore+attestCredentials"></a>
+<a name="Connect+pubResponse"></a>
 
-### connect.attestCredentials(credential, [uriHandler]) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Consumes a credential object and generates a signed JWT. Creates a request
- URI with the JWT. Calls given uriHandler with the URI. Returns a promise to wait
- for the response. Throws error if no signer and/or app identifier is set.
- Will not always receive a response, response is only a status.
+### connect.pubResponse(response)
+Push a response payload to uPort connect to be handled. Useful if implementing your transports
+and you are getting responses with your own functions, listeners, event handlers, etc. It will
+parse the response and resolve it to any listening onResponse functions with the matching ID. A
+response object in connect is of the form {id, payload, data}, where payload and ID are required. The payload is the
+response payload (URL or JWT) from a uPort client.
 
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a resonse object or rejects with an error.  
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| credential | <code>Object</code> |  | credential object |
-| credential.sub | <code>String</code> |  | subject of this credential |
-| credential.claim | <code>Object</code> |  | statement(s) which this credential claims, contructed as {key: 'value', ...} |
-| credential.exp | <code>String</code> |  | expiry time of this credential |
-| [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
+| Param | Type | Description |
+| --- | --- | --- |
+| response | <code>Object</code> | A wrapped response payload, of form {id, res, data}, res and ID required |
 
-**Example**  
-```js
-const cred = {
-   sub: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347'
-   claim: {'email': 'hello@uport.me'}
-   exp: '1300819380'
- }
- connect.attestCredentials(cred).then(res => {
-   // response okay, received in uPort app
- })
+<a name="Connect+send"></a>
 
- 
-```
-<a name="ConnectCore+request"></a>
+### connect.send(request, id, [opts])
+Sends a request message to a uPort client. This is a useful function if you want to pass additional transport options and/or send a request you already created elsewhere.
 
-### connect.request(request) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Create a request and returns a promise which resolves the response. This
- function is primarly is used by more specified functions in this class, which
- allow you to easily create the URIs and messaging server topics you need here.
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise which resolves with a response object or rejects with an error.  
+| Param | Type | Description |
+| --- | --- | --- |
+| request | <code>String</code> | A request message to send to a uPort client |
+| id | <code>String</code> | ID of the request, which you will later use to handle the response |
+| [opts] | <code>Object</code> | Optional parameters for a callback, see (specs for more details)[https://github.com/uport-project/specs/blob/develop/messages/index.md] |
+| opts.redirectUrl | <code>String</code> | If on mobile client, the URL you want the uPort client to return control to once it completes it's flow. Depending on the params below, this redirect can include the response, or it may be returned to the callback in the request token. |
+| opts.data | <code>String</code> | A string of any data you want later returned with the response. It may be contextual to the original request. (e.g., a request id from your server) |
+| opts.type | <code>String</code> | Type specifies the callback action. 'post' to send response to callback in request token or 'redirect' to send response in redirect URL. |
+| opts.cancel | <code>function</code> | When using the default QR send, but handling the response yourself, this function will be called when a user closes the request modal. |
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| request | <code>Object</code> |  | request object |
-| request.uri | <code>String</code> |  | uPort URI |
-| request.topic | <code>String</code> |  | messaging server topic object |
-| [request.uriHandler] | <code>String</code> | <code>this.uriHandler</code> | function to consume URI, can be used to display QR codes or other custom UX |
-
-<a name="ConnectCore+contract"></a>
+<a name="Connect+contract"></a>
 
 ### connect.contract(abi) ⇒ <code>Object</code>
 Builds and returns a contract object which can be used to interact with
- a given contract. Similar to web3.eth.contract but with promises. Once specifying .at(address)
- you can call the contract functions with this object. It will create a request,
- call the uirHandler with the URI, and return a promise which resolves with
- a transtaction ID.
+ a given contract, like web3.eth.contract. Once specifying .at(address)
+ you can call the contract functions with this object. It will create a transaction
+ sign request and send it. The functionality is limited to function calls which require sending
+ a transaction, as these are the only calls which require interaction with a uPort client.
+ For reading and/or events use web3 or a similar library alongside.
 
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 **Returns**: <code>Object</code> - contract object  
 
+| Param | Type | Description |
+| --- | --- | --- |
+| abi | <code>Object</code> | contract ABI |
+
+**Example**  
+```js
+const abi = [{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"}]
+const StatusContract = connect.contract(abi).at('0x70A804cCE17149deB6030039798701a38667ca3B')
+const reqId = 'updateStatus'
+StatusContract.updateStatus('helloStatus', reqId)
+ connect.onResponse('reqId').then(res => {
+   const txHash = res.payload
+ })
+
+ 
+```
+<a name="Connect+sendTransaction"></a>
+
+### connect.sendTransaction(txObj, [id], [sendOpts])
+Given a transaction object (similarly defined as the web3 transaction object)
+ it creates a transaction request and sends it. A transaction hash is later
+ returned as the response, if the user selected to sign it.
+
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| abi | <code>Object</code> |  | contract ABI |
-| [request.uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
-
-<a name="ConnectCore+sendTransaction"></a>
-
-### connect.sendTransaction(txobj) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Given a transaction object, similarly defined as the web3 transaction object,
- it creates a URI which is passes to the uirHandler. It will create request
- and returns a promise which resolves with the transaction id.
-
-**Kind**: instance method of [<code>Connect</code>](#Connect)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - A promise which resolves with a resonse object or rejects with an error.  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| txobj | <code>Object</code> |  | transaction object, can also be wrapped using addAppParameters |
-| [request.uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
+| txObj | <code>Object</code> |  |  |
+| [id] | <code>String</code> | <code>&#x27;txReq&#x27;</code> | String to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq' |
+| [sendOpts] | <code>Object</code> |  | Reference send function options |
 
 **Example**  
 ```js
 const txobject = {
    to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
    value: '0.1',
-   function: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
+   fn: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
    appName: 'MyDapp'
  }
- connect.sendTransaction(txobject).then(txID => {
+ connect.sendTransaction(txobject, 'setStatus')
+ connect.onResponse('setStatus').then(res => {
+   const txHash = res.payload
+ })
+
+ 
+```
+<a name="Connect+requestVerificationSignature"></a>
+
+### connect.requestVerificationSignature(unsignedClaim, sub, [id], [sendOpts])
+Creates a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
+
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| unsignedClaim | <code>Object</code> |  | Unsigned claim object which you want the user to attest |
+| sub | <code>String</code> |  | The DID which the unsigned claim is about |
+| [id] | <code>String</code> | <code>&#x27;signVerReq&#x27;</code> | String to identify request, later used to get response |
+| [sendOpts] | <code>Object</code> |  | Reference send function options |
+
+**Example**  
+```js
+const unsignedClaim = {
+   claim: {
+     "Citizen of city X": {
+       "Allowed to vote": true,
+       "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
+     }
+   },
+   sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
+ }
+ connect.requestVerificationSignature(unsignedClaim).then(jwt => {
    ...
  })
 
  
 ```
-<a name="ConnectCore"></a>
+<a name="Connect+requestDisclosure"></a>
 
-## ConnectCore
-Primary object for frontend interactions with uPort. ConnectCore excludes
- some functionality found in Connect for a more customizable and lightweight integration.
- It does not provide any web3 functionality althought you can still use getProvider
- to get a provider to use with web3 or other libraries. It removes all default
- QR injection functionality. Your can choose how you want to handle the UX and/or
- QR generation and use any QR library you choose. For example, if used in a
- mobile native app QR generation is not even necessary.
+### connect.requestDisclosure([reqObj], [id], [sendOpts])
+Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md) and sends a request message to uPort client.
 
-**Kind**: global class  
-
-* [ConnectCore](#ConnectCore)
-    * [new ConnectCore(appName, [opts])](#new_ConnectCore_new)
-    * [.getProvider()](#ConnectCore+getProvider) ⇒ [<code>UportSubprovider</code>](#UportSubprovider)
-    * [.requestCredentials([request], [uriHandler])](#ConnectCore+requestCredentials) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.requestAddress([uriHandler])](#ConnectCore+requestAddress) ⇒ <code>Promise.&lt;String, Error&gt;</code>
-    * [.attestCredentials(credential, [uriHandler])](#ConnectCore+attestCredentials) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.request(request)](#ConnectCore+request) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-    * [.contract(abi)](#ConnectCore+contract) ⇒ <code>Object</code>
-    * [.sendTransaction(txobj)](#ConnectCore+sendTransaction) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-
-<a name="new_ConnectCore_new"></a>
-
-### new ConnectCore(appName, [opts])
-Instantiates a new uPort connectCore object.
-
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| appName | <code>String</code> |  | the name of your app |
-| [opts] | <code>Object</code> |  | optional parameters |
-| opts.credentials | <code>Object</code> |  | pre-configured Credentials object from http://github.com/uport-project/uport-js object. Configure this if you need to create signed requests |
-| opts.signer | <code>function</code> |  | signing function which will be used to sign JWT's in the credentials object |
-| opts.clientId | <code>String</code> |  | uport identifier for your application this will be used in the default credentials object |
-| [opts.network] | <code>Object</code> | <code>&#x27;rinkeby&#x27;</code> | network config object or string name, ie. { id: '0x1', registry: '0xab5c8051b9a1df1aab0149f8b0630848b7ecabf6', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'. |
-| opts.infuraApiKey | <code>String</code> |  | Infura API Key (register here http://infura.io/register.html) |
-| opts.topicFactory | <code>function</code> |  | function which generates topics and deals with requests and response |
-| opts.uriHandler | <code>function</code> |  | default function to consume generated URIs for requests, can be used to display QR codes or other custom UX |
-| opts.mobileUriHandler | <code>function</code> |  | default function to consume generated URIs for requests on mobile |
-| opts.closeUriHandler | <code>function</code> |  | default function called after a request receives a response, can be to close QR codes or other custom UX |
-| opts.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "keypair", "devicekey" or "none" |
-
-<a name="ConnectCore+getProvider"></a>
-
-### connectCore.getProvider() ⇒ [<code>UportSubprovider</code>](#UportSubprovider)
-Instantiates and returns a web3 styple provider wrapped with uPort functionality.
- For more details see uportSubprovider. uPort overrides eth_coinbase and eth_accounts
- to start a get address flow or to return an already received address. It also
- overrides eth_sendTransaction to start the send transaction flow to pass the
- transaction to the uPort app.
-
-**Kind**: instance method of [<code>ConnectCore</code>](#ConnectCore)  
-**Returns**: [<code>UportSubprovider</code>](#UportSubprovider) - A web3 style provider wrapped with uPort functionality  
-<a name="ConnectCore+requestCredentials"></a>
-
-### connectCore.requestCredentials([request], [uriHandler]) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Creates a request given a request object, will also always return the user's
- uPort address. Calls given uriHandler with the uri. Returns a promise to
- wait for the response.
-
-**Kind**: instance method of [<code>ConnectCore</code>](#ConnectCore)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a response object or rejects with an error.  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [request] | <code>Object</code> | <code>{}</code> | request object |
-| [request.requested] | <code>Array</code> |  | specifies info attributes to request from user, these are non-veried (not attestations) attributes which the user adds themselves to their profile |
-| [request.verified] | <code>Array</code> |  | specifies attestation types to request from user, these are attestations encoded as JWTs. Attestations are verified in this library, you can also use existing JWT libraries for additional support. |
-| [request.notifications] | <code>Boolean</code> |  | boolean if you want to request the ability to send push notifications |
-| [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
+| [reqObj] | <code>Object</code> | <code>{}</code> | Request params object |
+| reqObj.requested | <code>Array</code> |  | An array of attributes for which you are requesting credentials to be shared for |
+| reqObj.verified | <code>Array</code> |  | An array of attributes for which you are requesting verified credentials to be shared for |
+| reqObj.notifications | <code>Boolean</code> |  | Boolean if you want to request the ability to send push notifications |
+| reqObj.callbackUrl | <code>String</code> |  | The URL to which you want to receive the response of this request |
+| reqObj.networkId | <code>String</code> |  | Network ID of Ethereum chain of identity e.g., 0x4 for Rinkeby |
+| reqObj.accountType | <code>String</code> |  | Ethereum account type: "general", "segregated", "key pair", or "none" |
+| reqObj.expiresIn | <code>Number</code> |  | Seconds until expiry |
+| [id] | <code>String</code> | <code>&#x27;disclosureReq&#x27;</code> | String to identify request, later used to get response |
+| [sendOpts] | <code>Object</code> |  | Reference send function options |
 
 **Example**  
 ```js
-const req = { requested: ['name', 'country'], verified: ['GithubUser']}
- connect.requestCredentials(req).then(credentials => {
-     const address = credentials.address
-     const name = credentials.name
+const req = { requested: ['name', 'country'],
+               callbackUrl: 'https://myserver.com',
+               notifications: true }
+ const reqID = 'disclosureReq'
+ connect.requestDisclosure(req, reqID)
+ connect.onResponse(reqID).then(jwt => {
      ...
  })
 
  
 ```
-<a name="ConnectCore+requestAddress"></a>
+<a name="Connect+sendVerification"></a>
 
-### connectCore.requestAddress([uriHandler]) ⇒ <code>Promise.&lt;String, Error&gt;</code>
-Creates a request for only the address of the uPort identity. Calls given
- uriHandler with the uri. Returns a promise to wait for the response.
+### connect.sendVerification([verification], [id], [sendOpts])
+Create and send a verification (credential) about connected user. Verification is signed by
+ temporary session keys created by Connect. If you want to create a verification with a different
+ key pair/DID, use uPort credentials and send it with the Connect send function.
 
-**Kind**: instance method of [<code>ConnectCore</code>](#ConnectCore)  
-**Returns**: <code>Promise.&lt;String, Error&gt;</code> - a promise which resolves with an address or rejects with an error.  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
-
-<a name="ConnectCore+attestCredentials"></a>
-
-### connectCore.attestCredentials(credential, [uriHandler]) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Consumes a credential object and generates a signed JWT. Creates a request
- URI with the JWT. Calls given uriHandler with the URI. Returns a promise to wait
- for the response. Throws error if no signer and/or app identifier is set.
- Will not always receive a response, response is only a status.
-
-**Kind**: instance method of [<code>ConnectCore</code>](#ConnectCore)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - a promise which resolves with a resonse object or rejects with an error.  
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| credential | <code>Object</code> |  | credential object |
-| credential.sub | <code>String</code> |  | subject of this credential |
-| credential.claim | <code>Object</code> |  | statement(s) which this credential claims, contructed as {key: 'value', ...} |
-| credential.exp | <code>String</code> |  | expiry time of this credential |
-| [uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
+| [verification] | <code>Object</code> |  | An unsigned verification object, by default the sub is the connected user |
+| verification.claim | <code>Object</code> |  | A claim about the subject, single key value or key mapping to object with multiple values (e.g., { address: {street: ..., zip: ..., country: ...}}) |
+| verification.exp | <code>String</code> |  | Time at which this verification expires and is no longer valid (seconds since epoch) |
+| [id] | <code>String</code> | <code>&#x27;sendVerReq&#x27;</code> | String to identify request, later used to get response |
+| [sendOpts] | <code>Object</code> |  | Reference send function options |
 
 **Example**  
 ```js
-const cred = {
-   sub: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347'
-   claim: {'email': 'hello@uport.me'}
-   exp: '1300819380'
- }
- connect.attestCredentials(cred).then(res => {
-   // response okay, received in uPort app
+connect.sendVerification({
+  exp: <future timestamp>,
+  claim: { name: 'John Smith' }
+ }, 'REQUEST_ID')
+ connect.onResponse('REQUEST_ID').then(credential => {
+  ...
  })
-
- 
 ```
-<a name="ConnectCore+request"></a>
+<a name="Connect+setState"></a>
 
-### connectCore.request(request) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Create a request and returns a promise which resolves the response. This
- function is primarly is used by more specified functions in this class, which
- allow you to easily create the URIs and messaging server topics you need here.
+### connect.setState(Update)
+Update the internal state of the connect instance and ensure that it is consistent
+with the state saved to localStorage. You can pass in an object containing key-value pairs to update,
+or a function that returns updated key-value pairs as a function of the current state.
 
-**Kind**: instance method of [<code>ConnectCore</code>](#ConnectCore)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - promise which resolves with a response object or rejects with an error.  
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| request | <code>Object</code> |  | request object |
-| request.uri | <code>String</code> |  | uPort URI |
-| request.topic | <code>String</code> |  | messaging server topic object |
-| [request.uriHandler] | <code>String</code> | <code>this.uriHandler</code> | function to consume URI, can be used to display QR codes or other custom UX |
+| Param | Type | Description |
+| --- | --- | --- |
+| Update | <code>function</code> &#124; <code>Object</code> | - An object, or function specifying updates to the current Connect state (as a function of the current state) |
 
-<a name="ConnectCore+contract"></a>
+<a name="Connect+loadState"></a>
 
-### connectCore.contract(abi) ⇒ <code>Object</code>
-Builds and returns a contract object which can be used to interact with
- a given contract. Similar to web3.eth.contract but with promises. Once specifying .at(address)
- you can call the contract functions with this object. It will create a request,
- call the uirHandler with the URI, and return a promise which resolves with
- a transtaction ID.
+### connect.loadState()
+Load state from local storage and set this instance's state accordingly.
 
-**Kind**: instance method of [<code>ConnectCore</code>](#ConnectCore)  
-**Returns**: <code>Object</code> - contract object  
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+<a name="Connect+logout"></a>
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| abi | <code>Object</code> |  | contract ABI |
-| [request.uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
+### connect.logout()
+Clear any user-specific state from the browser (both the Connect instance and localStorage)
+effectively logging them out. The key pair (app-instance identity) is preserved.
 
-<a name="ConnectCore+sendTransaction"></a>
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
+<a name="Connect+reset"></a>
 
-### connectCore.sendTransaction(txobj) ⇒ <code>Promise.&lt;Object, Error&gt;</code>
-Given a transaction object, similarly defined as the web3 transaction object,
- it creates a URI which is passes to the uirHandler. It will create request
- and returns a promise which resolves with the transaction id.
+### connect.reset()
+Clear the entire state of the connect instance, including the key pair from memory
+and localStorage. Rebuild this.credentials with a new app-instance identity.
 
-**Kind**: instance method of [<code>ConnectCore</code>](#ConnectCore)  
-**Returns**: <code>Promise.&lt;Object, Error&gt;</code> - A promise which resolves with a resonse object or rejects with an error.  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| txobj | <code>Object</code> |  | transaction object, can also be wrapped using addAppParameters |
-| [request.uriHandler] | <code>function</code> | <code>this.uriHandler</code> | function to consume uri, can be used to display QR codes or other custom UX |
-
-**Example**  
-```js
-const txobject = {
-   to: '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347',
-   value: '0.1',
-   function: "setStatus(string 'hello', bytes32 '0xc3245e75d3ecd1e81a9bfb6558b6dafe71e9f347')",
-   appName: 'MyDapp'
- }
- connect.sendTransaction(txobject).then(txID => {
-   ...
- })
-
- 
-```
+**Kind**: instance method of <code>[Connect](#Connect)</code>  
 <a name="UportSubprovider"></a>
 
 ## UportSubprovider
@@ -531,12 +330,6 @@ A web3 style provider which can easily be wrapped with uPort functionality.
  functionality.
 
 **Kind**: global class  
-
-* [UportSubprovider](#UportSubprovider)
-    * [new UportSubprovider(args)](#new_UportSubprovider_new)
-    * [.send()](#UportSubprovider+send)
-    * [.sendAsync(payload, callback)](#UportSubprovider+sendAsync)
-
 <a name="new_UportSubprovider_new"></a>
 
 ### new UportSubprovider(args)
@@ -545,29 +338,8 @@ Instantiates a new wrapped provider
 
 | Param | Type | Description |
 | --- | --- | --- |
-| args | <code>Object</code> | required arguments |
-| args.requestAddress | <code>function</code> | function to get the address of a uPort identity. |
-| args.sendTransaction | <code>function</code> | function to handle passing transaction information to a uPort application |
-| args.provider | <code>Object</code> | a web3 sytle provider |
-
-<a name="UportSubprovider+send"></a>
-
-### uportSubprovider.send()
-Synchronous functionality not supported
-
-**Kind**: instance method of [<code>UportSubprovider</code>](#UportSubprovider)  
-<a name="UportSubprovider+sendAsync"></a>
-
-### uportSubprovider.sendAsync(payload, callback)
-Overrides sendAsync to caputure the following RPC calls eth_coinbase, eth_accounts,
- and eth_sendTransaction. All other calls are passed to the based provider.
- eth_coinbase, eth_accounts will get a uPort identity address with getAddress.
- While eth_sendTransaction with send transactions to a uPort app with sendTransaction
-
-**Kind**: instance method of [<code>UportSubprovider</code>](#UportSubprovider)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| payload | <code>Any</code> | request payload |
-| callback | <code>function</code> | called with response or error |
+| args | <code>Object</code> | Required arguments |
+| args.requestAddress | <code>function</code> | Function to get the address of a uPort identity. |
+| args.sendTransaction | <code>function</code> | Function to handle passing transaction information to a uPort application |
+| args.provider | <code>Object</code> | A web3 style provider |
 

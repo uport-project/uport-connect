@@ -1,0 +1,23 @@
+[{
+	"constant": false,
+	"inputs": [{
+		"name":"status",
+		"type":"string"}
+	],
+	"name":"updateStatus",
+	"outputs": [],
+	"payable": false,
+	"type":"function"
+},{
+	"constant":false,
+	"inputs": [{
+		"name": "addr",
+		"type": "address"
+	}],
+	"name": "getStatus",
+	"outputs": [{
+		"name":"","type":"string"
+	}],
+	"payable": false,
+	"type": "function"
+}]
