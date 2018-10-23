@@ -50,7 +50,7 @@ const uport = new Connect('MyDAppName')
 To request the DID and address of user use `requestDisclosure()`:
 
 ```javascript
-uport.requestDisclosure({})
+uport.requestDisclosure()
 
 uport.onResponse('disclosureReq').then(res => {
   const did = res.payload.did
@@ -185,9 +185,9 @@ const Connect = window.uportconnect
 const uport = new Connect('MyDApp')
 ```
 
-### <a name="tutorials"></a> Tutorial and Examples
+### <a name="tutorials"></a> Tutorials and Developer Site
 
-For a more in depth quick start example follow our [tutorial for building a simple dapp](https://github.com/uport-project/uport-connect/blob/develop/tutorial/tutorial.md) or locally open the `/examples` folder. This simple example will show you how to use our default QR flow to connect and create transactions to send ether or interact with smart contracts.
+For a more in depth guide, check out our [developer site](https://developer.uport.me/uport-connect/guides/usage) or clone this repository and check out the sample apps in the `/examples` folder.
 
 ---------------------------------------------
 
