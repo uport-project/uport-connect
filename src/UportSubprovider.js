@@ -3,10 +3,10 @@ import { isMNID, decode } from 'mnid'
 import HttpProvider from 'ethjs-provider-http'
 
 /**
-*  A web3 style provider which can easily be wrapped with uPort functionality.
-*  Builds on a base provider. Used in Connect to wrap a provider with uPort specific
-*  functionality.
-*/
+ *  A web3 style provider which can easily be wrapped with uPort functionality.
+ *  Builds on a base provider. Used in Connect to wrap a provider with uPort specific
+ *  functionality.
+ */
 class UportSubprovider {
   /**
    * Instantiates a new wrapped provider
@@ -17,7 +17,7 @@ class UportSubprovider {
    * @param       {Object}            args.provider          a web3 sytle provider
    * @return      {UportSubprovider}                         self
    */
-  constructor ({requestAddress, sendTransaction, signTypedData, provider, network}) {
+  constructor({ requestAddress, sendTransaction, signTypedData, provider, network }) {
     const self = this
 
     if (!provider) {
@@ -28,28 +28,25 @@ class UportSubprovider {
     }
 
     this.network = network
-    this.getAddress = (cb) => {
+    this.getAddress = cb => {
       if (self.address) return cb(null, self.address)
       requestAddress().then(
         address => {
-          const errorMatch = new Error('Address/Account received does not match the network your provider is configured for')
+          const errorMatch = new Error(
+            'Address/Account received does not match the network your provider is configured for',
+          )
           this.setAccount(address) ? cb(null, self.address) : cb(errorMatch)
         },
-      error => cb(error))
+        error => cb(error),
+      )
     }
 
     this.sendTransaction = (txobj, cb) => {
-      sendTransaction(txobj).then(
-        address => cb(null, address),
-        error => cb(error)
-      )
+      sendTransaction(txobj).then(address => cb(null, address), error => cb(error))
     }
 
     this.signTypedData = (typedData, cb) => {
-      signTypedData(typedData).then(
-        payload => cb(null, payload),
-        error => cb(error)
-      )
+      signTypedData(typedData).then(payload => cb(null, payload), error => cb(error))
     }
   }
 
@@ -71,7 +68,7 @@ class UportSubprovider {
    * Replace sync send with async send
    * @private
    */
-  send (payload, callback) {
+  send(payload, callback) {
     return this.sendAsync(payload, callback)
   }
 
@@ -85,20 +82,20 @@ class UportSubprovider {
    * @param       {Function}       callback          called with response or error
    * @private
    */
-  sendAsync (payload, callback) {
+  sendAsync(payload, callback) {
     const self = this
     const respond = (error, result) => {
       if (error) {
         callback({
           id: payload.id,
           jsonrpc: '2.0',
-          error: error.message
+          error: error.message,
         })
       } else {
         callback(null, {
           id: payload.id,
           jsonrpc: '2.0',
-          result
+          result,
         })
       }
     }
