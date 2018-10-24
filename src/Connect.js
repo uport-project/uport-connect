@@ -327,7 +327,7 @@ class Connect {
    * @param     {Object}    [sendOpts]            reference send function options
    */
   requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
-    this.credentials.createTypedDataSignatureRequest(typedData, {aud: this.did, callbackUrl: this.genCallback(id)})
+    this.credentials.createTypedDataSignatureRequest(typedData, {riss: this.did, callback: this.genCallback(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 
