@@ -89,18 +89,6 @@
     "utils"
   ],
   "homepage": "https://github.com/uport-project/uport-connect#readme",
-  "standard": {
-    "ignore": [
-      "dist/**"
-    ],
-    "globals": [
-      "describe",
-      "it",
-      "before",
-      "after",
-      "should"
-    ]
-  },
   "dependencies": {
     "did-jwt": "^0.0.8",
     "ethjs-abi": "^0.2.1",
@@ -174,8 +162,6 @@
     "semantic-release": "^4.3.5",
     "sinon": "git+https://github.com/sinonjs/sinon.git#afdf4255e97e8a8738da19ddfafd18efc09c917a",
     "sinon-chai": "^3.0.0",
-    "snazzy": "^7.1.1",
-    "standard": "^11.0.1",
     "supervisor": "^0.12.0",
     "web3": "^0.20.6",
     "webpack": "^4.8.3",
