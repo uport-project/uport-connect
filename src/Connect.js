@@ -168,14 +168,7 @@ class Connect {
 
     if (cb) {
       this.PubSub.subscribe(id, (msg, res) => {
-        parseResponse(res).then(
-          res => {
-            cb(null, res)
-          },
-          err => {
-            cb(err, null)
-          },
-        )
+        parseResponse(res).then(res => cb(null, res), err => cb(err, null))
       })
     } else {
       return new Promise((resolve, reject) => {
@@ -491,63 +484,31 @@ class Connect {
    *  (did, doc, mnid, address, keypair, pushToken, and publicEncKey)
    * @private
    */
-  get state() {
-    return this._state
-  }
-  get did() {
-    return this._state.did
-  }
-  get doc() {
-    return { ...this._state.doc }
-  }
-  get mnid() {
-    return this._state.mnid
-  }
-  get address() {
-    return this._state.address
-  }
-  get keypair() {
-    return { ...this._state.keypair }
-  }
-  get verified() {
-    return this._state.verified
-  }
-  get pushToken() {
-    return this._state.pushToken
-  }
-  get publicEncKey() {
-    return this._state.publicEncKey
-  }
+  /* eslint-disable prettier/prettier */
+  get state() { return this._state }
+  get did() { return this._state.did }
+  get doc() { return { ...this._state.doc } }
+  get mnid() { return this._state.mnid }
+  get address() { return this._state.address }
+  get keypair() { return { ...this._state.keypair } }
+  get verified() { return this._state.verified }
+  get pushToken() { return this._state.pushToken }
+  get publicEncKey() { return this._state.publicEncKey }
 
   /**
    * Setter methods with appropriate validation
    * @private
    */
 
-  set state(state) {
-    throw new Error('Use setState to set state object')
-  }
-  set did(did) {
-    this.setState({ did })
-  }
-  set doc(doc) {
-    this.setState({ doc })
-  }
-  set mnid(mnid) {
-    this.setState({ mnid })
-  }
-  set keypair(keypair) {
-    this.setState({ keypair })
-  }
-  set verified(verified) {
-    this.setState({ verified })
-  }
-  set pushToken(pushToken) {
-    this.setState({ pushToken })
-  }
-  set publicEncKey(publicEncKey) {
-    this.setState({ publicEncKey })
-  }
+  set state(state) { throw new Error('Use setState to set state object') }
+  set did(did) { this.setState({ did }) }
+  set doc(doc) { this.setState({ doc }) }
+  set mnid(mnid) { this.setState({ mnid }) }
+  set keypair(keypair) { this.setState({ keypair }) }
+  set verified(verified) { this.setState({ verified }) }
+  set pushToken(pushToken) { this.setState({ pushToken }) }
+  set publicEncKey(publicEncKey) { this.setState({ publicEncKey }) }
+  /* eslint-enable prettier/prettier */
 
   // Address field alone is deprectated.  Allow setting an mnid, but not an unqualified address
   set address(address) {
