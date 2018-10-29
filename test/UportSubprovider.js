@@ -15,7 +15,7 @@ const badMnid = '2nSX6hxNMgvgP9MtvoJDgSjVHGRsTuxpyPi'
 describe('UportSubprovider', () => {
   it('Accepts and wraps a custom provider', () => {
   	let rpcUrl = 'http://localhost:1234'
-    let uSub = new UportSubprovider({provider: new HttpProvider('http://localhost:1234'), network})
+    let uSub = new UportSubprovider({provider: new HttpProvider(rpcUrl), network})
 
     expect(uSub.provider.host).to.equal(rpcUrl)
   })
@@ -85,13 +85,29 @@ describe('UportSubprovider', () => {
   })
 	
   it('Calls the passed signTypedData function for `eth_signTypedData` request', (done) => {
-	const response = 'res'
-	const signTypedData = sinon.stub().resolves(response)
-	const uSub = new UportSubprovider({signTypedData, network})
-	uSub.sendAsync({method: 'eth_signTypedData', params: [{data: 'fake'}]}, (err, {result}) => {
-		expect(err).to.be.null
-		expect(result).to.equal(response)
-		done()
+    const response = 'res'
+    const signTypedData = sinon.stub().resolves(response)
+    const uSub = new UportSubprovider({signTypedData, network})
+    uSub.sendAsync({method: 'eth_signTypedData', params: [{data: 'fake'}]}, (err, {result}) => {
+      expect(err).to.be.null
+      expect(result).to.equal(response)
+      done()
   	})
+  })
+
+  it('Detects injected providers and sets the appropriate flag [metamask]', () => {
+    window.web3 = {provider: {sendAsync: sinon.stub()}, currentProvider: {isMetaMask: true}}
+
+    const uSub = new UportSubprovider({network})
+    expect(uSub.hasInjectedProvider).to.be.true
+    expect(uSub.useInjectedProvider).to.be.undefined
+  })
+
+  it('Detects injected providers and sets the appropriate flag [not metamask]', () => {
+    window.web3 = {currentProvider: {}}
+
+    const uSub = new UportSubprovider({network})
+    expect(uSub.hasInjectedProvider).to.be.undefined
+    expect(uSub.useInjectedProvider).to.be.true
   })
 })
