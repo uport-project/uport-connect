@@ -1,11 +1,22 @@
-import { UportSubprovider } from '../src'
+import SubproviderLoader from 'inject-loader!../src/UportSubprovider.js'
 import HttpProvider from 'ethjs-provider-http'
 
 import chai, { expect, assert } from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
-
 chai.use(sinonChai)
+
+// Mock the provider dialog from uport-transports
+const ui = { 
+  askProvider: () => {
+    return Promise.resolve(true)
+  }
+}
+
+const UportSubprovider = SubproviderLoader({
+  'uport-transports/lib/transport/ui': ui
+}).default
+
 
 const network = {id: '0x4', rpcUrl: 'http://rinkeby.infura.io'}
 const address = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
@@ -95,19 +106,28 @@ describe('UportSubprovider', () => {
   	})
   })
 
-  it('Detects injected providers and sets the appropriate flag [metamask]', () => {
-    window.web3 = {provider: {sendAsync: sinon.stub()}, currentProvider: {isMetaMask: true}}
+  it('Detects injected providers and sets the appropriate flag [metamask]', async () => {
+    const sendAsync = sinon.stub()
+    window.web3 = {provider: {sendAsync}, currentProvider: {isMetaMask: true}}
 
     const uSub = new UportSubprovider({network})
     expect(uSub.hasInjectedProvider).to.be.true
     expect(uSub.useInjectedProvider).to.be.undefined
+
+    await uSub.sendAsync({method: 'eth_coinbase'}, console.log)
+    expect(uSub.useInjectedProvider).to.be.true
+    expect(sendAsync).to.be.calledOnce
   })
 
   it('Detects injected providers and sets the appropriate flag [not metamask]', () => {
-    window.web3 = {currentProvider: {}}
+    const sendAsync = sinon.stub()
+    window.web3 = {provider: {sendAsync}, currentProvider: {}}
 
     const uSub = new UportSubprovider({network})
     expect(uSub.hasInjectedProvider).to.be.undefined
     expect(uSub.useInjectedProvider).to.be.true
+
+    uSub.sendAsync()
+    expect(sendAsync).to.be.calledOnce
   })
 })
