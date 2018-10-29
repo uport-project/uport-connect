@@ -2,11 +2,13 @@ import async from 'async'
 import { isMNID, decode } from 'mnid'
 import HttpProvider from 'ethjs-provider-http'
 
+import { askProvider } from 'uport-transports/lib/transport/ui'
+
 /**
-*  A web3 style provider which can easily be wrapped with uPort functionality.
-*  Builds on a base provider. Used in Connect to wrap a provider with uPort specific
-*  functionality.
-*/
+ *  A web3 style provider which can easily be wrapped with uPort functionality.
+ *  Builds on a base provider. Used in Connect to wrap a provider with uPort specific
+ *  functionality.
+ */
 class UportSubprovider {
   /**
    * Instantiates a new wrapped provider
@@ -15,25 +17,36 @@ class UportSubprovider {
    * @param       {Function}          args.requestAddress    function to get the address of a uPort identity.
    * @param       {Function}          args.sendTransaction   function to handle passing transaction information to a uPort application
    * @param       {Object}            args.provider          a web3 sytle provider
-   * @return      {UportSubprovider}                         self
+   * @return      {UportSubprovider}                         this
    */
   constructor ({requestAddress, sendTransaction, signTypedData, personalSign, provider, network}) {
-    const self = this
-
     if (!provider) {
+      // Extend ethjs HTTP provider if none is given
       this.provider = new HttpProvider(network.rpcUrl)
     } else {
       this.provider = provider
       console.warn('Uport functionality may not be entirely compatible with custom providers.')
     }
 
+    // Detect injected provider
+    if (hasWeb3()) {
+      // Distinguish between metamask injected provider
+      // If metamask, user will be prompted to use injected provider
+      // Other injected providers (mist, coinbase wallet, etc.) will be used automatically
+      if (web3.currentProvider && web3.currentProvider.isMetaMask) {
+        this.hasInjectedProvider = true
+      } else {
+        this.useInjectedProvider = true
+      }
+    }
+
     this.network = network
     this.getAddress = (cb) => {
-      if (self.address) return cb(null, self.address)
+      if (this.address) return cb(null, this.address)
       requestAddress().then(
         address => {
           const errorMatch = new Error('Address/Account received does not match the network your provider is configured for')
-          this.setAccount(address) ? cb(null, self.address) : cb(errorMatch)
+          this.setAccount(address) ? cb(null, this.address) : cb(errorMatch)
         },
       error => cb(error))
     }
@@ -92,8 +105,17 @@ class UportSubprovider {
    * @param       {Function}       callback          called with response or error
    * @private
    */
-  sendAsync (payload, callback) {
-    const self = this
+  async sendAsync (payload, callback) {
+    // Present a dialog to ask about using injected provider if present but not approved
+    if (this.hasInjectedProvider && !this.useInjectedProvider) {
+      this.useInjectedProvider = await askProvider()
+    } 
+    // Use injected provider if present and approved
+    if (this.useInjectedProvider) {
+      web3.provider.sendAsync(payload, callback)
+      return
+    }
+
     const respond = (error, result) => {
       if (error) {
         callback({
@@ -110,31 +132,38 @@ class UportSubprovider {
       }
     }
     if (Array.isArray(payload)) {
-      async.map(payload, self.sendAsync.bind(self), callback)
+      async.map(payload, this.sendAsync.bind(this), callback)
       return
     }
     switch (payload.method) {
       // TODO consider removing, not necessary for interaction with uport
       case 'eth_coinbase':
-        return self.getAddress(respond)
+        return this.getAddress(respond)
       case 'eth_accounts':
-        return self.getAddress((error, address) => {
+        return this.getAddress((error, address) => {
           respond(error, [address])
         })
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
-        return self.sendTransaction(txParams, respond)
+        return this.sendTransaction(txParams, respond)
       case 'eth_signTypedData_v3':
       case 'eth_signTypedData':
         let typedData = payload.params[0]
-        return self.signTypedData(typedData, respond)
+        return this.signTypedData(typedData, respond)
       case 'personal_sign':
         let data = payload.params[0]
-        return self.personalSign(data, respond)
+        return this.personalSign(data, respond)
       default:
-        return self.provider.sendAsync(payload, callback)
+        return this.provider.sendAsync(payload, callback)
     }
   }
+}
+
+/**
+ * Detect whether the current window has an injected web3 instance
+ */
+function hasWeb3() {
+  return (typeof web3 !== 'undefined')
 }
 
 export default UportSubprovider
