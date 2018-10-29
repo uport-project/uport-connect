@@ -119,6 +119,11 @@ class Connect {
         this.requestTypedDataSignature(typedData, requestID)
         return this.onResponse(requestID).then(res => res.payload)
       },
+      personalSign: (data) => {
+        const requestID = 'personalSignReqProvider'
+        this.requestPersonalSign(data, requestID)
+        return this.onResponse(requestID).then(res => res.payload)
+      },
       provider, network: this.network
     })
     if (this.address) subProvider.setAccount(this.address)
@@ -322,13 +327,27 @@ class Connect {
   /**
    * Creates and sends a request to a user to sign a piece of ERC712 Typed Data
    * 
-   * @param     {Object}    typedData             an object containing unsigned typed, structured data that follows the ERC712 specification  
-   * @param     {String}    [id='signVerReq']     string to identify request, later used to get response
-   * @param     {Object}    [sendOpts]            reference send function options
+   * @param     {Object}    typedData               an object containing unsigned typed, structured data that follows the ERC712 specification  
+   * @param     {String}    [id='typedDataSigReq']  string to identify request, later used to get response
+   * @param     {Object}    [sendOpts]              reference send function options
    */
   requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
     this.credentials.createTypedDataSignatureRequest(typedData, {riss: this.did, callback: this.genCallback(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
+  }
+
+  /**
+   * Creates and sends a request to a user to sign an arbitrary data string
+   * 
+   * @param {String} data                   a string representing a piece of arbitrary data
+   * @param {String} [id='personalSignReq'] 
+   * @param {Object} [sendOpts]
+   */
+  requestPersonalSign(data, id='personalSignReq', sendOpts) {
+    if (data instanceof Buffer) {
+      data = data.toString('hex')
+    }
+    this.credentials.createPersonalSignRequest(data, {riss: this.did, callback: this.genCallback(id)}).then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**

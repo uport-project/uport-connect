@@ -17,7 +17,7 @@ class UportSubprovider {
    * @param       {Object}            args.provider          a web3 sytle provider
    * @return      {UportSubprovider}                         self
    */
-  constructor ({requestAddress, sendTransaction, signTypedData, provider, network}) {
+  constructor ({requestAddress, sendTransaction, signTypedData, personalSign, provider, network}) {
     const self = this
 
     if (!provider) {
@@ -47,6 +47,13 @@ class UportSubprovider {
 
     this.signTypedData = (typedData, cb) => {
       signTypedData(typedData).then(
+        payload => cb(null, payload),
+        error => cb(error)
+      )
+    }
+
+    this.personalSign = (data, cb) => {
+      personalSign(data).then(
         payload => cb(null, payload),
         error => cb(error)
       )
@@ -121,6 +128,9 @@ class UportSubprovider {
       case 'eth_signTypedData':
         let typedData = payload.params[0]
         return self.signTypedData(typedData, respond)
+      case 'personal_sign':
+        let data = payload.params[0]
+        return self.personalSign(data, respond)
       default:
         return self.provider.sendAsync(payload, callback)
     }
