@@ -249,7 +249,7 @@ describe('Connect', () => {
       const jwt = {
         name: 'test app',
         description: 'It tests',
-        url: 'localhost:9876'
+        url: 'http://localhost:9876'
       }
 
       await uport.signAndUploadProfile()
