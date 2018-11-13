@@ -544,7 +544,7 @@ class Connect {
     profile = profile || {
       name: this.appName,
       description: this.description,
-      url: (typeof window !== 'undefined') ? window.location.host : undefined,
+      url: (typeof window !== 'undefined') ? `${window.location.protocol}//${window.location.host}` : undefined,
       profileImage: this.profileImage,
       bannerImage: this.bannerImage,
     }
