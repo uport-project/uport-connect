@@ -290,15 +290,21 @@ class Connect {
    *  })
    *
    *  @param    {Object}     unsignedClaim          unsigned claim object which you want the user to attest
-   *  @param    {String}     sub                    the DID which the unsigned claim is about
+   *  @param    {Object}     opts                   an object containing options for the signature request, including the subject
+   *  @param    {String}     opts.sub               the DID which the unsigned claim is about
+   *  @param    {Number}     [opts.exp]             seconds after epic when the request expires
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
-   *  @param    {Object}     [sendOpts]             reference send function options
+   *  @param    {Object}     [sendOpts]             @see this.send function options
    */
-  requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
-    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id)})
+  requestVerificationSignature (unsignedClaim, opts, id = 'verSigReq', sendOpts) {
+    if (typeof opts === 'string') {
+      console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
+      opts = {sub: opts}
+    }
+
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
-
   /**
    *  Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md) and sends request message to uPort client.
    *
