@@ -292,7 +292,7 @@ class Connect {
    *  @param    {Object}     unsignedClaim          unsigned claim object which you want the user to attest
    *  @param    {Object}     opts                   an object containing options for the signature request, including the subject
    *  @param    {String}     opts.sub               the DID which the unsigned claim is about
-   *  @param    {Number}     [opts.exp]             seconds after epic when the request expires
+   *  @param    {Number}     [opts.expiresIn]       seconds after current time when the requested verifiable claim will expire
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]             @see this.send function options
    */
@@ -300,6 +300,8 @@ class Connect {
     if (typeof opts === 'string') {
       console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
       opts = {sub: opts}
+    } else if (!opts.sub) {
+      throw new Error(`Missing required field sub in opts.  Received: ${opts}`)
     }
 
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id)})
