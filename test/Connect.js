@@ -491,12 +491,10 @@ describe('Connect', () => {
       uport.credentials.createVerification = (content) => {
         // const jwt = message.util.getURLJWT(url)
         expect(content).to.equal(cred)
-        console.log('here')
         return Promise.resolve(jwt)
       }
 
       uport.send = (msg, id, opts) => {
-        console.log(msg, id, opts)
         // expect(msg).to.match(/\/topic\/[a-zA-Z0-9-_]{16}/)
         expect(opts).to.deep.equal(sendOpts)
         expect(id).to.equal(requestId)
@@ -531,6 +529,11 @@ describe('Connect', () => {
       }
 
       uport.requestVerificationSignature(unsignedClaim, subject, requestId, sendOpts)
+    })
+
+    it('throws an error if sub is missing', () => {
+      const uport = new Connect('testapp')
+      expect(() => uport.requestVerificationSignature({test: 'hello'}, {missing: 'sub'})).to.throw()
     })
 
     it('passes through an expiration field', (done) => {

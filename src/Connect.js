@@ -300,7 +300,7 @@ class Connect {
     if (typeof opts === 'string') {
       console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
       opts = {sub: opts}
-    } else if (!opts.sub) {
+    } else if (!opts || !opts.sub) {
       throw new Error(`Missing required field sub in opts.  Received: ${opts}`)
     }
 
