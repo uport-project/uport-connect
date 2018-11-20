@@ -279,8 +279,8 @@ describe('Connect', () => {
       uport.onResponse(id).then((res) => {
         expect(res.payload).to.equal('test')
         done()
-        return
       })
+
       uport.PubSub.publish(id,response)
     })
 
@@ -307,7 +307,7 @@ describe('Connect', () => {
       window.location.hash = `access_token=${JWTReq}&id=${id}`
     })
 
-    it('calls verifies responses with processDislcosurePayload', (done) => {
+    it('verifies responses with processDislcosurePayload', (done) => {
       const uport = new Connect('testApp')
       const verify = sinon.stub().resolves()
       uport.credentials.processDisclosurePayload = verify
@@ -484,37 +484,66 @@ describe('Connect', () => {
         claim: { hello: 'world' },
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
+      const jwt = "a.fake.jwt"
+      const sendOpts = {send: 'opts'}
+      const requestId = 'id'
 
-      uport.send = (url) => {
-        const jwt = message.util.getURLJWT(url)
-        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
-          expect(issuer).to.equal(uport.keypair.did)
-          expect(payload.claim).to.deep.equal(cred.claim)
-          done()
-        })
+      uport.credentials.createVerification = (content) => {
+        // const jwt = message.util.getURLJWT(url)
+        expect(content).to.equal(cred)
+        return Promise.resolve(jwt)
       }
 
-      uport.sendVerification(cred)
+      uport.send = (msg, id, opts) => {
+        // expect(msg).to.match(/\/topic\/[a-zA-Z0-9-_]{16}/)
+        expect(opts).to.deep.equal(sendOpts)
+        expect(id).to.equal(requestId)
+        done()
+      }
+
+      uport.sendVerification(cred, requestId, sendOpts)
     })
   })
 
   /*********************************************************************/
 
   describe('requestVerificationSignature', () => {
-    it('Creates sign verification request signed by the configured keypair', (done) => {
+    const unsignedClaim = { hello: 'world' }
+    const subject = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
+    const sendOpts = {send: 'opts'}
+    const requestId = 'abcdefg'
+    it('Creates a verification signature request signed by the configured keypair and sends', (done) => {
       const uport = new Connect('testApp')
-      const unsignedClaim = { hello: 'world' }
-      const sub = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 
-      uport.send = (jwt) => {
-        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
-          expect(issuer).to.equal(uport.keypair.did)
-          expect(payload.unsignedClaim).to.deep.equal(unsignedClaim)
-          done()
-        })
+      uport.credentials.createVerificationSignatureRequest = (claim, {sub, aud, callbackUrl}) => {
+        expect(claim).to.deep.equal(unsignedClaim)
+        expect(sub).to.equal(subject)
+        expect(aud).to.equal(uport.did)
+        return Promise.resolve('jwt')
       }
 
-      uport.requestVerificationSignature(unsignedClaim, sub)
+      uport.send = (jwt, id, opts) => {
+        expect(id).to.equal(requestId)
+        expect(opts).to.deep.equal(sendOpts)
+        done()
+      }
+
+      uport.requestVerificationSignature(unsignedClaim, subject, requestId, sendOpts)
+    })
+
+    it('throws an error if sub is missing', () => {
+      const uport = new Connect('testapp')
+      expect(() => uport.requestVerificationSignature({test: 'hello'}, {missing: 'sub'})).to.throw()
+    })
+
+    it('passes through an expiration field', (done) => {
+      const uport = new Connect('testapp')
+      const exp = 12345678
+      uport.credentials.createVerificationSignatureRequest = (claim, opts) => {
+        expect(opts.exp).to.equal(exp)
+        done()
+      }
+      uport.requestVerificationSignature(unsignedClaim, {sub: subject, exp})
     })
   })
 
@@ -616,7 +645,7 @@ describe('transports', () => {
     })
   })
 
-  it('uses universal links on first mobile request, and deep links thereafter', (done) => {
+  it('uses deep links', (done) => {
     // Set up uriHandler to check uri scheme
     let shouldBeDeeplink = true
     const mobileUriHandler = (uri) => {
