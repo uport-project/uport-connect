@@ -117,10 +117,12 @@ Example of a request where you create the request token on your own server and t
 const requestToken = `eyJ0eXAiOiJKV1QiLCJhbGciOiJ....`
 const reqID = 'myRequestID'
 
-// Opens request URL whihc will prompt to open the uPort mobile client, by default the request tells the uPort client to return to this window URL after handling the request
+// Opens request URL which will prompt to open the uPort mobile client,
+// by default the request tells the uPort client to return to this window URL after handling the request
 connect.request(requestToken, reqId)
 
-// When the response returns to the window with this code, this promise will resolve with a response
+// When the response returns to the window with this code,
+// this promise will resolve with a response
 connect.onResponse(reqId).then(res => {
   // Now handle specific to your use case
 })
@@ -133,7 +135,7 @@ Once again, create a request token on your server, but tell the uPort mobile cli
 const requestToken = `eyJ0eXAiOiJKV1QiLCJhbGciOiJ....`
 const reqID = 'myRequestID'
 
-// Opens request URL witch will prompt user to open uPort mobile client.
+// Opens request URL which will prompt user to open uPort mobile client.
 connect.request(requestToken, reqId, {redirectUrl: 'http://otherapppage.com/page'})
 
 // Code now in 'http://otherapppage.com/page'
@@ -149,15 +151,21 @@ Again, create a request token on your server, but tell the uPort mobile client t
 const requestToken = `eyJ0eXAiOiJKV1QiLCJhbGciOiJ....`
 const reqID = 'myRequestID'
 
-// Opens request URL witch will prompt user to open uPort mobile client.
-connect.request(requestToken, reqId, {redirectUrl: 'http://myurl.com/handle', type: 'redirect'})
+// Opens request URL which will prompt user to open uPort mobile client.
+connect.request(requestToken, reqId, {redirectUrl: 'http://otherapppage.com/page', type: 'redirect'})
 
 // Code now in 'http://otherapppage.com/page'
 connect.onResponse(reqId).then(res => {
   const response = res.payload
   // The response is available here since you told the mobile uPort client to return it here.
-  // This block of code may be loaded on both desktop and mobile clients you will want a branch of code to handle both
-  // e.g., if (payload.res) { //Was returned from mobile } else { //Was on desktop and posted to your server, now handle it }
+  // This block of code may be loaded on both desktop and mobile clients;
+  // you will want a branch of code to handle both.
+  // e.g.
+  // if (payload.res) {
+  //   // Was returned from mobile
+  // } else {
+  //   // Was on desktop and posted to your server, now handle it
+  // }
 })
 ```
 
@@ -173,10 +181,14 @@ connect.requestDisclosure({ notifications: true })
 
 connect.onResponse('disclosureReq').then(payload => {
   const did = payload.res.did
-  // can ignore, as this is saved in the background to connect, and push transport is configured
+  // can ignore, as this is saved in the background to connect,
+  // and push transport is configured
+
   // const pushToken = payload.res.pushToken
 
-  // Now, once you make another request, the request will be sent in a push instead of QR code
+  // Now, once you make another request, the request will be sent
+  // in a push instead of QR code
+
   // Mobile flow remains the same
 })
 ```
@@ -210,9 +222,11 @@ const reqID = 'myRequestID'
 // Opens request URL if on mobile client, or open QR code if on a desktop client
 connect.request(requestToken, reqId, {redirectUrl: 'http://otherapppage.com/page'})
 
-// Code now in 'http://otherapppage.com/page', for both desktop and mobile clients the response is returend here
+// Code now in 'http://otherapppage.com/page',
+// for both desktop and mobile clients the response is returned here
 connect.onResponse(reqId).then(payload => {
-  // Now handle specific to your use case, can be handled the same way for both desktop and mobile clients
+  // Now handle specific to your use case,
+  // can be handled the same way for both desktop and mobile clients
 })
 ```
 
