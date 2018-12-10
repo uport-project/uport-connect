@@ -13,7 +13,7 @@ const mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 const badMnid = '2nSX6hxNMgvgP9MtvoJDgSjVHGRsTuxpyPi'
 
 function encodeSignature({r,s,v}) {
-  return `${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
+  return `0x${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
 }
 
 describe('UportSubprovider', () => {
