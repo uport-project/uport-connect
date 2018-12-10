@@ -344,9 +344,6 @@ class Connect {
    * @param {Object} [sendOpts]
    */
   requestPersonalSign(data, id='personalSignReq', sendOpts) {
-    if (data instanceof Buffer) {
-      data = data.toString('hex')
-    }
     this.credentials.createPersonalSignRequest(data, {riss: this.did, callback: this.genCallback(id)}).then(jwt => this.send(jwt, id, sendOpts))
   }
 
