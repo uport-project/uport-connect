@@ -661,30 +661,6 @@ describe('Connect', () => {
       uport.requestPersonalSign(data, id, opts)
     })
 
-    it('formats Buffer as hex string', (done) => {
-      const uport = new Connect('test app', {vc})
-      const opts = {test: 'test'}
-      const id = 'testid'
-      const data = Buffer.from([0xde, 0xad, 0xbe, 0xef])
-      uport.did = 'test'
-      
-      uport.credentials.createPersonalSignRequest = (testData, {riss, callback}) => {
-        expect(riss).to.equal(uport.did)
-        expect(callback).to.match(/\/topic\//)
-        expect(testData).to.equal('deadbeef')
-        return Promise.resolve('jwt')
-      }
-
-      uport.send = (jwt, testId, sendOpts) => {
-        expect(jwt).to.equal('jwt')
-        expect(sendOpts).to.equal(opts)
-        expect(testId).to.equal(id)
-        done()
-      }
-
-      uport.requestPersonalSign(data, id, opts)
-    })
-
     it('is called with the correct arguments from UportSubprovider', () => {
       const uport = new Connect('test app', {vc})
       const subprovider = uport.getProvider()
