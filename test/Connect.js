@@ -7,6 +7,7 @@ import IPFS from 'ipfs-mini'
 import { Connect } from '../src'
 import { message } from 'uport-transports'
 import { decodeJWT, verifyJWT } from 'did-jwt'
+import { decode } from 'mnid';
 
 chai.use(sinonChai)
 
@@ -644,8 +645,9 @@ describe('Connect', () => {
       const opts = {test: 'test'}
       const id = 'testid'
       const data = 'deadbeef'
-      uport.credentials.createPersonalSignRequest = (testData, {riss, callback}) => {
-        expect(riss).to.equal(uport.did)
+      uport.credentials.createPersonalSignRequest = (testData, {from, callback}) => {
+        console.log(uport.address)
+        expect(from).to.equal(uport.address)
         expect(callback).to.match(/\/topic\//)
         expect(testData).to.equal(data)
         return Promise.resolve('jwt')
