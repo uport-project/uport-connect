@@ -645,8 +645,9 @@ describe('Connect', () => {
       const opts = {test: 'test'}
       const id = 'testid'
       const data = 'deadbeef'
-      uport.credentials.createPersonalSignRequest = (testData, {from, callback}) => {
+      uport.credentials.createPersonalSignRequest = (testData, {from, net, callback}) => {
         console.log(uport.address)
+        expect(net).to.equal('0x4')
         expect(from).to.equal(uport.address)
         expect(callback).to.match(/\/topic\//)
         expect(testData).to.equal(data)

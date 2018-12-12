@@ -332,7 +332,10 @@ class Connect {
    * @param     {Object}    [sendOpts]              reference send function options
    */
   requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
-    const opts = { callback: this.genCallback(id) }
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
     if (this.address) opts.from = this.address
     this.credentials.createTypedDataSignatureRequest(typedData, opts).then(jwt => this.send(jwt, id, sendOpts))
   }
@@ -345,8 +348,12 @@ class Connect {
    * @param {Object} [sendOpts]
    */
   requestPersonalSign(data, id='personalSignReq', sendOpts) {
-    const opts = { callback: this.genCallback(id) }
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
     if (this.address) opts.from = this.address
+
     this.credentials.createPersonalSignRequest(data, opts).then(jwt => this.send(jwt, id, sendOpts))
   }
 
