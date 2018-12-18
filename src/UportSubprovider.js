@@ -17,7 +17,7 @@ class UportSubprovider {
    * @param       {Object}            args.provider          a web3 sytle provider
    * @return      {UportSubprovider}                         self
    */
-  constructor ({requestAddress, sendTransaction, provider, network}) {
+  constructor ({requestAddress, sendTransaction, signTypedData, personalSign, provider, network}) {
     const self = this
 
     if (!provider) {
@@ -41,6 +41,20 @@ class UportSubprovider {
     this.sendTransaction = (txobj, cb) => {
       sendTransaction(txobj).then(
         address => cb(null, address),
+        error => cb(error)
+      )
+    }
+
+    this.signTypedData = (typedData, cb) => {
+      signTypedData(typedData).then(
+        payload => cb(null, encodeSignature(payload.signature)),
+        error => cb(error)
+      )
+    }
+
+    this.personalSign = (data, cb) => {
+      personalSign(data).then(
+        payload => cb(null, encodeSignature(payload.signature)),
         error => cb(error)
       )
     }
@@ -109,13 +123,22 @@ class UportSubprovider {
         })
       case 'eth_sendTransaction':
         let txParams = payload.params[0]
-        return self.sendTransaction(txParams, (err, tx) => {
-          respond(err, tx)
-        })
+        return self.sendTransaction(txParams, respond)
+      case 'eth_signTypedData_v3':
+      case 'eth_signTypedData':
+        let typedData = payload.params[0]
+        return self.signTypedData(typedData, respond)
+      case 'personal_sign':
+        let data = payload.params[0]
+        return self.personalSign(data, respond)
       default:
         return self.provider.sendAsync(payload, callback)
     }
   }
+}
+
+function encodeSignature({r,s,v}) {
+  return `0x${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
 }
 
 export default UportSubprovider

@@ -19,12 +19,16 @@ class Connect {
    *
    * @param    {String}      appName                      The name of your app
    * @param    {Object}      [opts]                       optional parameters
+   * @param    {String}      [opts.description]           A short description of your app that can be displayed to users when making requests
+   * @param    {String}      [opts.profileImage]          A URL for an image to be displayed as the avatar for this app in requests
+   * @param    {String}      [opts.bannerImage]           A URL for an image to be displayed as the banner for this app in requests
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
    * @param    {Boolean}     [opts.useStore=true]         When true, object state will be written to local storage on each state change
    * @param    {Object}      [opts.store]                 Storage inteferface with synchronous get() => statObj and set(stateObj) functions, by default store is local storage. For asynchronous storage, set useStore false and handle manually.
    * @param    {Boolean}     [opts.usePush=true]          Use the pushTransport when a pushToken is available. Set to false to force connect to use standard transport
+   * @param    {String[]}    [opts.vc]                    An array of verified claims describing this identity
    * @param    {Function}    [opts.transport]             Optional custom transport for desktop, non-push requests
    * @param    {Function}    [opts.mobileTransport]       Optional custom transport for mobile requests
    * @param    {Function}    [opts.mobileUriHandler]      Optional uri handler for mobile requests, if using default transports
@@ -36,11 +40,15 @@ class Connect {
   constructor (appName, opts = {}) {
     // Config
     this.appName = appName || 'uport-connect-app'
+    this.description = opts.description
+    this.profileImage = opts.profileImage
+    this.bannerImage = opts.bannerImage
     this.network = network.config.network(opts.network)
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
     this.useStore = opts.useStore === undefined ? true : opts.useStore
     this.usePush = opts.usePush === undefined ? true : opts.usePush
+    this.vc = Array.isArray(opts.vc) ? opts.vc : []
 
     // Disallow segregated account on mainnet
     if (this.network === network.defaults.networks.mainnet && this.accountType === 'segregated') {
@@ -60,7 +68,6 @@ class Connect {
     // Transports
     this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
-    this.useDeeplinks = true
     this.mobileTransport = opts.mobileTransport || transport.url.send({
       uriHandler: opts.mobileUriHandler,
       messageToURI: (m) => this.useDeeplinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
@@ -69,6 +76,8 @@ class Connect {
     this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
     transport.url.listenResponse((err, res) => {
       if (err) throw err
+      // Switch to deep links after first universal link success
+      this.useDeeplinks = true
       this.pubResponse(res)
     })
 
@@ -103,6 +112,16 @@ class Connect {
         delete txObj['from']
         const requestID = 'txReqProvider'
         this.sendTransaction(txObj, requestID)
+        return this.onResponse(requestID).then(res => res.payload)
+      },
+      signTypedData: (typedData) => {
+        const requestID = 'typedDataSigReqProvider'
+        this.requestTypedDataSignature(typedData, requestID)
+        return this.onResponse(requestID).then(res => res.payload)
+      },
+      personalSign: (data) => {
+        const requestID = 'personalSignReqProvider'
+        this.requestPersonalSign(data, requestID)
         return this.onResponse(requestID).then(res => res.payload)
       },
       provider, network: this.network
@@ -264,16 +283,21 @@ class Connect {
    *  @param    {String}    [id='txReq']    string to identify request, later used to get response, name of function call is used by default, if not a function call, the default is 'txReq'
    *  @param    {Object}    [sendOpts]      reference send function options
    */
-   sendTransaction (txObj, id, sendOpts) {
-     txObj.to = isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to})
-     //  Create default id, where id is function name, or txReq if no function name
-     if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
-     this.credentials.createTxRequest(txObj, {callbackUrl: this.genCallback(id)})
-                     .then(jwt => this.send(jwt, id, sendOpts))
-   }
+  async sendTransaction (txObj = {}, id, sendOpts) {
+    if (!txObj.vc) await this.signAndUploadProfile()
+    txObj = {
+      vc: this.vc, ...txObj, 
+      to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
+    }
+
+    //  Create default id, where id is function name, or txReq if no function name
+    if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
+    this.credentials.createTxRequest(txObj, {callbackUrl: this.genCallback(id)})
+      .then(jwt => this.send(jwt, id, sendOpts))
+  }
 
   /**
-   *  Creates a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
+   *  Creates and sends a request for a user to [sign a verification](https://github.com/uport-project/specs/blob/develop/messages/verificationreq.md) and sends the request to the uPort user.
    *
    *  @example
    *  const unsignedClaim = {
@@ -290,23 +314,49 @@ class Connect {
    *  })
    *
    *  @param    {Object}     unsignedClaim          unsigned claim object which you want the user to attest
-   *  @param    {Object}     opts                   an object containing options for the signature request, including the subject
-   *  @param    {String}     opts.sub               the DID which the unsigned claim is about
-   *  @param    {Number}     [opts.expiresIn]       seconds after current time when the requested verifiable claim will expire
+   *  @param    {String}     sub                    the DID which the unsigned claim is about
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
-   *  @param    {Object}     [sendOpts]             @see this.send function options
+   *  @param    {Object}     [sendOpts]             reference send function options
    */
-  requestVerificationSignature (unsignedClaim, opts, id = 'verSigReq', sendOpts) {
-    if (typeof opts === 'string') {
-      console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
-      opts = {sub: opts}
-    } else if (!opts || !opts.sub) {
-      throw new Error(`Missing required field sub in opts.  Received: ${opts}`)
-    }
-
-    this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id)})
+  async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+    await this.signAndUploadProfile()
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
+
+  /**
+   * Creates and sends a request to a user to sign a piece of ERC712 Typed Data
+   * 
+   * @param     {Object}    typedData               an object containing unsigned typed, structured data that follows the ERC712 specification  
+   * @param     {String}    [id='typedDataSigReq']  string to identify request, later used to get response
+   * @param     {Object}    [sendOpts]              reference send function options
+   */
+  requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
+    if (this.address) opts.from = this.address
+    this.credentials.createTypedDataSignatureRequest(typedData, opts).then(jwt => this.send(jwt, id, sendOpts))
+  }
+
+  /**
+   * Creates and sends a request to a user to sign an arbitrary data string
+   * 
+   * @param {String} data                   a string representing a piece of arbitrary data
+   * @param {String} [id='personalSignReq'] 
+   * @param {Object} [sendOpts]
+   */
+  requestPersonalSign(data, id='personalSignReq', sendOpts) {
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
+    if (this.address) opts.from = this.address
+
+    this.credentials.createPersonalSignRequest(data, opts).then(jwt => this.send(jwt, id, sendOpts))
+  }
+
   /**
    *  Creates a [Selective Disclosure Request JWT](https://github.com/uport-project/specs/blob/develop/messages/sharereq.md) and sends request message to uPort client.
    *
@@ -331,11 +381,15 @@ class Connect {
    *  @param    {String}     [id='disclosureReq']  string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]            reference send function options
    */
-  requestDisclosure (reqObj, id = 'disclosureReq', sendOpts) {
+  async requestDisclosure (reqObj = {}, id = 'disclosureReq', sendOpts) {
+    if (!reqObj.vc) await this.signAndUploadProfile()
+    // Augment request object with verified claims, accountType, and a callback url
     reqObj = Object.assign({
+      vc: this.vc,
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
+    // Create and send request
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
       .then(jwt => this.send(jwt, id, sendOpts))
   }
@@ -360,10 +414,11 @@ class Connect {
    * @param    {String}     [id='sendVerReq']     string to identify request, later used to get response
    * @param    {Object}     [sendOpts]            reference send function options
    */
-  sendVerification (verification, id = 'sendVerReq', sendOpts) {
+  async sendVerification (verification = {}, id = 'sendVerReq', sendOpts) {
+    if (!verification.vc) await this.signAndUploadProfile()
     // Callback and message form differ for this req, may be reconciled in the future
     const cb = this.genCallback(id)
-    if (!verification.sub) verification.sub = this.did
+    verification = { sub: this.did, vc: this.vc, ...verification }
     this.credentials.createVerification(verification).then(jwt => {
       const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
       this.send(uri, id, sendOpts)
@@ -377,7 +432,6 @@ class Connect {
    *
    * @param {Function|Object} Update -- An object, or function specifying updates to the current Connect state (as a function of the current state)
    */
-
   setState(update) {
     switch (typeof update) {
       case 'object':
@@ -480,8 +534,36 @@ class Connect {
   /**
    *  @private
    */
-  genCallback(reqId) {
+  genCallback (reqId) {
     return this.isOnMobile ?  windowCallback(reqId) : transport.messageServer.genCallback()
+  }
+
+  /**
+   * @private
+   * Sign a profile object with this.credentials, and upload it to ipfs, prepending
+   * the instance array of verified claims (this.vc) with the ipfs uri.  If a profile
+   * object is not provided, create one on the fly 
+   * @param {Object}  [profile]         the profile object to be signed and uploaded
+   * @returns {Promise<String, Error>}  a promise resolving to the ipfs hash, or rejecting with an error
+   */
+  signAndUploadProfile (profile) {
+    if (!profile && this.vc.length > 0) return
+    profile = profile || {
+      name: this.appName,
+      description: this.description,
+      url: (typeof window !== 'undefined') ? `${window.location.protocol}//${window.location.host}` : undefined,
+      profileImage: this.profileImage,
+      bannerImage: this.bannerImage,
+    }
+    
+    // Upload to ipfs
+    return this.credentials.createVerification({sub: this.keypair.did, claim: profile})
+      .then(jwt => ipfsAdd(jwt))
+      .then(hash => {
+        console.log('uploaded, ', this.vc)
+        this.vc.unshift(`/ipfs/${hash}`)
+        return hash
+      })
   }
 }
 
@@ -575,6 +657,30 @@ const isMobile = () => {
   if (typeof navigator !== 'undefined') {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
+}
+
+/**
+ * Post a json document to ipfs
+ * 
+ */
+function ipfsAdd(jwt) {
+  return new Promise((resolve, reject) => {
+    // Create new FormData to hold stringified JSON
+    const payload = new FormData()
+    payload.append("file", new Blob([jwt]))
+    const req = new XMLHttpRequest()
+    // Resolve to hash on success
+    req.onreadystatechange = () => {
+      if (req.readyState !== 4) return
+      if (req.status != 200) reject(`Error ${req.status}: ${req.responseText}`)
+      else resolve(JSON.parse(req.responseText).Hash)
+    }
+    // Send request
+    req.open('POST', 'https://ipfs.infura.io:5001/api/v0/add')
+    req.setRequestHeader('accept','application/json')
+    req.enctype = 'multipart/form-data'
+    req.send(payload)
+  })
 }
 
 export default Connect

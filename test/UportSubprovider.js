@@ -12,6 +12,10 @@ const address = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
 const mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 const badMnid = '2nSX6hxNMgvgP9MtvoJDgSjVHGRsTuxpyPi'
 
+function encodeSignature({r,s,v}) {
+  return `0x${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
+}
+
 describe('UportSubprovider', () => {
   it('Accepts and wraps a custom provider', () => {
   	let rpcUrl = 'http://localhost:1234'
@@ -30,32 +34,6 @@ describe('UportSubprovider', () => {
   		expect(data.result[0]).to.equal(address)
   		done()
   	})
-  })
-
-  it('Calls sendAsync on calls to send', () => {
-    const uSub = new UportSubprovider({network})
-    uSub.sendAsync = sinon.stub()
-    uSub.send({})
-    expect(uSub.sendAsync).to.be.called
-  })
-
-  it('Expands payload arrays and makes multiple calls', (done) => {
-    const uSub = new UportSubprovider({network})
-    
-    const counter = sinon.stub()
-
-    const sendAsync = uSub.sendAsync.bind(uSub)
-
-    uSub.sendAsync = (...args) => {
-      counter()
-      sendAsync(...args)
-    }
-    
-    uSub.sendAsync([{},{}])
-    setTimeout(() => {
-      expect(counter).to.be.calledThrice
-      done()
-    }, 0)
   })
 
   it('Accepts valid mnids', (done) => {
@@ -108,5 +86,27 @@ describe('UportSubprovider', () => {
   		expect(data).to.be.undefined
   		done()
   	})
+  })
+	
+  it('Calls the passed signTypedData function for `eth_signTypedData` request, and encodes the signature', (done) => {
+    const response = {r: '1234', s: '1234', v: 0}
+    const signTypedData = sinon.stub().resolves({signature: response})
+    const uSub = new UportSubprovider({signTypedData, network})
+    uSub.sendAsync({method: 'eth_signTypedData', params: [{data: 'fake'}]}, (err, {result}) => {
+      expect(err).to.be.null
+      expect(result).to.equal(encodeSignature(response))
+      done()
+    })
+  })
+
+  it('calls the passed personalSign function for `personal_sign` request, and encodes the signature', (done) => {
+    const response = {r: '1234', s: '1234', v: 0}
+    const personalSign = sinon.stub().resolves({signature: response})
+    const uSub = new UportSubprovider({personalSign, network})
+    uSub.sendAsync({method: 'personal_sign', params: [{data: 'fake'}]}, (err, {result}) => {
+      expect(err).to.be.null
+      expect(result).to.equal(encodeSignature(response))
+      done()
+    })
   })
 })

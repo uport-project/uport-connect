@@ -1,12 +1,4 @@
----
-title: "How to Integrate with Web3"
-index: 3
-category: "uport-connect"
-type: "tutorial"
-source: "https://github.com/uport-project/uport-connect/blob/develop/docs/guides/tutorial.md"
----
-
-# How to Integrate uPort Into Your dApp
+# Integrating uPort into Your dApp: An Introduction
 
 ## Introduction
 
@@ -31,7 +23,7 @@ We will be working in the `uport-connect/examples/integration-tutorial` director
 
 Make sure you have the uPort application installed on your mobile device.
 
-We've provided a simple HTML file `uport_tutorial.html` that you can find [here](https://github.com/uport-project/uport-connect/blob/develop/tutorial/uport_tutorial.html). It contains a section for connecting your uPort, a section for transferring Ether from your uPort address to another address, and a section that sets a simple status message in a smart contract.
+We've provided a simple HTML file `uport_tutorial.html` that you can find [here](https://github.com/uport-project/uport-connect/tree/develop/examples/integration-tutorial). It contains a section for connecting your uPort, a section for transferring Ether from your uPort address to another address, and a section that sets a simple status message in a smart contract.
 
 To test the dApp, all you need to do is open the `uport_tutorial.html` file in your browser. There is a file named `index.js` that will contain the JavaScript integration code that you need.
 
@@ -65,5 +57,3 @@ The functions `getAccounts()` and `getCoinbase()` trigger the QR code that bring
 The functions for sending ETH and setting the status are exactly how you would write them in vanilla `web3.js`. To send ETH, you must first fetch some Rinkeby Ether at the Rinkeby faucet, available here: <https://rinkeby.io>.
 
 Now, try sending some Rinkeby ETH and setting the status. You will see QR codes appear when it's time to sign transactions, and you use your uPort app to scan them. After sending and setting the status, you can reload the page and reconnect, to make sure the balance and status are updated.
-
-We hope that you now have a basic grasp of how to go about implementing uPort into your dApp :)

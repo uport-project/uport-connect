@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -110,10 +110,10 @@
     "pubsub-js": "^1.6.0",
     "qs": "^6.2.1",
     "store": "^2.0.12",
-    "uport-credentials": "^1.0.2",
+    "uport-credentials": "^1.1.0",
     "uport-did-resolver": "0.0.3",
     "uport-lite": "^1.0.2",
-    "uport-transports": "^0.1.2"
+    "uport-transports": "^0.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -128,7 +128,8 @@
     "babel-plugin-transform-es3-member-expression-literals": "^6.8.0",
     "babel-plugin-transform-es3-property-literals": "^6.8.0",
     "babel-plugin-transform-object-rest-spread": "^6.22.0",
-    "babel-preset-es2015": "^6.18.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
     "babel-register": "^6.18.0",
     "bignumber.js": "^7.0.1",
     "chai": "^3.5.0",
@@ -137,7 +138,10 @@
     "cz-conventional-changelog": "^1.2.0",
     "eslint": "^3.2.2",
     "ethjs-signer": "^0.1.1",
+    "exports-loader": "^0.7.0",
     "ganache-cli": "^6.1.0",
+    "ipfs-mini": "^1.1.2",
+    "imports-loader": "^0.8.0",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc": "^3.4.3",

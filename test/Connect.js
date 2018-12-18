@@ -2,20 +2,21 @@ import chai, { expect, assert } from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
 import Web3 from 'web3'
+import IPFS from 'ipfs-mini'
 
 import { Connect } from '../src'
 import { message } from 'uport-transports'
-import { Credentials } from 'uport-credentials'
 import { decodeJWT, verifyJWT } from 'did-jwt'
+import { decode } from 'mnid';
 
 chai.use(sinonChai)
 
 // TODO import from messages after
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 const getURLJWT = (url) => url.replace(/https:\/\/id.uport.me\/req\//, '').replace(/(\#|\?)(.*)/, '')
+const ipfs = new IPFS({host: 'ipfs.infura.io', port: 5001, protocol: 'https'})
 
-// const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NkstUiJ9.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTY2NTA5MTM0NCwiYXVkIjoiMm9lWHVmSEdEcFU1MWJmS0JzWkRkdTdKZTl3ZUozcjdzVkciLCJ0eXBlIjoic2hhcmVSZXNwIiwibmFkIjoiMm91c1hUalBFRnJrZjl3NjY3YXR5R3hQY3h1R0Q0UEYyNGUiLCJvd24iOnsibmFtZSI6IlphY2giLCJjb3VudHJ5IjoiVVMifSwicmVxIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOalFzSW5KbGNYVmxjM1JsWkNJNld5SnVZVzFsSWl3aWNHaHZibVVpTENKamIzVnVkSEo1SWl3aVlYWmhkR0Z5SWwwc0luQmxjbTFwYzNOcGIyNXpJanBiSW01dmRHbG1hV05oZEdsdmJuTWlYU3dpWTJGc2JHSmhZMnNpT2lKb2RIUndjem92TDJOb1lYTnhkV2t1ZFhCdmNuUXViV1V2WVhCcEwzWXhMM1J2Y0dsakwxbzJNM1owVkdGclMyMXdjVlZxVUc0aUxDSnVaWFFpT2lJd2VEUWlMQ0owZVhCbElqb2ljMmhoY21WU1pYRWlMQ0pwYzNNaU9pSXliMlZZZFdaSVIwUndWVFV4WW1aTFFuTmFSR1IxTjBwbE9YZGxTak55TjNOV1J5SjkuRTZLd3ZiN1Z1Tks4a3VaNFVmODVhNFBJVXFhOTd2U2RUTEZOaTEtMzRyYXB0N0V1Q1hHYjU5UXo1MndtUmZIZUhhVS1ZVW5yN3lpZ0p0dE9CYlBZaHciLCJjYXBhYmlsaXRpZXMiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOeklzSW1WNGNDSTZNVFV6TXpjMU5USTNNaXdpWVhWa0lqb2lNbTlsV0hWbVNFZEVjRlUxTVdKbVMwSnpXa1JrZFRkS1pUbDNaVW96Y2pkelZrY2lMQ0owZVhCbElqb2libTkwYVdacFkyRjBhVzl1Y3lJc0luWmhiSFZsSWpvaVlYSnVPbUYzY3pwemJuTTZkWE10ZDJWemRDMHlPakV4TXpFNU5qSXhOalUxT0RwbGJtUndiMmx1ZEM5QlVFNVRMM1ZRYjNKMEx6QmtNVGcwWkRobExXVTBZbVF0TTJNMFl5MDRZbVUxTFdKa1ptSm1aV0kxTVRBeFpTSXNJbWx6Y3lJNklqSnZkWE5ZVkdwUVJVWnlhMlk1ZHpZMk4yRjBlVWQ0VUdONGRVZEVORkJHTWpSbEluMC4tdGFZVS1rVlRzNktJNUtQQ3R5akdHbTdOMFlfV0RNeVY2ZUVRdWZVS0ZXRllQdHZqYnpKMFZrdVdYTUtzb3lyZ0JmM1VxeE9iRzd0NW9ydGxOSm5WZyJdLCJwdWJsaWNFbmNLZXkiOiJKQUJ1dUpIK051ekgwS3NvaEdEUUt2elhkS0ltSXhJcklFN0k2dXBmMnpvPSIsImlzcyI6ImRpZDpldGhyOjB4NTUwMjYwNzQ1OWI0NjMwNzU4MmJhMTYzNWQ2MTFlMmUxODY4NmMxMiJ9.Indl4OYcKRuPbekHAGx2tBx3-l86am2swLwTBUuavcpsWM5_mfui4CFg-1Iequyl9mzIvZOGWkKKb3ifJBlgQgA"
-const resJWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NkstUiJ9.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTY2NTA5MTM0NCwidHlwZSI6InNoYXJlUmVzcCIsIm5hZCI6IjJvdXNYVGpQRUZya2Y5dzY2N2F0eUd4UGN4dUdENFBGMjRlIiwib3duIjp7Im5hbWUiOiJaYWNoIiwiY291bnRyeSI6IlVTIn0sInJlcSI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLmV5SnBZWFFpT2pFMU16STBOVGt5TmpRc0luSmxjWFZsYzNSbFpDSTZXeUp1WVcxbElpd2ljR2h2Ym1VaUxDSmpiM1Z1ZEhKNUlpd2lZWFpoZEdGeUlsMHNJbkJsY20xcGMzTnBiMjV6SWpwYkltNXZkR2xtYVdOaGRHbHZibk1pWFN3aVkyRnNiR0poWTJzaU9pSm9kSFJ3Y3pvdkwyTm9ZWE54ZFdrdWRYQnZjblF1YldVdllYQnBMM1l4TDNSdmNHbGpMMW8yTTNaMFZHRnJTMjF3Y1ZWcVVHNGlMQ0p1WlhRaU9pSXdlRFFpTENKMGVYQmxJam9pYzJoaGNtVlNaWEVpTENKcGMzTWlPaUl5YjJWWWRXWklSMFJ3VlRVeFltWkxRbk5hUkdSMU4wcGxPWGRsU2pOeU4zTldSeUo5LkU2S3d2YjdWdU5LOGt1WjRVZjg1YTRQSVVxYTk3dlNkVExGTmkxLTM0cmFwdDdFdUNYR2I1OVF6NTJ3bVJmSGVIYVUtWVVucjd5aWdKdHRPQmJQWWh3IiwiY2FwYWJpbGl0aWVzIjpbImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLmV5SnBZWFFpT2pFMU16STBOVGt5TnpJc0ltVjRjQ0k2TVRVek16YzFOVEkzTWl3aVlYVmtJam9pTW05bFdIVm1TRWRFY0ZVMU1XSm1TMEp6V2tSa2RUZEtaVGwzWlVvemNqZHpWa2NpTENKMGVYQmxJam9pYm05MGFXWnBZMkYwYVc5dWN5SXNJblpoYkhWbElqb2lZWEp1T21GM2N6cHpibk02ZFhNdGQyVnpkQzB5T2pFeE16RTVOakl4TmpVMU9EcGxibVJ3YjJsdWRDOUJVRTVUTDNWUWIzSjBMekJrTVRnMFpEaGxMV1UwWW1RdE0yTTBZeTA0WW1VMUxXSmtabUptWldJMU1UQXhaU0lzSW1semN5STZJakp2ZFhOWVZHcFFSVVp5YTJZNWR6WTJOMkYwZVVkNFVHTjRkVWRFTkZCR01qUmxJbjAuLXRhWVUta1ZUczZLSTVLUEN0eWpHR203TjBZX1dETXlWNmVFUXVmVUtGV0ZZUHR2amJ6SjBWa3VXWE1Lc295cmdCZjNVcXhPYkc3dDVvcnRsTkpuVmciXSwicHVibGljRW5jS2V5IjoiSkFCdXVKSCtOdXpIMEtzb2hHRFFLdnpYZEtJbUl4SXJJRTdJNnVwZjJ6bz0iLCJpc3MiOiJkaWQ6ZXRocjoweDQ4OWVkZWE4YjNiZWRhMTAyNGU3YTNiZmVlNGI2MWRmOTU3NzExZGYifQ.tCDFY1WoMNI8u5E5bDNNBzOEN_Dh4loCmIV72jjkrhD7AgHt1uWS1vc9sw8vzwnJvWgnhvIZyQFvPeKs7NBtzgA'
+const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTUzMjU0NTY3MiwiYXVkIjoiMm9lWHVmSEdEcFU1MWJmS0JzWkRkdTdKZTl3ZUozcjdzVkciLCJ0eXBlIjoic2hhcmVSZXNwIiwibmFkIjoiMm91c1hUalBFRnJrZjl3NjY3YXR5R3hQY3h1R0Q0UEYyNGUiLCJvd24iOnsibmFtZSI6IlphY2giLCJjb3VudHJ5IjoiVVMifSwicmVxIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOalFzSW5KbGNYVmxjM1JsWkNJNld5SnVZVzFsSWl3aWNHaHZibVVpTENKamIzVnVkSEo1SWl3aVlYWmhkR0Z5SWwwc0luQmxjbTFwYzNOcGIyNXpJanBiSW01dmRHbG1hV05oZEdsdmJuTWlYU3dpWTJGc2JHSmhZMnNpT2lKb2RIUndjem92TDJOb1lYTnhkV2t1ZFhCdmNuUXViV1V2WVhCcEwzWXhMM1J2Y0dsakwxbzJNM1owVkdGclMyMXdjVlZxVUc0aUxDSnVaWFFpT2lJd2VEUWlMQ0owZVhCbElqb2ljMmhoY21WU1pYRWlMQ0pwYzNNaU9pSXliMlZZZFdaSVIwUndWVFV4WW1aTFFuTmFSR1IxTjBwbE9YZGxTak55TjNOV1J5SjkuRTZLd3ZiN1Z1Tks4a3VaNFVmODVhNFBJVXFhOTd2U2RUTEZOaTEtMzRyYXB0N0V1Q1hHYjU5UXo1MndtUmZIZUhhVS1ZVW5yN3lpZ0p0dE9CYlBZaHciLCJjYXBhYmlsaXRpZXMiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOeklzSW1WNGNDSTZNVFV6TXpjMU5USTNNaXdpWVhWa0lqb2lNbTlsV0hWbVNFZEVjRlUxTVdKbVMwSnpXa1JrZFRkS1pUbDNaVW96Y2pkelZrY2lMQ0owZVhCbElqb2libTkwYVdacFkyRjBhVzl1Y3lJc0luWmhiSFZsSWpvaVlYSnVPbUYzY3pwemJuTTZkWE10ZDJWemRDMHlPakV4TXpFNU5qSXhOalUxT0RwbGJtUndiMmx1ZEM5QlVFNVRMM1ZRYjNKMEx6QmtNVGcwWkRobExXVTBZbVF0TTJNMFl5MDRZbVUxTFdKa1ptSm1aV0kxTVRBeFpTSXNJbWx6Y3lJNklqSnZkWE5ZVkdwUVJVWnlhMlk1ZHpZMk4yRjBlVWQ0VUdONGRVZEVORkJHTWpSbEluMC4tdGFZVS1rVlRzNktJNUtQQ3R5akdHbTdOMFlfV0RNeVY2ZUVRdWZVS0ZXRllQdHZqYnpKMFZrdVdYTUtzb3lyZ0JmM1VxeE9iRzd0NW9ydGxOSm5WZyJdLCJwdWJsaWNFbmNLZXkiOiJKQUJ1dUpIK051ekgwS3NvaEdEUUt2elhkS0ltSXhJcklFN0k2dXBmMnpvPSIsImlzcyI6IjJvdXNYVGpQRUZya2Y5dzY2N2F0eUd4UGN4dUdENFBGMjRlIn0.9-1Yziz0SyB7RdKu_NUXvr64-KZBz30z0rS59oQoAz0fETmZB7Egezs_2YPkIsbjOeXo6st3ezZeXpc7nZOW-A"
 
 describe('Connect', () => {
 
@@ -47,6 +48,7 @@ describe('Connect', () => {
         accountType: 'keypair',
         isMobile: true,
         useStore: false,
+        vc: ['jwt'],
         transport,
         mobileTransport
       }
@@ -55,6 +57,7 @@ describe('Connect', () => {
       expect(uport.accountType).to.equal('keypair')
       expect(uport.isOnMobile).to.be.true
       expect(uport.useStore).to.be.false
+      expect(uport.vc).to.deep.equal(['jwt'])
       uport.transport('test')
       uport.mobileTransport('test')
       expect(transport).to.be.calledOnce
@@ -101,39 +104,40 @@ describe('Connect', () => {
   /*********************************************************************/
 
   describe('requestDisclosure', () => {
+    const vc = ['fake']
+
     it('creates a request uri ', (done) => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
-        const jwt = getURLJWT(uri)
+      const transport = (uri, opts) => {
+        const jwt = message.util.getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
         done()
-      })
-      const uport = new Connect('testApp', {transport})
-      uport.requestDisclosure({})
+      }
+
+      const uport = new Connect('testApp', {transport, vc})
+      uport.requestDisclosure()
     })
 
     it('creates a JWT signed by keypair', (done) => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
+      const transport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
         const decoded = decodeJWT(jwt)
         expect(decoded.payload.iss).is.equal(uport.keypair.did)
-        resolve('test')
         done()
-      })
-      const uport = new Connect('testApp', { transport })
-      uport.requestDisclosure({})
+      }
+      const uport = new Connect('testApp', {transport, vc})
+      uport.requestDisclosure()
     })
 
-    it('sets chasqui as callback if not on mobile', () => {
-      const transport = (uri, opts) => new Promise((resolve, reject) => {
+    it('sets chasqui as callback if not on mobile', (done) => {
+      const transport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
         const decoded = decodeJWT(jwt)
         expect(/chasqui/.test(decoded.payload.callback)).to.be.true
-        resolve('test')
         done()
-      })
-      const uport = new Connect('testApp', {transport})
-      uport.requestDisclosure({})
+      }
+      const uport = new Connect('testApp', {transport, vc})
+      uport.requestDisclosure()
     })
 
     it('sets this window as callback if on mobile', (done) => {
@@ -143,8 +147,8 @@ describe('Connect', () => {
         expect(/localhost/.test(decoded.payload.callback)).to.be.true
         done()
       }
-      const uport = new Connect('testApp', {mobileTransport, isMobile: true})
-      uport.requestDisclosure({})
+      const uport = new Connect('testApp', {vc, mobileTransport, isMobile: true})
+      uport.requestDisclosure()
     })
 
     it('calls send with request uri and id', (done) => {
@@ -153,13 +157,13 @@ describe('Connect', () => {
         expect(!!id).to.be.true
         done()
       }
-      const uport = new Connect('testApp')
+      const uport = new Connect('testApp', {vc})
       uport.send = send
-      uport.requestDisclosure({})
+      uport.requestDisclosure()
     })
 
     it('sets the accountType to none if not provided', (done) => {
-      const uport = new Connect('test app none')
+      const uport = new Connect('test app none', {vc})
       uport.genCallback = sinon.stub()
       uport.send = sinon.stub()
       uport.credentials.createDisclosureRequest = (req) => {
@@ -167,12 +171,43 @@ describe('Connect', () => {
         done()
       }
 
-      uport.requestDisclosure({})
+      uport.requestDisclosure()
+    })
+
+    it('uses configured vc if not provided in request', (done) => {
+      const vc = ['details']
+      const uport = new Connect('test app', {vc})
+
+      uport.genCallback = sinon.stub()
+      uport.send = sinon.stub()
+
+      uport.credentials.createDisclosureRequest = (req) => {
+        expect(req.vc).to.deep.equal(vc)
+        done()
+      }
+
+      uport.requestDisclosure()
+    })
+
+    it('uses vc provided in the request', (done) => {
+      const wrongvc = ['bad']
+      const vc = ['good']
+      const uport = new Connect('test app', {vc: wrongvc})
+
+      uport.genCallback = sinon.stub()
+      uport.send = sinon.stub()
+
+      uport.credentials.createDisclosureRequest = (req) => {
+        expect(req.vc).to.deep.equal(vc)
+        done()
+      }
+
+      uport.requestDisclosure({vc})
     })
 
     it('sets the accountType to configured default if not provided in request', (done) => {
       const accountType = 'keypair'
-      const uport = new Connect('test app keypair', {accountType})
+      const uport = new Connect('test app keypair', {accountType, vc})
       uport.genCallback = sinon.stub()
       uport.send = sinon.stub()
       uport.credentials.createDisclosureRequest = (req) => {
@@ -180,13 +215,13 @@ describe('Connect', () => {
         done()
       }
 
-      uport.requestDisclosure({})
+      uport.requestDisclosure()
     })
 
     it('uses the accountType provided in request', (done) => {
       const configAccountType = 'keypair'
       const accountType = 'general'
-      const uport = new Connect('test app', {accountType: configAccountType})
+      const uport = new Connect('test app', {accountType: configAccountType, vc})
       uport.genCallback = sinon.stub()
 
       uport.credentials.createDisclosureRequest = (req) => {
@@ -198,6 +233,42 @@ describe('Connect', () => {
     })
   })
 
+  /*********************************************************************/
+  describe('signAndUploadProfile', () => {
+    it('skips upload if vc is preconfigured', async () => {
+      const vc = ['fake']
+      const uport = new Connect('test app', {vc})
+
+      await uport.signAndUploadProfile()
+      expect(uport.vc).to.deep.equal(vc)
+    })
+
+    it('uploads a self-signed profile to ipfs if none is configured or provided', async function() {
+      this.timeout(20000) // could take a while
+      const uport = new Connect('test app', {description: 'It tests'})
+      
+      const jwt = {
+        name: 'test app',
+        description: 'It tests',
+        url: 'http://localhost:9876'
+      }
+
+      await uport.signAndUploadProfile()
+      expect(uport.vc[0]).to.match(/^\/ipfs\//)
+      return new Promise((resolve, reject) => {
+        ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
+          if (err) reject(err)
+          const { payload } = decodeJWT(res)
+          expect(payload.sub).to.equal(uport.keypair.did)
+          const profile = payload.claim
+          expect(profile.name).to.equal(jwt.name)
+          expect(profile.description).to.equal(jwt.description)
+          expect(profile.url).to.equal(jwt.url)
+          resolve()
+        }) 
+      })
+    })
+  })
   /*********************************************************************/
 
   describe('getProvider', () => {
@@ -279,8 +350,8 @@ describe('Connect', () => {
       uport.onResponse(id).then((res) => {
         expect(res.payload).to.equal('test')
         done()
+        return
       })
-
       uport.PubSub.publish(id,response)
     })
 
@@ -307,16 +378,6 @@ describe('Connect', () => {
       window.location.hash = `access_token=${JWTReq}&id=${id}`
     })
 
-    it('verifies responses with processDislcosurePayload', (done) => {
-      const uport = new Connect('testApp')
-      const verify = sinon.stub().resolves()
-      uport.credentials.processDisclosurePayload = verify
-      uport.verifyResponse(resJWT, {aud: uport.credentials.did}).then(() => {
-        expect(verify).to.be.called
-        done()
-      })
-    })
-
     it('handles tx hashes response, by just returning them', (done) => {
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
@@ -334,22 +395,6 @@ describe('Connect', () => {
         expect(res.payload).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
         return
       })
-    })
-
-    it('successfully registers callbacks that can handle multiple responses', (done) => {
-      const uport = new Connect('testApp')
-      const cb = sinon.stub()
-      const response = {
-        id, payload: 'payload', data: 'data'
-      }
-      uport.onResponse(id, cb)
-      uport.pubResponse(response)
-      uport.pubResponse(response)
-      // Defer test to next tick
-      setTimeout(() => {
-        expect(cb).to.be.calledTwice
-        done()
-      }, 0)
     })
 
     it('it writes to local storage and instance (did, ...) if values already not available', (done) => {
@@ -478,75 +523,169 @@ describe('Connect', () => {
   /*********************************************************************/
 
   describe('sendVerification', () => {
+    const vc = ['fake']
     it('Creates a JWT signed by the configured keypair', (done) => {
-      const uport = new Connect('testApp')
+      const uport = new Connect('testApp', {vc})
       const cred = {
         claim: { hello: 'world' },
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
-      const jwt = "a.fake.jwt"
-      const sendOpts = {send: 'opts'}
-      const requestId = 'id'
 
-      uport.credentials.createVerification = (content) => {
-        // const jwt = message.util.getURLJWT(url)
-        expect(content).to.equal(cred)
-        return Promise.resolve(jwt)
+      uport.send = (url) => {
+        const jwt = message.util.getURLJWT(url)
+
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.claim).to.deep.equal(cred.claim)
+          done()
+        })
       }
 
-      uport.send = (msg, id, opts) => {
-        // expect(msg).to.match(/\/topic\/[a-zA-Z0-9-_]{16}/)
-        expect(opts).to.deep.equal(sendOpts)
-        expect(id).to.equal(requestId)
-        done()
-      }
-
-      uport.sendVerification(cred, requestId, sendOpts)
+      uport.sendVerification(cred)
     })
   })
 
   /*********************************************************************/
 
   describe('requestVerificationSignature', () => {
-    const unsignedClaim = { hello: 'world' }
-    const subject = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
-    const sendOpts = {send: 'opts'}
-    const requestId = 'abcdefg'
-    it('Creates a verification signature request signed by the configured keypair and sends', (done) => {
-      const uport = new Connect('testApp')
+    const vc = ['fake']
+    it('Creates a verification signature request signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp', {vc})
+      const unsignedClaim = { hello: 'world' }
+      const sub = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 
-      uport.credentials.createVerificationSignatureRequest = (claim, {sub, aud, callbackUrl}) => {
-        expect(claim).to.deep.equal(unsignedClaim)
-        expect(sub).to.equal(subject)
-        expect(aud).to.equal(uport.did)
-        return Promise.resolve('jwt')
+      uport.send = (jwt) => {
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.unsignedClaim).to.deep.equal(unsignedClaim)
+          done()
+        })
       }
 
-      uport.send = (jwt, id, opts) => {
-        expect(id).to.equal(requestId)
-        expect(opts).to.deep.equal(sendOpts)
-        done()
-      }
-
-      uport.requestVerificationSignature(unsignedClaim, subject, requestId, sendOpts)
-    })
-
-    it('throws an error if sub is missing', () => {
-      const uport = new Connect('testapp')
-      expect(() => uport.requestVerificationSignature({test: 'hello'}, {missing: 'sub'})).to.throw()
-    })
-
-    it('passes through an expiration field', (done) => {
-      const uport = new Connect('testapp')
-      const exp = 12345678
-      uport.credentials.createVerificationSignatureRequest = (claim, opts) => {
-        expect(opts.exp).to.equal(exp)
-        done()
-      }
-      uport.requestVerificationSignature(unsignedClaim, {sub: subject, exp})
+      uport.requestVerificationSignature(unsignedClaim, sub)
     })
   })
 
+  describe('requestTypedDataSignature', () => {
+    const vc = ['fake']
+    it('creates a typed data signature request signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp', {vc})
+      const typedData = {
+        types: {
+          EIP712Domain: [
+            {name: 'name', type: 'string'},
+            {name: 'version', type: 'string'},
+            {name: 'chainId', type: 'uint256'},
+            {name: 'verifyingContract', type: 'address'},
+            {name: 'salt', type: 'bytes32'}
+          ],
+          Greeting: [
+            {name: 'text', type: 'string'},
+            {name: 'subject', type: 'string'},
+          ]
+        },
+        domain: {
+          name: 'My dapp', 
+          version: '1.0', 
+          chainId: 1, 
+          verifyingContract: '0xdeadbeef',
+          salt: '0x999999999910101010101010'
+        },
+        primaryType: 'Greeting',
+        message: {
+          text: 'Hello',
+          subject: 'World'
+        }
+      } 
+
+      const testId = 'test_signTypedData'
+      const opts = {data: 'woop', type: 'woop', cancel: 'woop'}
+    
+      uport.send = (jwt, id, sendOpts) => {
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.typedData).to.deep.equal(typedData)
+          expect(id).to.equal(testId)
+          expect(sendOpts).to.equal(opts)
+          done()
+        })
+      }
+
+      uport.requestTypedDataSignature(typedData, testId, opts)
+    })
+
+    it('is called with the correct arguments from a UportSubprovider', (done) => {
+      const uport = new Connect('test app', {vc})
+      const subprovider = uport.getProvider()
+
+      // Test that the request/response pair is the same
+      let reqId
+      uport.requestTypedDataSignature = (_, id) => reqId = id
+      uport.onResponse = (id) => {
+        expect(id).to.equal(reqId)
+        return Promise.resolve({payload: {signature: {r: '1', s: '2', v: '0'}}})
+      }
+
+      const payload = {method: 'eth_signTypedData', id: 'test', params: []}
+      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
+        expect(err).to.be.null
+        expect(id).to.equal(payload.id)
+        expect(jsonrpc).to.equal('2.0')
+        // expect(result).to.equal('result')
+        done()
+      })
+    })
+  })
+
+  describe('requestPersonalSign', () => {
+    const vc = ['fake']
+
+    it('calls credentials.createPersonalSignRequest with the correct args', (done) => {
+      const uport = new Connect('test app', {vc})
+      const opts = {test: 'test'}
+      const id = 'testid'
+      const data = 'deadbeef'
+      uport.credentials.createPersonalSignRequest = (testData, {from, net, callback}) => {
+        console.log(uport.address)
+        expect(net).to.equal('0x4')
+        expect(from).to.equal(uport.address)
+        expect(callback).to.match(/\/topic\//)
+        expect(testData).to.equal(data)
+        return Promise.resolve('jwt')
+      }
+
+      uport.send = (jwt, testId, sendOpts) => {
+        expect(jwt).to.equal('jwt')
+        expect(sendOpts).to.equal(opts)
+        expect(testId).to.equal(id)
+        done()
+      }
+
+      uport.requestPersonalSign(data, id, opts)
+    })
+
+    it('is called with the correct arguments from UportSubprovider', () => {
+      const uport = new Connect('test app', {vc})
+      const subprovider = uport.getProvider()
+
+      // Test that the request/response pair is the same
+      let reqId
+      uport.requestPersonalSign = (_, id) => reqId = id
+      uport.onResponse = (id) => {
+        expect(id).to.equal(reqId)
+        return Promise.resolve({payload: 'result'})
+      }
+
+      const payload = {method: 'personal_sign', id: 'test', params: []}
+      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
+        expect(err).to.be.null
+        expect(id).to.equal(payload.id)
+        expect(jsonrpc).to.equal('2.0')
+        expect(result).to.equal('result')
+        done()
+      })
+    })
+  })
 
   /*********************************************************************/
 
@@ -570,14 +709,14 @@ describe('Connect', () => {
   describe('sendTransaction', () => {
     const txObj = {to: "2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6", function: "updateStatus(string 'hello')"}
     const txObjAddress = {to: '0x71845bbfe5ddfdb919e780febfff5eda62a30fdc', function: "updateStatus(string 'hello')"}
-
+    const vc = ['fake']
     it('call send with request uri including transaction jwt', (done) => {
       const send = (uri) => {
         const jwt = getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
         done()
       }
-      const uport = new Connect('testApp')
+      const uport = new Connect('testApp', {vc})
       uport.send = send
       uport.sendTransaction(txObj)
     })
@@ -589,7 +728,7 @@ describe('Connect', () => {
         expect(decoded.payload.to).to.equal('2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6')
         done()
       }
-      const uport = new Connect('testApp')
+      const uport = new Connect('testApp', {vc})
       uport.send = send
       uport.sendTransaction(txObjAddress)
     })
@@ -601,7 +740,7 @@ describe('Connect', () => {
           expect(/chasqui/.test(decoded.payload.callback)).to.be.true
           done()
         }
-        const uport = new Connect('testApp')
+        const uport = new Connect('testApp', {vc})
         uport.send = send
         uport.sendTransaction(txObj)
     })
@@ -613,7 +752,7 @@ describe('Connect', () => {
         expect(/localhost/.test(decoded.payload.callback)).to.be.true
         done()
       }
-      const uport = new Connect('testApp', {isMobile: true})
+      const uport = new Connect('testApp', {isMobile: true, vc})
       uport.send = send
       uport.sendTransaction(txObj)
     })
@@ -645,9 +784,9 @@ describe('transports', () => {
     })
   })
 
-  it('uses deep links', (done) => {
+  it('uses universal links on first mobile request, and deep links thereafter', (done) => {
     // Set up uriHandler to check uri scheme
-    let shouldBeDeeplink = true
+    let shouldBeDeeplink = false
     const mobileUriHandler = (uri) => {
       if (shouldBeDeeplink) {
         expect(uri).to.match(/me\.uport:/)
@@ -658,9 +797,7 @@ describe('transports', () => {
 
     const uport = new Connect('testapp', { mobileUriHandler })
     // useDeepLinks is unset initially
-    // expect(uport.useDeeplinks).to.be.undefined
-    // useDeepLinks begins true now
-    expect(uport.useDeeplinks).to.be.true
+    expect(uport.useDeeplinks).to.be.undefined
   
     // Check that the flag is switched after a response is handled
     uport.pubResponse = () => {
@@ -672,21 +809,7 @@ describe('transports', () => {
     uport.mobileTransport('fakeUniversal')
     // url.listenResponse is fired on hash change
     window.location.hash = `access_token=0x00521965e7bd230323c423d96c657db5b79d099f&id=test`
-    // shouldBeDeeplink = true
-  })
-
-  it('throws an error if present in hash params', (done) => {
-    const uport = new Connect('test app')
-    uport.pubResponse = sinon.stub()
-
-    const handler = window.onhashchange
-    window.onhashchange = () => {
-      expect(handler).to.throw
-      expect(uport.pubResponse).not.to.be.called
-      done()
-    }
-
-    window.location.hash = `error=true`
+    shouldBeDeeplink = true
   })
 })
 
@@ -801,16 +924,6 @@ describe('transports', () => {
       expect(uport.pushTransport).to.be.falsey
       expect(uport.credentials).not.to.equal(oldCredentials)
       expect(uport.credentials).not.to.deep.equal(oldCredentials)
-    })
-
-    it('throws error when setting state with invalid type', () => {
-      const uport = new Connect('test app')
-      expect(() => uport.setState('invalid')).to.throw
-    })
-
-    it('throws error on invalid mnid', () => {
-      const uport = new Connect('test app')
-      expect(() => uport.setState({mnid: 'invalid'})).to.throw
     })
   })
 })
