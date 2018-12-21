@@ -4,6 +4,8 @@ import HttpProvider from 'ethjs-provider-http'
 
 import { askProvider } from 'uport-transports/lib/transport/ui'
 
+import { isMobile, hasWeb3 } from './util'
+
 /**
  *  A web3 style provider which can easily be wrapped with uPort functionality.
  *  Builds on a base provider. Used in Connect to wrap a provider with uPort specific
@@ -30,13 +32,13 @@ class UportSubprovider {
 
     // Detect injected provider
     if (hasWeb3()) {
-      // Distinguish between metamask injected provider
-      // If metamask, user will be prompted to use injected provider
-      // Other injected providers (mist, coinbase wallet, etc.) will be used automatically
-      if (web3.currentProvider && web3.currentProvider.isMetaMask) {
-        this.hasInjectedProvider = true
-      } else {
+      // Distinguish between providers in mobile and other cases
+      // Metamask/mist etc. will give the option to use uport
+      // Mobile injected providers (coinbase wallet, etc.) will be used automatically
+      if (isMobile()) {
         this.useInjectedProvider = true
+      } else {
+        this.hasInjectedProvider = true
       }
     }
 
@@ -106,12 +108,15 @@ class UportSubprovider {
    * @private
    */
   async sendAsync (payload, callback) {
+    let remember, useInjectedProvider = this.useInjectedProvider
     // Present a dialog to ask about using injected provider if present but not approved
     if (this.hasInjectedProvider && !this.useInjectedProvider) {
-      this.useInjectedProvider = await askProvider()
+      ({remember, useInjectedProvider} = await askProvider(payload.method === 'eth_sendTransaction'))
+      if (remember) this.useInjectedProvider = useInjectedProvider
     } 
+
     // Use injected provider if present and approved
-    if (this.useInjectedProvider) {
+    if (useInjectedProvider) {
       web3.provider.sendAsync(payload, callback)
       return
     }
@@ -157,13 +162,6 @@ class UportSubprovider {
         return this.provider.sendAsync(payload, callback)
     }
   }
-}
-
-/**
- * Detect whether the current window has an injected web3 instance
- */
-function hasWeb3() {
-  return (typeof web3 !== 'undefined')
 }
 
 export default UportSubprovider

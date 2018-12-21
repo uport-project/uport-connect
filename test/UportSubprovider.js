@@ -7,9 +7,9 @@ import sinon from 'sinon'
 chai.use(sinonChai)
 
 // Mock the provider dialog from uport-transports
-const ui = { 
+const ui = {
   askProvider: () => {
-    return Promise.resolve(true)
+    return Promise.resolve({remember: true, useInjectedProvider: true})
   }
 }
 
@@ -106,22 +106,34 @@ describe('UportSubprovider', () => {
   	})
   })
 
-  it('Detects injected providers and sets the appropriate flag [metamask]', async () => {
-    const sendAsync = sinon.stub()
-    window.web3 = {provider: {sendAsync}, currentProvider: {isMetaMask: true}}
+  it('Detects injected providers and sets the appropriate flag [desktop]', async () => {
+    const requestAddress = sinon.stub().resolves(mnid)
+    const UportSubprovider = SubproviderLoader({
+      'uport-transports/lib/transport/ui': ui,
+      './util': { isMobile: () => false, hasWeb3: () => true }
+    }).default
 
-    const uSub = new UportSubprovider({network})
+    const sendAsync = sinon.stub()
+    window.web3 = { provider: { sendAsync }}
+
+    const uSub = new UportSubprovider({network, requestAddress})
     expect(uSub.hasInjectedProvider).to.be.true
     expect(uSub.useInjectedProvider).to.be.undefined
 
     await uSub.sendAsync({method: 'eth_coinbase'}, console.log)
+    
     expect(uSub.useInjectedProvider).to.be.true
     expect(sendAsync).to.be.calledOnce
   })
 
-  it('Detects injected providers and sets the appropriate flag [not metamask]', () => {
+  it('Detects injected providers and sets the appropriate flag [mobile]', () => {
+    const UportSubprovider = SubproviderLoader({
+      'uport-transports/lib/transport/ui': ui,
+      './util': { isMobile: () => true, hasWeb3: () => true }
+    }).default
+
     const sendAsync = sinon.stub()
-    window.web3 = {provider: {sendAsync}, currentProvider: {}}
+    window.web3 = { provider: { sendAsync }}
 
     const uSub = new UportSubprovider({network})
     expect(uSub.hasInjectedProvider).to.be.undefined
