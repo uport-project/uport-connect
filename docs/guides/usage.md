@@ -305,4 +305,21 @@ The following calls will initiate a uPort request, by default, this will show a 
 
 **Limitations**: It's important to note that because the web3 transaction handling is stateful, it requires that uPort requests and responses are handled on the same page. This means that for some mobile browsers, using a web3 object with a uport subprovider to send transactions may not work properly. Instead, for full mobile support we recommend using `Connect.sendTransaction`, or creating contracts via `Connect.contract`, and listening for responses from the mobile app with `Connect.onResponse`. _We are actively investigating more elegant solutions to seamless web3 integration. If you are a developer integrating uport-connect with web3, feel free to open an issue to discuss how to better support your use case._
 
+### <a name="private-chain"></a> Private Chain support
+
+While the primary uPort Credentials functionality does not tie you to any specific blockchain. You are able to request ethereum accounts for use with private ethereum compatible chains. You will need a network ID and a JSON-RPC endpoint accessible to both your browser app and the mobile client.
+
+To configure it, pass in a network object for configuration.
+
+```javascript
+const uport = new Connect('MyDAppName', {
+  network: {
+    id: '0xdeadbeef',
+    rpcUrl: 'https://mybankrpc.example.com/'
+  }
+})
+const provider = uport.getProvider()
+const web3 = new Web3(provider)
+web3.eth.getCoinbase((error, address) => { ... }) // request address for use on private chain
+
 ---------------------------------------------

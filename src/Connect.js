@@ -365,8 +365,9 @@ class Connect {
    *  @param    {Array}      reqObj.verified       an array of attributes for which you are requesting verified credentials to be shared for
    *  @param    {Boolean}    reqObj.notifications  boolean if you want to request the ability to send push notifications
    *  @param    {String}     reqObj.callbackUrl    the url which you want to receive the response of this request
-   *  @param    {String}     reqObj.networkId      network id of Ethereum chain of identity eg. 0x4 for rinkeby
-   *  @param    {String}     reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
+   *  @param    {String}     reqObj.networkId      Override default network id of Ethereum chain of identity eg. 0x4 for rinkeby
+   *  @param    {String}     reqObj.rpcUrl         Override default JSON RPC url for networkId. This is generally only required for use with private chains.
+   *  @param    {String}     reqObj.accountType    Ethereum account type: "general", "keypair", or "none"
    *  @param    {Number}     reqObj.expiresIn      Seconds until expiry
    *  @param    {String}     [id='disclosureReq']  string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]            reference send function options
@@ -379,6 +380,20 @@ class Connect {
       accountType: this.accountType || 'none',
       callbackUrl: this.genCallback(id)
     }, reqObj)
+
+    if (reqObj.accountType !== 'none') {
+      if (!reqObj.networkId) {
+        reqObj.networkId = this.network.id
+      }
+  
+      // If this is a non standard network pass in the rpcUrl as well
+      if (!Object.values(network.defaults.networks).find(n => n.id == reqObj.networkId)) {
+        if (!reqObj.rpcUrl) {
+          reqObj.rpcUrl = this.network.rpcUrl
+        }
+      }  
+    }
+
     // Create and send request
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
       .then(jwt => this.send(jwt, id, sendOpts))

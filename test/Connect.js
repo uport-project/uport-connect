@@ -204,33 +204,111 @@ describe('Connect', () => {
       uport.requestDisclosure({vc})
     })
 
-    it('sets the accountType to configured default if not provided in request', (done) => {
-      const accountType = 'keypair'
-      const uport = new Connect('test app keypair', {accountType, vc})
-      uport.genCallback = sinon.stub()
-      uport.send = sinon.stub()
-      uport.credentials.createDisclosureRequest = (req) => {
-        expect(req.accountType).to.equal(accountType)
-        done()
-      }
-
-      uport.requestDisclosure()
+    describe('accountType', () => {
+      it('sets the accountType to configured default if not provided in request', (done) => {
+        const accountType = 'keypair'
+        const uport = new Connect('test app keypair', {accountType, vc})
+        uport.genCallback = sinon.stub()
+        uport.send = sinon.stub()
+        uport.credentials.createDisclosureRequest = (req) => {
+          expect(req.accountType).to.equal(accountType)
+          done()
+        }
+  
+        uport.requestDisclosure().catch(error => {
+          expect(error).to.equal(undefined)
+          done()
+        })
+      })
+  
+      it('uses the accountType provided in request', (done) => {
+        const configAccountType = 'keypair'
+        const accountType = 'general'
+        const uport = new Connect('test app', {accountType: configAccountType, vc})
+        uport.genCallback = sinon.stub()
+  
+        uport.credentials.createDisclosureRequest = (req) => {
+          expect(req.accountType).to.equal(accountType)
+          done()
+        }
+  
+        uport.requestDisclosure({accountType}).catch(error => {
+          expect(error).to.equal(undefined)
+          done()
+        })
+      })  
     })
+  
+    describe('networkId', () => {
+      it('sets the network to the configured default if not provided in request', (done) => {
+        const accountType = 'keypair'
+        const uport = new Connect('test app keypair', {accountType, vc, network: {id: '0x1', rpcUrl: 'https://mainnet.infura.io'}})
+        uport.genCallback = sinon.stub()
+        uport.send = sinon.stub()
+        uport.credentials.createDisclosureRequest = (req) => {
+          expect(req.networkId).to.equal('0x1')
+          expect(req.rpcUrl).to.equal(undefined)
+          done()
+        }
 
-    it('uses the accountType provided in request', (done) => {
-      const configAccountType = 'keypair'
-      const accountType = 'general'
-      const uport = new Connect('test app', {accountType: configAccountType, vc})
-      uport.genCallback = sinon.stub()
+        uport.requestDisclosure().catch(error => {
+          expect(error).to.equal(undefined)
+          done()
+        })
+      })
 
-      uport.credentials.createDisclosureRequest = (req) => {
-        expect(req.accountType).to.equal(accountType)
-        done()
-      }
+      it('sets the network and rpcUrl to the configured default if non standard', (done) => {
+        const accountType = 'keypair'
+        const uport = new Connect('test app keypair', {accountType, vc, network: {id: '0x1a1', rpcUrl: 'https://smokynet.example.com'}})
+        uport.genCallback = sinon.stub()
+        uport.send = sinon.stub()
+        uport.credentials.createDisclosureRequest = (req) => {
+          expect(req.networkId).to.equal('0x1a1')
+          expect(req.rpcUrl).to.equal('https://smokynet.example.com')
+          done()
+        }
 
-      uport.requestDisclosure({accountType})
+        uport.requestDisclosure().catch(error => {
+          expect(error).to.equal(undefined)
+          done()
+        })
+      })
+
+      it('does not pass in networkId if accountType is `none`', (done) => {
+        const accountType = 'none'
+        const uport = new Connect('test app keypair', {accountType, vc, network: {id: '0x1', rpcUrl: 'https://mainnet.infura.io'}})
+        uport.genCallback = sinon.stub()
+        uport.send = sinon.stub()
+        uport.credentials.createDisclosureRequest = (req) => {
+          expect(req.networkId).to.equal(undefined)
+          done()
+        }
+
+        uport.requestDisclosure().catch(error => {
+          expect(error).to.equal(undefined)
+          done()
+        })
+      })
+
+      it('uses the networkId provided in request', (done) => {
+        const configAccountType = 'keypair'
+        const accountType = 'general'
+        const uport = new Connect('test app keypair', {accountType, vc, network: {id: '0x1', rpcUrl: 'https://mainnet.infura.io'}})
+        uport.genCallback = sinon.stub()
+
+        uport.credentials.createDisclosureRequest = (req) => {
+          expect(req.networkId).to.equal('0x2')
+          done()
+        }
+
+        uport.requestDisclosure({networkId: '0x2'}).catch(error => {
+          expect(error).to.equal(undefined)
+          done()
+        })
+      })  
     })
   })
+
 
   /*********************************************************************/
   describe('signAndUploadProfile', () => {
