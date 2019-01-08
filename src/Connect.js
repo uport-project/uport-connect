@@ -288,6 +288,7 @@ class Connect {
     txObj = {
       vc: this.vc, ...txObj, 
       to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
+      rpcUrl: this.network.rpcUrl, 
     }
 
     //  Create default id, where id is function name, or txReq if no function name
@@ -378,20 +379,12 @@ class Connect {
     reqObj = Object.assign({
       vc: this.vc,
       accountType: this.accountType || 'none',
-      callbackUrl: this.genCallback(id)
+      callbackUrl: this.genCallback(id),
     }, reqObj)
 
-    if (reqObj.accountType !== 'none') {
-      if (!reqObj.networkId) {
-        reqObj.networkId = this.network.id
-      }
-  
-      // If this is a non standard network pass in the rpcUrl as well
-      if (!Object.values(network.defaults.networks).find(n => n.id == reqObj.networkId)) {
-        if (!reqObj.rpcUrl) {
-          reqObj.rpcUrl = this.network.rpcUrl
-        }
-      }  
+    if (reqObj.accountType != 'none') {
+      reqObj.networkId = this.network.id
+      reqObj.rpcUrl = this.network.rpcUrl
     }
 
     // Create and send request

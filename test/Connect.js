@@ -247,7 +247,7 @@ describe('Connect', () => {
         uport.send = sinon.stub()
         uport.credentials.createDisclosureRequest = (req) => {
           expect(req.networkId).to.equal('0x1')
-          expect(req.rpcUrl).to.equal(undefined)
+          expect(req.rpcUrl).to.equal('https://mainnet.infura.io')
           done()
         }
 
@@ -289,23 +289,6 @@ describe('Connect', () => {
           done()
         })
       })
-
-      it('uses the networkId provided in request', (done) => {
-        const configAccountType = 'keypair'
-        const accountType = 'general'
-        const uport = new Connect('test app keypair', {accountType, vc, network: {id: '0x1', rpcUrl: 'https://mainnet.infura.io'}})
-        uport.genCallback = sinon.stub()
-
-        uport.credentials.createDisclosureRequest = (req) => {
-          expect(req.networkId).to.equal('0x2')
-          done()
-        }
-
-        uport.requestDisclosure({networkId: '0x2'}).catch(error => {
-          expect(error).to.equal(undefined)
-          done()
-        })
-      })  
     })
   })
 
