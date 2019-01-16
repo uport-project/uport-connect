@@ -13,6 +13,13 @@ module.exports = {
   module: {
     rules: [
       {
+        test: require.resolve('pubsub-js'),
+        loaders: [
+          'imports-loader?define=>false',
+          'exports-loader?PubSub'
+        ]
+      },
+      {
         test: /\.js$/,
         exclude: /(node_modules)/,
         loader: 'babel-loader'

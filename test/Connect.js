@@ -249,7 +249,7 @@ describe('Connect', () => {
       const jwt = {
         name: 'test app',
         description: 'It tests',
-        url: 'localhost:9876'
+        url: 'http://localhost:9876'
       }
 
       await uport.signAndUploadProfile()
@@ -626,6 +626,54 @@ describe('Connect', () => {
       }
 
       const payload = {method: 'eth_signTypedData', id: 'test', params: []}
+      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
+        expect(err).to.be.null
+        expect(id).to.equal(payload.id)
+        expect(jsonrpc).to.equal('2.0')
+        expect(result).to.equal('result')
+        done()
+      })
+    })
+  })
+
+  describe('requestPersonalSign', () => {
+    const vc = ['fake']
+
+    it('calls credentials.createPersonalSignRequest with the correct args', (done) => {
+      const uport = new Connect('test app', {vc})
+      const opts = {test: 'test'}
+      const id = 'testid'
+      const data = 'deadbeef'
+      uport.credentials.createPersonalSignRequest = (testData, {riss, callback}) => {
+        expect(riss).to.equal(uport.did)
+        expect(callback).to.match(/\/topic\//)
+        expect(testData).to.equal(data)
+        return Promise.resolve('jwt')
+      }
+
+      uport.send = (jwt, testId, sendOpts) => {
+        expect(jwt).to.equal('jwt')
+        expect(sendOpts).to.equal(opts)
+        expect(testId).to.equal(id)
+        done()
+      }
+
+      uport.requestPersonalSign(data, id, opts)
+    })
+
+    it('is called with the correct arguments from UportSubprovider', () => {
+      const uport = new Connect('test app', {vc})
+      const subprovider = uport.getProvider()
+
+      // Test that the request/response pair is the same
+      let reqId
+      uport.requestPersonalSign = (_, id) => reqId = id
+      uport.onResponse = (id) => {
+        expect(id).to.equal(reqId)
+        return Promise.resolve({payload: 'result'})
+      }
+
+      const payload = {method: 'personal_sign', id: 'test', params: []}
       subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
         expect(err).to.be.null
         expect(id).to.equal(payload.id)

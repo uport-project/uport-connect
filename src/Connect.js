@@ -7,6 +7,7 @@ import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
 
+import { isMobile, ipfsAdd } from './util'
 import UportSubprovider from './UportSubprovider'
 
 class Connect {
@@ -117,6 +118,11 @@ class Connect {
       signTypedData: (typedData) => {
         const requestID = 'typedDataSigReqProvider'
         this.requestTypedDataSignature(typedData, requestID)
+        return this.onResponse(requestID).then(res => res.payload)
+      },
+      personalSign: (data) => {
+        const requestID = 'personalSignReqProvider'
+        this.requestPersonalSign(data, requestID)
         return this.onResponse(requestID).then(res => res.payload)
       },
       provider, network: this.network
@@ -322,13 +328,24 @@ class Connect {
   /**
    * Creates and sends a request to a user to sign a piece of ERC712 Typed Data
    * 
-   * @param     {Object}    typedData             an object containing unsigned typed, structured data that follows the ERC712 specification  
-   * @param     {String}    [id='signVerReq']     string to identify request, later used to get response
-   * @param     {Object}    [sendOpts]            reference send function options
+   * @param     {Object}    typedData               an object containing unsigned typed, structured data that follows the ERC712 specification  
+   * @param     {String}    [id='typedDataSigReq']  string to identify request, later used to get response
+   * @param     {Object}    [sendOpts]              reference send function options
    */
   requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
     this.credentials.createTypedDataSignatureRequest(typedData, {riss: this.did, callback: this.genCallback(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
+  }
+
+  /**
+   * Creates and sends a request to a user to sign an arbitrary data string
+   * 
+   * @param {String} data                   a string representing a piece of arbitrary data
+   * @param {String} [id='personalSignReq'] 
+   * @param {Object} [sendOpts]
+   */
+  requestPersonalSign(data, id='personalSignReq', sendOpts) {
+    this.credentials.createPersonalSignRequest(data, {riss: this.did, callback: this.genCallback(id)}).then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
@@ -525,7 +542,7 @@ class Connect {
     profile = profile || {
       name: this.appName,
       description: this.description,
-      url: (typeof window !== 'undefined') ? window.location.host : undefined,
+      url: (typeof window !== 'undefined') ? `${window.location.protocol}//${window.location.host}` : undefined,
       profileImage: this.profileImage,
       bannerImage: this.bannerImage,
     }
@@ -618,43 +635,6 @@ const windowCallback = (id) => {
   const chromeAndIOS = (md.userAgent() === 'Chrome' && md.os() === 'iOS')
   const callback = chromeAndIOS ? `googlechrome:${window.location.href.substring(window.location.protocol.length)}` : window.location.href
   return message.util.paramsToUrlFragment(callback, {id})
-}
-
-/**
- *  Detects if this library is called on a mobile device or tablet.
- *
- *  @param    {Object}     params    A object of params known to uPort
- *  @return   {Boolean}              Returns true if on mobile or tablet, false otherwise.
- *  @private
- */
-const isMobile = () => {
-  if (typeof navigator !== 'undefined') {
-    return !!(new MobileDetect(navigator.userAgent).mobile())
-  } else return false
-}
-
-/**
- * Post a json document to ipfs
- * 
- */
-function ipfsAdd(jwt) {
-  return new Promise((resolve, reject) => {
-    // Create new FormData to hold stringified JSON
-    const payload = new FormData()
-    payload.append("file", new Blob([jwt]))
-    const req = new XMLHttpRequest()
-    // Resolve to hash on success
-    req.onreadystatechange = () => {
-      if (req.readyState !== 4) return
-      if (req.status != 200) reject(`Error ${req.status}: ${req.responseText}`)
-      else resolve(JSON.parse(req.responseText).Hash)
-    }
-    // Send request
-    req.open('POST', 'https://ipfs.infura.io:5001/api/v0/add')
-    req.setRequestHeader('accept','application/json')
-    req.enctype = 'multipart/form-data'
-    req.send(payload)
-  })
 }
 
 export default Connect
