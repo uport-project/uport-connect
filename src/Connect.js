@@ -289,6 +289,7 @@ class Connect {
     txObj = {
       vc: this.vc, ...txObj, 
       to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
+      rpcUrl: this.network.rpcUrl, 
     }
 
     //  Create default id, where id is function name, or txReq if no function name
@@ -366,8 +367,9 @@ class Connect {
    *  @param    {Array}      reqObj.verified       an array of attributes for which you are requesting verified credentials to be shared for
    *  @param    {Boolean}    reqObj.notifications  boolean if you want to request the ability to send push notifications
    *  @param    {String}     reqObj.callbackUrl    the url which you want to receive the response of this request
-   *  @param    {String}     reqObj.networkId      network id of Ethereum chain of identity eg. 0x4 for rinkeby
-   *  @param    {String}     reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
+   *  @param    {String}     reqObj.networkId      Override default network id of Ethereum chain of identity eg. 0x4 for rinkeby
+   *  @param    {String}     reqObj.rpcUrl         Override default JSON RPC url for networkId. This is generally only required for use with private chains.
+   *  @param    {String}     reqObj.accountType    Ethereum account type: "general", "keypair", or "none"
    *  @param    {Number}     reqObj.expiresIn      Seconds until expiry
    *  @param    {String}     [id='disclosureReq']  string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]            reference send function options
@@ -378,8 +380,14 @@ class Connect {
     reqObj = Object.assign({
       vc: this.vc,
       accountType: this.accountType || 'none',
-      callbackUrl: this.genCallback(id)
+      callbackUrl: this.genCallback(id),
     }, reqObj)
+
+    if (reqObj.accountType != 'none') {
+      reqObj.networkId = this.network.id
+      reqObj.rpcUrl = this.network.rpcUrl
+    }
+
     // Create and send request
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
       .then(jwt => this.send(jwt, id, sendOpts))
