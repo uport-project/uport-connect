@@ -164,11 +164,4 @@ class UportSubprovider {
   }
 }
 
-/**
- * Detect whether the current window has an injected web3 instance
- */
-function hasWeb3() {
-  return (typeof web3 !== 'undefined')
-}
-
 export default UportSubprovider
