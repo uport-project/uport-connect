@@ -113,7 +113,7 @@
     "uport-credentials": "^1.1.0-alpha-6",
     "uport-did-resolver": "0.0.3",
     "uport-lite": "^1.0.2",
-    "uport-transports": "^0.2.1-alpha-1"
+    "uport-transports": "^0.2.2"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -140,6 +140,7 @@
     "ethjs-signer": "^0.1.1",
     "exports-loader": "^0.7.0",
     "ganache-cli": "^6.1.0",
+    "inject-loader": "^4.0.1",
     "ipfs-mini": "^1.1.2",
     "imports-loader": "^0.8.0",
     "istanbul": "^0.4.5",

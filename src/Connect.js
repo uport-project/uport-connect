@@ -7,6 +7,7 @@ import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
 
+import { isMobile, ipfsAdd } from './util'
 import UportSubprovider from './UportSubprovider'
 
 class Connect {
@@ -642,43 +643,6 @@ const windowCallback = (id) => {
   const chromeAndIOS = (md.userAgent() === 'Chrome' && md.os() === 'iOS')
   const callback = chromeAndIOS ? `googlechrome:${window.location.href.substring(window.location.protocol.length)}` : window.location.href
   return message.util.paramsToUrlFragment(callback, {id})
-}
-
-/**
- *  Detects if this library is called on a mobile device or tablet.
- *
- *  @param    {Object}     params    A object of params known to uPort
- *  @return   {Boolean}              Returns true if on mobile or tablet, false otherwise.
- *  @private
- */
-const isMobile = () => {
-  if (typeof navigator !== 'undefined') {
-    return !!(new MobileDetect(navigator.userAgent).mobile())
-  } else return false
-}
-
-/**
- * Post a json document to ipfs
- * 
- */
-function ipfsAdd(jwt) {
-  return new Promise((resolve, reject) => {
-    // Create new FormData to hold stringified JSON
-    const payload = new FormData()
-    payload.append("file", new Blob([jwt]))
-    const req = new XMLHttpRequest()
-    // Resolve to hash on success
-    req.onreadystatechange = () => {
-      if (req.readyState !== 4) return
-      if (req.status != 200) reject(`Error ${req.status}: ${req.responseText}`)
-      else resolve(JSON.parse(req.responseText).Hash)
-    }
-    // Send request
-    req.open('POST', 'https://ipfs.infura.io:5001/api/v0/add')
-    req.setRequestHeader('accept','application/json')
-    req.enctype = 'multipart/form-data'
-    req.send(payload)
-  })
 }
 
 export default Connect
