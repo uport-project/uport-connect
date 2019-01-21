@@ -1,11 +1,12 @@
 import { Credentials, ContractFactory } from 'uport-credentials'
 import { verifyJWT, decodeJWT } from 'did-jwt'
-import MobileDetect from 'mobile-detect'
 import { isMNID, encode, decode } from 'mnid'
-import { transport, message, network } from 'uport-transports'
-import PubSub from 'pubsub-js'
-import store from  'store'
+import MobileDetect from 'mobile-detect'
 import UportLite from 'uport-lite'
+import store from  'store'
+
+import { transport, helpers } from 'uport-transports'
+import { open as openQr, notifyPushSent, close } from 'uport-ui'
 
 import UportSubprovider from './UportSubprovider'
 
@@ -65,26 +66,15 @@ class Connect {
     if (this.useStore) this.loadState()
     if (!this.keypair.did) this.keypair = Credentials.createIdentity()
 
-    // Transports
-    this.PubSub = PubSub
-    this.transport = opts.transport || connectTransport(appName)
-    this.mobileTransport = opts.mobileTransport || transport.url.send({
-      uriHandler: opts.mobileUriHandler,
-      messageToURI: (m) => this.useDeeplinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
-    })
-    this.onloadResponse = opts.onloadResponse || transport.url.getResponse()
-    this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
-    transport.url.listenResponse((err, res) => {
-      if (err) throw err
-      // Switch to deep links after first universal link success
-      this.useDeeplinks = true
-      this.pubResponse(res)
-    })
+    // Transport to use without push capability (pushTransport defined when available in setState())
+    this.rawTransport = this.isOnMobile 
+      ? compose(transport.url.createSender(), helpers.messageToDeepLinkURI) 
+      : compose(transport.qr.createSender(openQr), helpers.messageToDeepLinkURI)
 
     // Credential (uport-js) config for verification
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
-    this.resolverConfigs = {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }
-    this.credentials = new Credentials(Object.assign(this.keypair, this.resolverConfigs))     // TODO can resolver configs not be passed through
+    this.resolverConfigs = {registry: this.registry, ethrConfig: opts.ethrConfig }
+    this.credentials = new Credentials(Object.assign(this.keypair, this.resolverConfigs))
   }
 
  /**
@@ -139,13 +129,17 @@ class Connect {
    *  @param    {Function}     cb          an optional callback function, which is called each time a valid repsonse for a given id is available vs having a single promise returned
    *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error, no promised returned if callback given
    */
-  onResponse(id, cb) {
-    const parseResponse = (res) => {
+  async onResponse(id, cb) {
+    // Start polling for response at proper session url
+    const url = await this.session(id)
+
+    const parseResponse = res => {
+      if (!this.isOnMobile) close()
       if (res.error) return Promise.reject(Object.assign({id}, res))
       if (message.util.isJWT(res.payload)) {
         const jwt = res.payload
         const decoded = decodeJWT(jwt)
-        if (decoded.payload.claim){
+        if (decoded.payload.claim) {
           return Promise.resolve(Object.assign({id}, res))
         }
         return this.verifyResponse(jwt).then(parsedRes => {
@@ -160,41 +154,17 @@ class Connect {
       }
     }
 
-    if (this.onloadResponse && this.onloadResponse.id === id) {
-      const onloadResponse = this.onloadResponse
-      this.onloadResponse = null
-      return parseResponse(onloadResponse)
-    }
-
     if (cb) {
-      this.PubSub.subscribe(id, (msg, res) => {
-        parseResponse(res).then(
-          (res) => { cb(null, res) },
-          (err) => { cb(err, null) }
+      const subscribe = transport.pubsub.createSubscriber({url})
+      subscribe(res => 
+        parseResponse(res)
+          .then(decoded => cb(null, decoded))
+          .catch(cb)
         )
-      })
     } else {
-      return new Promise((resolve, reject) => {
-        this.PubSub.subscribe(id, (msg, res) => {
-          this.PubSub.unsubscribe(id)
-          parseResponse(res).then(resolve, reject)
-        })
-      })
+      const listen = transport.pubsub.createListener({url})
+      return listen().then(parseResponse)
     }
-  }
-
-  /**
-   * Push a response payload to uPort connect to be handled. Useful if implementing your own transports
-   * and you are getting responses with your own functions, listeners, event handlers etc. It will
-   * parse the response and resolve it to any listening onResponse functions with the matching id. A
-   * response object in connect is of the form {id, payload, data}, where payload and id required. Payload is the
-   * response payload (url or JWT) from a uPort client.
-   *
-   * @param {Object} response  a wrapped response payload, of form {id, res, data}, res and id required
-   */
-  pubResponse (response) {
-    if (!response || !response.id) throw new Error('Response payload requires an id')
-    this.PubSub.publish(response.id, {payload: response.payload, data: response.data})
   }
 
   /**
@@ -221,38 +191,54 @@ class Connect {
   *  @param    {String}     opts.type         Type specifies the callback action. 'post' to send response to callback in request token or 'redirect' to send response in redirect url.
   *  @param    {Function}   opts.cancel       When using the default QR send, but handling the response yourself, this function will be called when a user closes the request modal.
   */
-  send (request, id, {redirectUrl, data, type, cancel} = {}) {
+  send (request, id) {
     if (!id) throw new Error('Requires request id')
-    if (this.isOnMobile) {
-      if (!redirectUrl & !type) type = 'redirect'
-      this.mobileTransport(request, {id, data, redirectUrl, type})
-    } else if (this.usePush && this.pushTransport) {
-      this.pushTransport(request, {data}).then(res => this.PubSub.publish(id, res))
+
+    if (this.pushTransport) {
+      this.pushTransport(request)
+      notifyPushSent(this.rawTransport.bind(this))
     } else {
-      this.transport(request, {data, cancel}).then(res => this.PubSub.publish(id, res))
+      this.rawTransport(request)
     }
   }
 
- /**
-  *  Builds and returns a contract object which can be used to interact with
-  *  a given contract. Similar to web3.eth.contract. Once specifying .at(address)
-  *  you can call the contract functions with this object. It will create a transaction
-  *  sign request and send it. Functionality limited to function calls which require sending
-  *  a transaction, as these are the only calls which require interaction with a uPort client.
-  *  For reading and/or events use web3 alongside or a similar library.
-  *
-  * @example
-  * const abi = [{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"}]
-  * const StatusContract = connect.contract(abi).at('0x70A804cCE17149deB6030039798701a38667ca3B')
-  * const reqId = 'updateStatus'
-  * StatusContract.updateStatus('helloStatus', reqId)
-  *  connect.onResponse('reqId').then(res => {
-  *    const txHash = res.payload
-  *  })
-  *
-  *  @param    {Object}       abi      contract ABI
-  *  @return   {Object}                contract object
-  */
+  /**
+   * @private
+   * Set up a request-response session, returning the URL associated with this
+   * @param {String} id 
+   */
+  async session(id) {
+    if (!(id in this.sessions)) {
+      this.sessions = { 
+        ...this.sessions, 
+        [id]: transport.pubsub.createSession() 
+      }
+    }
+
+    // Return the promise.  Will be await'd in onResponse()
+    return this._state.sessions[id]
+  }
+
+  /**
+   *  Builds and returns a contract object which can be used to interact with
+   *  a given contract. Similar to web3.eth.contract. Once specifying .at(address)
+   *  you can call the contract functions with this object. It will create a transaction
+   *  sign request and send it. Functionality limited to function calls which require sending
+   *  a transaction, as these are the only calls which require interaction with a uPort client.
+   *  For reading and/or events use web3 alongside or a similar library.
+   *
+   * @example
+   * const abi = [{"constant":false,"inputs":[{"name":"status","type":"string"}],"name":"updateStatus","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"addr","type":"address"}],"name":"getStatus","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"}]
+   * const StatusContract = connect.contract(abi).at('0x70A804cCE17149deB6030039798701a38667ca3B')
+   * const reqId = 'updateStatus'
+   * StatusContract.updateStatus('helloStatus', reqId)
+   *  connect.onResponse('reqId').then(res => {
+   *    const txHash = res.payload
+   *  })
+   *
+   *  @param    {Object}       abi      contract ABI
+   *  @return   {Object}                contract object
+   */
   contract (abi) {
     const txObjHandler = (txObj, id, sendOpts) => {
       txObj.fn = txObj.function
@@ -292,7 +278,7 @@ class Connect {
 
     //  Create default id, where id is function name, or txReq if no function name
     if (!id) id = txObj.fn ? txObj.fn.split('(')[0] : 'txReq'
-    this.credentials.createTxRequest(txObj, {callbackUrl: this.genCallback(id)})
+    this.credentials.createTxRequest(txObj, {callbackUrl: await this.session(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 
@@ -320,7 +306,7 @@ class Connect {
    */
   async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
     await this.signAndUploadProfile()
-    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: await this.session(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 
@@ -331,8 +317,8 @@ class Connect {
    * @param     {String}    [id='typedDataSigReq']  string to identify request, later used to get response
    * @param     {Object}    [sendOpts]              reference send function options
    */
-  requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
-    this.credentials.createTypedDataSignatureRequest(typedData, {riss: this.did, callback: this.genCallback(id)})
+  async requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
+    this.credentials.createTypedDataSignatureRequest(typedData, {riss: this.did, callback: await this.session(id)})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 
@@ -343,8 +329,8 @@ class Connect {
    * @param {String} [id='personalSignReq'] 
    * @param {Object} [sendOpts]
    */
-  requestPersonalSign(data, id='personalSignReq', sendOpts) {
-    this.credentials.createPersonalSignRequest(data, {riss: this.did, callback: this.genCallback(id)}).then(jwt => this.send(jwt, id, sendOpts))
+  async requestPersonalSign(data, id='personalSignReq', sendOpts) {
+    this.credentials.createPersonalSignRequest(data, {riss: this.did, callback: await this.session(id)}).then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
@@ -377,7 +363,7 @@ class Connect {
     reqObj = Object.assign({
       vc: this.vc,
       accountType: this.accountType || 'none',
-      callbackUrl: this.genCallback(id)
+      callbackUrl: await this.session(id)
     }, reqObj)
     // Create and send request
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
@@ -407,7 +393,7 @@ class Connect {
   async sendVerification (verification = {}, id = 'sendVerReq', sendOpts) {
     if (!verification.vc) await this.signAndUploadProfile()
     // Callback and message form differ for this req, may be reconciled in the future
-    const cb = this.genCallback(id)
+    const cb = await this.session(id)
     verification = { sub: this.did, vc: this.vc, ...verification }
     this.credentials.createVerification(verification).then(jwt => {
       const uri = message.util.paramsToQueryString(message.util.messageToURI(jwt), {'callback_url': cb})
@@ -445,7 +431,11 @@ class Connect {
     }
 
     if (this.publicEncKey && this.pushToken) {
-      this.pushTransport = pushTransport(this.pushToken, this.publicEncKey)
+      this.pushTransport = compose(
+        transport.push.createSender({token}), 
+        helpers.encryptWith({publicEncKey}),
+        helpers.messageToDeepLinkURI
+      )
     }
 
     // Write to localStorage
@@ -493,6 +483,7 @@ class Connect {
   get mnid ()         { return this._state.mnid }
   get address ()      { return this._state.address }
   get keypair ()      { return {...this._state.keypair} }
+  get sessions ()     { return {...this._state.sessions} }
   get verified ()     { return this._state.verified }
   get pushToken ()    { return this._state.pushToken }
   get publicEncKey () { return this._state.publicEncKey }
@@ -506,6 +497,7 @@ class Connect {
   set did (did)                   { this.setState({did}) }
   set doc (doc)                   { this.setState({doc}) }
   set mnid (mnid)                 { this.setState({mnid}) }
+  set sessions (sess)             { this.setState({sessions}) }
   set keypair (keypair)           { this.setState({keypair}) }
   set verified (verified)         { this.setState({verified}) }
   set pushToken (pushToken)       { this.setState({pushToken}) }
@@ -573,68 +565,18 @@ class LocalStorageStore {
   }
 }
 
-/**
- *  A transport created for uPort connect. Bundles transport functionality from uport-transports. This implements the
- *  default QR modal flow on desktop clients. If given a request which uses the messaging server Chasqui to relay
- *  responses, it will by default poll Chasqui and return response. If given a request which specifies another
- *  callback to receive the response, for example your own server, it will show the request in the default QR
- *  modal and then instantly return. You can then handle how to fetch the response specific to your implementation.
- *
- *  @param    {String}       appName                 App name displayed in QR pop over modal
- *  @return   {Function}                             Configured connectTransport function
- *  @param    {String}       request                 uPort client request message
- *  @param    {Object}       [config={}]             Optional config object
- *  @param    {String}       config.data             Additional data to be returned later with response
- *  @return   {Promise<Object, Error>}               Function to close the QR modal
- *  @private
- */
-const connectTransport = (appName) => (request, {data, cancel}) => {
-  if (transport.messageServer.isMessageServerCallback(request)) {
-    return  transport.qr.chasquiSend({appName})(request).then(res => ({payload: res, data}))
-  } else {
-    transport.qr.send(appName)(request, {cancel})
-    // TODO return close QR func?
-    return Promise.resolve({data})
-  }
-}
-
-/**
- * Wrap push transport from uport-transports, providing stored pushToken and publicEncKey from the
- * provided Connect instance
- * @param   {Connect} connect   The Connect instance holding the pushToken and publicEncKey
- * @returns {Function}          Configured pushTransport function
- * @private
- */
-const pushTransport = (pushToken, publicEncKey) => {
-  const send = transport.push.sendAndNotify(pushToken, publicEncKey)
-
-  return (request, { type, redirectUrl, data}) => {
-    if (transport.messageServer.isMessageServerCallback(request)) {
-      return transport.messageServer.URIHandlerSend(send)(request, {type, redirectUrl})
-        .then(res => {
-          transport.ui.close()
-          return {payload: res, data}
-        })
-    } else {
-      // Return immediately for custom message server
-      send(request, {type, redirectUrl})
-      return Promise.resolve({data})
-    }
-  }
-}
-
-/**
- *  Gets current window url and formats as request callback
- *
- *  @return   {String}   Returns window url formatted as callback
- *  @private
- */
-const windowCallback = (id) => {
-  const md = new MobileDetect(navigator.userAgent)
-  const chromeAndIOS = (md.userAgent() === 'Chrome' && md.os() === 'iOS')
-  const callback = chromeAndIOS ? `googlechrome:${window.location.href.substring(window.location.protocol.length)}` : window.location.href
-  return message.util.paramsToUrlFragment(callback, {id})
-}
+// /**
+//  *  Gets current window url and formats as request callback
+//  *
+//  *  @return   {String}   Returns window url formatted as callback
+//  *  @private
+//  */
+// const windowCallback = (id) => {
+//   const md = new MobileDetect(navigator.userAgent)
+//   const chromeAndIOS = (md.userAgent() === 'Chrome' && md.os() === 'iOS')
+//   const callback = chromeAndIOS ? `googlechrome:${window.location.href.substring(window.location.protocol.length)}` : window.location.href
+//   return message.util.paramsToUrlFragment(callback, {id})
+// }
 
 /**
  *  Detects if this library is called on a mobile device or tablet.
