@@ -6,7 +6,7 @@ import UportLite from 'uport-lite'
 import store from  'store'
 
 import { transport, helpers } from 'uport-transports'
-import { open as openQr, notifyPushSent, close } from 'uport-ui'
+import { open as openQr, notifyPushSent, close } from 'uport-web-ui'
 
 import UportSubprovider from './UportSubprovider'
 
@@ -194,6 +194,9 @@ class Connect {
   send (request, id) {
     if (!id) throw new Error('Requires request id')
 
+    // Create listener
+    this.session(id)
+
     if (this.pushTransport) {
       this.pushTransport(request)
       notifyPushSent(this.rawTransport.bind(this))
@@ -211,7 +214,7 @@ class Connect {
     if (!(id in this.sessions)) {
       this.sessions = { 
         ...this.sessions, 
-        [id]: transport.pubsub.createSession() 
+        [id]: transport.pubsub.createSession().then(url => (console.log(url), url))
       }
     }
 
@@ -220,6 +223,7 @@ class Connect {
   }
 
   /**
+   * @deprecated 
    *  Builds and returns a contract object which can be used to interact with
    *  a given contract. Similar to web3.eth.contract. Once specifying .at(address)
    *  you can call the contract functions with this object. It will create a transaction
@@ -493,12 +497,12 @@ class Connect {
    * @private
    */
 
-  set state (state)               { throw new Error('Use setState to set state object') }
+  set state (_)                   { throw new Error('Use setState to set state object') }
   set did (did)                   { this.setState({did}) }
   set doc (doc)                   { this.setState({doc}) }
   set mnid (mnid)                 { this.setState({mnid}) }
-  set sessions (sess)             { this.setState({sessions}) }
   set keypair (keypair)           { this.setState({keypair}) }
+  set sessions (sessions)         { this.setState({sessions}) }
   set verified (verified)         { this.setState({verified}) }
   set pushToken (pushToken)       { this.setState({pushToken}) }
   set publicEncKey (publicEncKey) { this.setState({publicEncKey}) }
