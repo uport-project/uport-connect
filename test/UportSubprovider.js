@@ -43,6 +43,32 @@ describe('UportSubprovider', () => {
   	})
   })
 
+  it('Calls sendAsync on calls to send', () => {
+    const uSub = new UportSubprovider({network})
+    uSub.sendAsync = sinon.stub()
+    uSub.send({})
+    expect(uSub.sendAsync).to.be.called
+  })
+
+  it('Expands payload arrays and makes multiple calls', (done) => {
+    const uSub = new UportSubprovider({network})
+    
+    const counter = sinon.stub()
+
+    const sendAsync = uSub.sendAsync.bind(uSub)
+
+    uSub.sendAsync = (...args) => {
+      counter()
+      sendAsync(...args)
+    }
+    
+    uSub.sendAsync([{},{}])
+    setTimeout(() => {
+      expect(counter).to.be.calledThrice
+      done()
+    }, 0)
+  })
+
   it('Accepts valid mnids', (done) => {
   	const requestAddress = sinon.stub().resolves(mnid)
   	const uSub = new UportSubprovider({requestAddress, network})

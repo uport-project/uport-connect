@@ -317,16 +317,17 @@ class Connect {
    *  })
    *
    *  @param    {Object}     unsignedClaim          unsigned claim object which you want the user to attest
-   *  @param    {String}     sub                    the DID which the unsigned claim is about
+   *  @param    {Object}     opts                   an object containing options for the signature request, including the subject
+   *  @param    {String}     opts.sub               the DID which the unsigned claim is about
+   *  @param    {Number}     [opts.expiresIn]       seconds after current time when the requested verifiable claim will expire
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
-   *  @param    {Object}     [sendOpts]             reference send function options
+   *  @param    {Object}     [sendOpts]             @see this.send function options
    */
   async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
     await this.signAndUploadProfile()
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
-
   /**
    * Creates and sends a request to a user to sign a piece of ERC712 Typed Data
    * 
