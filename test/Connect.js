@@ -842,9 +842,9 @@ describe('transports', () => {
     })
   })
 
-  it('uses universal links on first mobile request, and deep links thereafter', (done) => {
+  it('uses deep links on all requests', (done) => {
     // Set up uriHandler to check uri scheme
-    let shouldBeDeeplink = false
+    let shouldBeDeeplink = true
     const mobileUriHandler = (uri) => {
       if (shouldBeDeeplink) {
         expect(uri).to.match(/me\.uport:/)
@@ -855,7 +855,7 @@ describe('transports', () => {
 
     const uport = new Connect('testapp', { mobileUriHandler })
     // useDeepLinks is unset initially
-    expect(uport.useDeeplinks).to.be.undefined
+    expect(uport.useDeeplinks).to.be.true
   
     // Check that the flag is switched after a response is handled
     uport.pubResponse = () => {

@@ -69,6 +69,7 @@ class Connect {
     // Transports
     this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
+    this.useDeeplinks = true
     this.mobileTransport = opts.mobileTransport || transport.url.send({
       uriHandler: opts.mobileUriHandler,
       messageToURI: (m) => this.useDeeplinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
