@@ -125,8 +125,8 @@ describe('Connect', () => {
         expect(decoded.payload.iss).is.equal(uport.keypair.did)
         done()
       }
-      const uport = new Connect('testApp', {transport, vc})
-      uport.requestDisclosure()
+      const uport = new Connect('testApp', {transport})
+      uport.requestDisclosure({vc})
     })
 
     it('sets chasqui as callback if not on mobile', (done) => {
@@ -623,18 +623,10 @@ describe('Connect', () => {
 
       uport.credentials.createVerification = (content) => {
         // const jwt = message.util.getURLJWT(url)
-        expect(content).to.equal(cred)
-        return Promise.resolve(jwt)
-      }
-
-      uport.send = (url) => {
-        const jwt = message.util.getURLJWT(url)
-
-        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
-          expect(issuer).to.equal(uport.keypair.did)
-          expect(payload.claim).to.deep.equal(cred.claim)
-          done()
-        })
+        expect(content.sub).to.equal(cred.sub)
+        expect(content.claim).to.equal(cred.claim)
+        expect(content.vc).to.equal(uport.vc)
+        done()
       }
 
       uport.sendVerification(cred, requestId, sendOpts)
@@ -645,10 +637,12 @@ describe('Connect', () => {
 
   describe('requestVerificationSignature', () => {
     const vc = ['fake']
+    const unsignedClaim = { hello: 'world' }
+    const requestId = 'testReq'
+    const sendOpts = {send: 'opts'}
+    const subject = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
     it('Creates a verification signature request signed by the configured keypair', (done) => {
       const uport = new Connect('testApp', {vc})
-      const unsignedClaim = { hello: 'world' }
-      const sub = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 
       uport.credentials.createVerificationSignatureRequest = (claim, {sub, aud, callbackUrl}) => {
         expect(claim).to.deep.equal(unsignedClaim)
@@ -666,13 +660,19 @@ describe('Connect', () => {
       uport.requestVerificationSignature(unsignedClaim, subject, requestId, sendOpts)
     })
 
-    it('throws an error if sub is missing', () => {
-      const uport = new Connect('testapp')
-      expect(() => uport.requestVerificationSignature({test: 'hello'}, {missing: 'sub'})).to.throw()
+    it('throws an error if sub is missing', async () => {
+      const uport = new Connect('testapp', {vc})
+      try {
+        await uport.requestVerificationSignature({test: 'hello'}, {missing: 'sub'})
+        expect(true).to.be.false
+      } catch (e) {
+        // GOOD
+        expect(e).not.to.be.null
+      }
     })
 
-    it('passes through an expiration field', (done) => {
-      const uport = new Connect('testapp')
+    it('passes through an expiration field',  (done) => {
+      const uport = new Connect('testapp', {vc})
       const exp = 12345678
       uport.credentials.createVerificationSignatureRequest = (claim, opts) => {
         expect(opts.exp).to.equal(exp)
@@ -695,7 +695,7 @@ describe('Connect', () => {
             {name: 'verifyingContract', type: 'address'},
             {name: 'salt', type: 'bytes32'}
           ],
-          Greeting: [
+          Greeting: [            
             {name: 'text', type: 'string'},
             {name: 'subject', type: 'string'},
           ]

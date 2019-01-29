@@ -323,9 +323,16 @@ class Connect {
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]             @see this.send function options
    */
-  async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+  async requestVerificationSignature (unsignedClaim, opts, id = 'verSigReq', sendOpts) {
     await this.signAndUploadProfile()
-    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
+    if (typeof opts === 'string') {
+      console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
+      opts = {sub: opts}
+    } else if (!opts || !opts.sub) {
+      throw new Error(`Missing required field sub in opts.  Received: ${opts}`)
+    }
+
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
   /**
