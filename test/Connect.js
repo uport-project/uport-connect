@@ -7,6 +7,7 @@ import IPFS from 'ipfs-mini'
 import { Connect } from '../src'
 import { message } from 'uport-transports'
 import { decodeJWT, verifyJWT } from 'did-jwt'
+import { decode } from 'mnid';
 
 chai.use(sinonChai)
 
@@ -15,8 +16,7 @@ const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=
 const getURLJWT = (url) => url.replace(/https:\/\/id.uport.me\/req\//, '').replace(/(\#|\?)(.*)/, '')
 const ipfs = new IPFS({host: 'ipfs.infura.io', port: 5001, protocol: 'https'})
 
-// const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NkstUiJ9.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTY2NTA5MTM0NCwiYXVkIjoiMm9lWHVmSEdEcFU1MWJmS0JzWkRkdTdKZTl3ZUozcjdzVkciLCJ0eXBlIjoic2hhcmVSZXNwIiwibmFkIjoiMm91c1hUalBFRnJrZjl3NjY3YXR5R3hQY3h1R0Q0UEYyNGUiLCJvd24iOnsibmFtZSI6IlphY2giLCJjb3VudHJ5IjoiVVMifSwicmVxIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOalFzSW5KbGNYVmxjM1JsWkNJNld5SnVZVzFsSWl3aWNHaHZibVVpTENKamIzVnVkSEo1SWl3aVlYWmhkR0Z5SWwwc0luQmxjbTFwYzNOcGIyNXpJanBiSW01dmRHbG1hV05oZEdsdmJuTWlYU3dpWTJGc2JHSmhZMnNpT2lKb2RIUndjem92TDJOb1lYTnhkV2t1ZFhCdmNuUXViV1V2WVhCcEwzWXhMM1J2Y0dsakwxbzJNM1owVkdGclMyMXdjVlZxVUc0aUxDSnVaWFFpT2lJd2VEUWlMQ0owZVhCbElqb2ljMmhoY21WU1pYRWlMQ0pwYzNNaU9pSXliMlZZZFdaSVIwUndWVFV4WW1aTFFuTmFSR1IxTjBwbE9YZGxTak55TjNOV1J5SjkuRTZLd3ZiN1Z1Tks4a3VaNFVmODVhNFBJVXFhOTd2U2RUTEZOaTEtMzRyYXB0N0V1Q1hHYjU5UXo1MndtUmZIZUhhVS1ZVW5yN3lpZ0p0dE9CYlBZaHciLCJjYXBhYmlsaXRpZXMiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOeklzSW1WNGNDSTZNVFV6TXpjMU5USTNNaXdpWVhWa0lqb2lNbTlsV0hWbVNFZEVjRlUxTVdKbVMwSnpXa1JrZFRkS1pUbDNaVW96Y2pkelZrY2lMQ0owZVhCbElqb2libTkwYVdacFkyRjBhVzl1Y3lJc0luWmhiSFZsSWpvaVlYSnVPbUYzY3pwemJuTTZkWE10ZDJWemRDMHlPakV4TXpFNU5qSXhOalUxT0RwbGJtUndiMmx1ZEM5QlVFNVRMM1ZRYjNKMEx6QmtNVGcwWkRobExXVTBZbVF0TTJNMFl5MDRZbVUxTFdKa1ptSm1aV0kxTVRBeFpTSXNJbWx6Y3lJNklqSnZkWE5ZVkdwUVJVWnlhMlk1ZHpZMk4yRjBlVWQ0VUdONGRVZEVORkJHTWpSbEluMC4tdGFZVS1rVlRzNktJNUtQQ3R5akdHbTdOMFlfV0RNeVY2ZUVRdWZVS0ZXRllQdHZqYnpKMFZrdVdYTUtzb3lyZ0JmM1VxeE9iRzd0NW9ydGxOSm5WZyJdLCJwdWJsaWNFbmNLZXkiOiJKQUJ1dUpIK051ekgwS3NvaEdEUUt2elhkS0ltSXhJcklFN0k2dXBmMnpvPSIsImlzcyI6ImRpZDpldGhyOjB4NTUwMjYwNzQ1OWI0NjMwNzU4MmJhMTYzNWQ2MTFlMmUxODY4NmMxMiJ9.Indl4OYcKRuPbekHAGx2tBx3-l86am2swLwTBUuavcpsWM5_mfui4CFg-1Iequyl9mzIvZOGWkKKb3ifJBlgQgA"
-const resJWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NkstUiJ9.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTY2NTA5MTM0NCwidHlwZSI6InNoYXJlUmVzcCIsIm5hZCI6IjJvdXNYVGpQRUZya2Y5dzY2N2F0eUd4UGN4dUdENFBGMjRlIiwib3duIjp7Im5hbWUiOiJaYWNoIiwiY291bnRyeSI6IlVTIn0sInJlcSI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLmV5SnBZWFFpT2pFMU16STBOVGt5TmpRc0luSmxjWFZsYzNSbFpDSTZXeUp1WVcxbElpd2ljR2h2Ym1VaUxDSmpiM1Z1ZEhKNUlpd2lZWFpoZEdGeUlsMHNJbkJsY20xcGMzTnBiMjV6SWpwYkltNXZkR2xtYVdOaGRHbHZibk1pWFN3aVkyRnNiR0poWTJzaU9pSm9kSFJ3Y3pvdkwyTm9ZWE54ZFdrdWRYQnZjblF1YldVdllYQnBMM1l4TDNSdmNHbGpMMW8yTTNaMFZHRnJTMjF3Y1ZWcVVHNGlMQ0p1WlhRaU9pSXdlRFFpTENKMGVYQmxJam9pYzJoaGNtVlNaWEVpTENKcGMzTWlPaUl5YjJWWWRXWklSMFJ3VlRVeFltWkxRbk5hUkdSMU4wcGxPWGRsU2pOeU4zTldSeUo5LkU2S3d2YjdWdU5LOGt1WjRVZjg1YTRQSVVxYTk3dlNkVExGTmkxLTM0cmFwdDdFdUNYR2I1OVF6NTJ3bVJmSGVIYVUtWVVucjd5aWdKdHRPQmJQWWh3IiwiY2FwYWJpbGl0aWVzIjpbImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLmV5SnBZWFFpT2pFMU16STBOVGt5TnpJc0ltVjRjQ0k2TVRVek16YzFOVEkzTWl3aVlYVmtJam9pTW05bFdIVm1TRWRFY0ZVMU1XSm1TMEp6V2tSa2RUZEtaVGwzWlVvemNqZHpWa2NpTENKMGVYQmxJam9pYm05MGFXWnBZMkYwYVc5dWN5SXNJblpoYkhWbElqb2lZWEp1T21GM2N6cHpibk02ZFhNdGQyVnpkQzB5T2pFeE16RTVOakl4TmpVMU9EcGxibVJ3YjJsdWRDOUJVRTVUTDNWUWIzSjBMekJrTVRnMFpEaGxMV1UwWW1RdE0yTTBZeTA0WW1VMUxXSmtabUptWldJMU1UQXhaU0lzSW1semN5STZJakp2ZFhOWVZHcFFSVVp5YTJZNWR6WTJOMkYwZVVkNFVHTjRkVWRFTkZCR01qUmxJbjAuLXRhWVUta1ZUczZLSTVLUEN0eWpHR203TjBZX1dETXlWNmVFUXVmVUtGV0ZZUHR2amJ6SjBWa3VXWE1Lc295cmdCZjNVcXhPYkc3dDVvcnRsTkpuVmciXSwicHVibGljRW5jS2V5IjoiSkFCdXVKSCtOdXpIMEtzb2hHRFFLdnpYZEtJbUl4SXJJRTdJNnVwZjJ6bz0iLCJpc3MiOiJkaWQ6ZXRocjoweDQ4OWVkZWE4YjNiZWRhMTAyNGU3YTNiZmVlNGI2MWRmOTU3NzExZGYifQ.tCDFY1WoMNI8u5E5bDNNBzOEN_Dh4loCmIV72jjkrhD7AgHt1uWS1vc9sw8vzwnJvWgnhvIZyQFvPeKs7NBtzgA'
+const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTUzMjU0NTY3MiwiYXVkIjoiMm9lWHVmSEdEcFU1MWJmS0JzWkRkdTdKZTl3ZUozcjdzVkciLCJ0eXBlIjoic2hhcmVSZXNwIiwibmFkIjoiMm91c1hUalBFRnJrZjl3NjY3YXR5R3hQY3h1R0Q0UEYyNGUiLCJvd24iOnsibmFtZSI6IlphY2giLCJjb3VudHJ5IjoiVVMifSwicmVxIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOalFzSW5KbGNYVmxjM1JsWkNJNld5SnVZVzFsSWl3aWNHaHZibVVpTENKamIzVnVkSEo1SWl3aVlYWmhkR0Z5SWwwc0luQmxjbTFwYzNOcGIyNXpJanBiSW01dmRHbG1hV05oZEdsdmJuTWlYU3dpWTJGc2JHSmhZMnNpT2lKb2RIUndjem92TDJOb1lYTnhkV2t1ZFhCdmNuUXViV1V2WVhCcEwzWXhMM1J2Y0dsakwxbzJNM1owVkdGclMyMXdjVlZxVUc0aUxDSnVaWFFpT2lJd2VEUWlMQ0owZVhCbElqb2ljMmhoY21WU1pYRWlMQ0pwYzNNaU9pSXliMlZZZFdaSVIwUndWVFV4WW1aTFFuTmFSR1IxTjBwbE9YZGxTak55TjNOV1J5SjkuRTZLd3ZiN1Z1Tks4a3VaNFVmODVhNFBJVXFhOTd2U2RUTEZOaTEtMzRyYXB0N0V1Q1hHYjU5UXo1MndtUmZIZUhhVS1ZVW5yN3lpZ0p0dE9CYlBZaHciLCJjYXBhYmlsaXRpZXMiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOeklzSW1WNGNDSTZNVFV6TXpjMU5USTNNaXdpWVhWa0lqb2lNbTlsV0hWbVNFZEVjRlUxTVdKbVMwSnpXa1JrZFRkS1pUbDNaVW96Y2pkelZrY2lMQ0owZVhCbElqb2libTkwYVdacFkyRjBhVzl1Y3lJc0luWmhiSFZsSWpvaVlYSnVPbUYzY3pwemJuTTZkWE10ZDJWemRDMHlPakV4TXpFNU5qSXhOalUxT0RwbGJtUndiMmx1ZEM5QlVFNVRMM1ZRYjNKMEx6QmtNVGcwWkRobExXVTBZbVF0TTJNMFl5MDRZbVUxTFdKa1ptSm1aV0kxTVRBeFpTSXNJbWx6Y3lJNklqSnZkWE5ZVkdwUVJVWnlhMlk1ZHpZMk4yRjBlVWQ0VUdONGRVZEVORkJHTWpSbEluMC4tdGFZVS1rVlRzNktJNUtQQ3R5akdHbTdOMFlfV0RNeVY2ZUVRdWZVS0ZXRllQdHZqYnpKMFZrdVdYTUtzb3lyZ0JmM1VxeE9iRzd0NW9ydGxOSm5WZyJdLCJwdWJsaWNFbmNLZXkiOiJKQUJ1dUpIK051ekgwS3NvaEdEUUt2elhkS0ltSXhJcklFN0k2dXBmMnpvPSIsImlzcyI6IjJvdXNYVGpQRUZya2Y5dzY2N2F0eUd4UGN4dUdENFBGMjRlIn0.9-1Yziz0SyB7RdKu_NUXvr64-KZBz30z0rS59oQoAz0fETmZB7Egezs_2YPkIsbjOeXo6st3ezZeXpc7nZOW-A"
 
 describe('Connect', () => {
 
@@ -125,8 +125,8 @@ describe('Connect', () => {
         expect(decoded.payload.iss).is.equal(uport.keypair.did)
         done()
       }
-      const uport = new Connect('testApp', {transport})
-      uport.requestDisclosure({vc})
+      const uport = new Connect('testApp', {transport, vc})
+      uport.requestDisclosure()
     })
 
     it('sets chasqui as callback if not on mobile', (done) => {
@@ -331,6 +331,42 @@ describe('Connect', () => {
     })
   })
   /*********************************************************************/
+  describe('signAndUploadProfile', () => {
+    it('skips upload if vc is preconfigured', async () => {
+      const vc = ['fake']
+      const uport = new Connect('test app', {vc})
+
+      await uport.signAndUploadProfile()
+      expect(uport.vc).to.deep.equal(vc)
+    })
+
+    it('uploads a self-signed profile to ipfs if none is configured or provided', async function() {
+      this.timeout(20000) // could take a while
+      const uport = new Connect('test app', {description: 'It tests'})
+      
+      const jwt = {
+        name: 'test app',
+        description: 'It tests',
+        url: 'http://localhost:9876'
+      }
+
+      await uport.signAndUploadProfile()
+      expect(uport.vc[0]).to.match(/^\/ipfs\//)
+      return new Promise((resolve, reject) => {
+        ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
+          if (err) reject(err)
+          const { payload } = decodeJWT(res)
+          expect(payload.sub).to.equal(uport.keypair.did)
+          const profile = payload.claim
+          expect(profile.name).to.equal(jwt.name)
+          expect(profile.description).to.equal(jwt.description)
+          expect(profile.url).to.equal(jwt.url)
+          resolve()
+        }) 
+      })
+    })
+  })
+  /*********************************************************************/
 
   describe('getProvider', () => {
 
@@ -411,8 +447,8 @@ describe('Connect', () => {
       uport.onResponse(id).then((res) => {
         expect(res.payload).to.equal('test')
         done()
+        return
       })
-
       uport.PubSub.publish(id,response)
     })
 
@@ -439,16 +475,6 @@ describe('Connect', () => {
       window.location.hash = `access_token=${JWTReq}&id=${id}`
     })
 
-    it('verifies responses with processDislcosurePayload', (done) => {
-      const uport = new Connect('testApp')
-      const verify = sinon.stub().resolves()
-      uport.credentials.processDisclosurePayload = verify
-      uport.verifyResponse(resJWT, {aud: uport.credentials.did}).then(() => {
-        expect(verify).to.be.called
-        done()
-      })
-    })
-
     it('handles tx hashes response, by just returning them', (done) => {
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
@@ -466,22 +492,6 @@ describe('Connect', () => {
         expect(res.payload).to.equal('0x00521965e7bd230323c423d96c657db5b79d099f')
         return
       })
-    })
-
-    it('successfully registers callbacks that can handle multiple responses', (done) => {
-      const uport = new Connect('testApp')
-      const cb = sinon.stub()
-      const response = {
-        id, payload: 'payload', data: 'data'
-      }
-      uport.onResponse(id, cb)
-      uport.pubResponse(response)
-      uport.pubResponse(response)
-      // Defer test to next tick
-      setTimeout(() => {
-        expect(cb).to.be.calledTwice
-        done()
-      }, 0)
     })
 
     it('it writes to local storage and instance (did, ...) if values already not available', (done) => {
@@ -629,7 +639,7 @@ describe('Connect', () => {
         done()
       }
 
-      uport.sendVerification(cred, requestId, sendOpts)
+      uport.sendVerification(cred)
     })
   })
 
@@ -645,7 +655,6 @@ describe('Connect', () => {
       const uport = new Connect('testApp', {vc})
 
       uport.credentials.createVerificationSignatureRequest = (claim, {sub, aud, callbackUrl}) => {
-        expect(claim).to.deep.equal(unsignedClaim)
         expect(sub).to.equal(subject)
         expect(aud).to.equal(uport.did)
         return Promise.resolve('jwt')
@@ -675,10 +684,61 @@ describe('Connect', () => {
       const uport = new Connect('testapp', {vc})
       const exp = 12345678
       uport.credentials.createVerificationSignatureRequest = (claim, opts) => {
+        console.log('here')
         expect(opts.exp).to.equal(exp)
         done()
       }
       uport.requestVerificationSignature(unsignedClaim, {sub: subject, exp})
+    })
+  })
+
+  describe('requestPersonalSign', () => {
+    const vc = ['fake']
+
+    it('calls credentials.createPersonalSignRequest with the correct args', (done) => {
+      const uport = new Connect('test app', {vc})
+      const opts = {test: 'test'}
+      const id = 'testid'
+      const data = 'deadbeef'
+      uport.credentials.createPersonalSignRequest = (testData, {from, net, callback}) => {
+        console.log(uport.address)
+        expect(net).to.equal('0x4')
+        expect(from).to.equal(uport.address)
+        expect(callback).to.match(/\/topic\//)
+        expect(testData).to.equal(data)
+        return Promise.resolve('jwt')
+      }
+
+      uport.send = (jwt, testId, sendOpts) => {
+        expect(jwt).to.equal('jwt')
+        expect(sendOpts).to.equal(opts)
+        expect(testId).to.equal(id)
+        done()
+      }
+
+      uport.requestPersonalSign(data, id, opts)
+    })
+
+    it('is called with the correct arguments from UportSubprovider', () => {
+      const uport = new Connect('test app', {vc})
+      const subprovider = uport.getProvider()
+
+      // Test that the request/response pair is the same
+      let reqId
+      uport.requestPersonalSign = (_, id) => reqId = id
+      uport.onResponse = (id) => {
+        expect(id).to.equal(reqId)
+        return Promise.resolve({payload: 'result'})
+      }
+
+      const payload = {method: 'personal_sign', id: 'test', params: []}
+      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
+        expect(err).to.be.null
+        expect(id).to.equal(payload.id)
+        expect(jsonrpc).to.equal('2.0')
+        expect(result).to.equal('result')
+        done()
+      })
     })
   })
 
@@ -718,89 +778,46 @@ describe('Connect', () => {
       const opts = {data: 'woop', type: 'woop', cancel: 'woop'}
     
       uport.send = (jwt, id, sendOpts) => {
+        expect(id).to.equal(testId)
+        expect(sendOpts).to.deep.equal(opts)
         verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.typedData).to.deep.equal(typedData)
-          expect(id).to.equal(testId)
-          expect(sendOpts).to.equal(opts)
           done()
         })
       }
-
       uport.requestTypedDataSignature(typedData, testId, opts)
     })
 
     it('is called with the correct arguments from a UportSubprovider', (done) => {
       const uport = new Connect('test app', {vc})
       const subprovider = uport.getProvider()
-
+      const signature = {r: '1234', s: '1234', v: 0}
       // Test that the request/response pair is the same
       let reqId
       uport.requestTypedDataSignature = (_, id) => reqId = id
       uport.onResponse = (id) => {
+        console.log(id, reqId)
         expect(id).to.equal(reqId)
-        return Promise.resolve({payload: 'result'})
+        console.log('resolving')
+        return Promise.resolve({payload: {signature}})
       }
 
       const payload = {method: 'eth_signTypedData', id: 'test', params: []}
       subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
+        console.log(err)
         expect(err).to.be.null
+        console.log(id, payload.id)
         expect(id).to.equal(payload.id)
+        console.log(jsonrpc)
         expect(jsonrpc).to.equal('2.0')
-        expect(result).to.equal('result')
+        console.log(result)
+        // expect(result).to.equal('result')
         done()
       })
     })
   })
-
-  describe('requestPersonalSign', () => {
-    const vc = ['fake']
-
-    it('calls credentials.createPersonalSignRequest with the correct args', (done) => {
-      const uport = new Connect('test app', {vc})
-      const opts = {test: 'test'}
-      const id = 'testid'
-      const data = 'deadbeef'
-      uport.credentials.createPersonalSignRequest = (testData, {riss, callback}) => {
-        expect(riss).to.equal(uport.did)
-        expect(callback).to.match(/\/topic\//)
-        expect(testData).to.equal(data)
-        return Promise.resolve('jwt')
-      }
-
-      uport.send = (jwt, testId, sendOpts) => {
-        expect(jwt).to.equal('jwt')
-        expect(sendOpts).to.equal(opts)
-        expect(testId).to.equal(id)
-        done()
-      }
-
-      uport.requestPersonalSign(data, id, opts)
-    })
-
-    it('is called with the correct arguments from UportSubprovider', () => {
-      const uport = new Connect('test app', {vc})
-      const subprovider = uport.getProvider()
-
-      // Test that the request/response pair is the same
-      let reqId
-      uport.requestPersonalSign = (_, id) => reqId = id
-      uport.onResponse = (id) => {
-        expect(id).to.equal(reqId)
-        return Promise.resolve({payload: 'result'})
-      }
-
-      const payload = {method: 'personal_sign', id: 'test', params: []}
-      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
-        expect(err).to.be.null
-        expect(id).to.equal(payload.id)
-        expect(jsonrpc).to.equal('2.0')
-        expect(result).to.equal('result')
-        done()
-      })
-    })
-  })
-
+ 
   /*********************************************************************/
 
   describe('contract', () => {
@@ -1038,16 +1055,6 @@ describe('transports', () => {
       expect(uport.pushTransport).to.be.falsey
       expect(uport.credentials).not.to.equal(oldCredentials)
       expect(uport.credentials).not.to.deep.equal(oldCredentials)
-    })
-
-    it('throws error when setting state with invalid type', () => {
-      const uport = new Connect('test app')
-      expect(() => uport.setState('invalid')).to.throw
-    })
-
-    it('throws error on invalid mnid', () => {
-      const uport = new Connect('test app')
-      expect(() => uport.setState({mnid: 'invalid'})).to.throw
     })
   })
 })

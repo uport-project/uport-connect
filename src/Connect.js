@@ -317,11 +317,9 @@ class Connect {
    *  })
    *
    *  @param    {Object}     unsignedClaim          unsigned claim object which you want the user to attest
-   *  @param    {Object}     opts                   an object containing options for the signature request, including the subject
-   *  @param    {String}     opts.sub               the DID which the unsigned claim is about
-   *  @param    {Number}     [opts.expiresIn]       seconds after current time when the requested verifiable claim will expire
+   *  @param    {String}     sub                    the DID which the unsigned claim is about
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
-   *  @param    {Object}     [sendOpts]             @see this.send function options
+   *  @param    {Object}     [sendOpts]             reference send function options
    */
   async requestVerificationSignature (unsignedClaim, opts, id = 'verSigReq', sendOpts) {
     await this.signAndUploadProfile()
@@ -335,6 +333,7 @@ class Connect {
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
+
   /**
    * Creates and sends a request to a user to sign a piece of ERC712 Typed Data
    * 
@@ -343,8 +342,12 @@ class Connect {
    * @param     {Object}    [sendOpts]              reference send function options
    */
   requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
-    this.credentials.createTypedDataSignatureRequest(typedData, {riss: this.did, callback: this.genCallback(id)})
-      .then(jwt => this.send(jwt, id, sendOpts))
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
+    if (this.address) opts.from = this.address
+    this.credentials.createTypedDataSignatureRequest(typedData, opts).then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
@@ -355,7 +358,13 @@ class Connect {
    * @param {Object} [sendOpts]
    */
   requestPersonalSign(data, id='personalSignReq', sendOpts) {
-    this.credentials.createPersonalSignRequest(data, {riss: this.did, callback: this.genCallback(id)}).then(jwt => this.send(jwt, id, sendOpts))
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
+    if (this.address) opts.from = this.address
+
+    this.credentials.createPersonalSignRequest(data, opts).then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
