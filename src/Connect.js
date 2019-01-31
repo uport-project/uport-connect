@@ -7,6 +7,7 @@ import PubSub from 'pubsub-js'
 import store from  'store'
 import UportLite from 'uport-lite'
 
+import { isMobile, ipfsAdd } from './util'
 import UportSubprovider from './UportSubprovider'
 
 class Connect {
@@ -68,6 +69,7 @@ class Connect {
     // Transports
     this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
+    this.useDeeplinks = true
     this.mobileTransport = opts.mobileTransport || transport.url.send({
       uriHandler: opts.mobileUriHandler,
       messageToURI: (m) => this.useDeeplinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
@@ -288,6 +290,7 @@ class Connect {
     txObj = {
       vc: this.vc, ...txObj, 
       to: isMNID(txObj.to) ? txObj.to : encode({network: this.network.id, address: txObj.to}),
+      rpcUrl: this.network.rpcUrl, 
     }
 
     //  Create default id, where id is function name, or txReq if no function name
@@ -318,9 +321,16 @@ class Connect {
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]             reference send function options
    */
-  async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+  async requestVerificationSignature (unsignedClaim, opts, id = 'verSigReq', sendOpts) {
     await this.signAndUploadProfile()
-    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
+    if (typeof opts === 'string') {
+      console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
+      opts = {sub: opts}
+    } else if (!opts || !opts.sub) {
+      throw new Error(`Missing required field sub in opts.  Received: ${opts}`)
+    }
+
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 
@@ -375,8 +385,9 @@ class Connect {
    *  @param    {Array}      reqObj.verified       an array of attributes for which you are requesting verified credentials to be shared for
    *  @param    {Boolean}    reqObj.notifications  boolean if you want to request the ability to send push notifications
    *  @param    {String}     reqObj.callbackUrl    the url which you want to receive the response of this request
-   *  @param    {String}     reqObj.networkId      network id of Ethereum chain of identity eg. 0x4 for rinkeby
-   *  @param    {String}     reqObj.accountType    Ethereum account type: "general", "segregated", "keypair", or "none"
+   *  @param    {String}     reqObj.networkId      Override default network id of Ethereum chain of identity eg. 0x4 for rinkeby
+   *  @param    {String}     reqObj.rpcUrl         Override default JSON RPC url for networkId. This is generally only required for use with private chains.
+   *  @param    {String}     reqObj.accountType    Ethereum account type: "general", "keypair", or "none"
    *  @param    {Number}     reqObj.expiresIn      Seconds until expiry
    *  @param    {String}     [id='disclosureReq']  string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]            reference send function options
@@ -387,8 +398,14 @@ class Connect {
     reqObj = Object.assign({
       vc: this.vc,
       accountType: this.accountType || 'none',
-      callbackUrl: this.genCallback(id)
+      callbackUrl: this.genCallback(id),
     }, reqObj)
+
+    if (reqObj.accountType != 'none') {
+      reqObj.networkId = this.network.id
+      reqObj.rpcUrl = this.network.rpcUrl
+    }
+
     // Create and send request
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
       .then(jwt => this.send(jwt, id, sendOpts))
@@ -644,43 +661,6 @@ const windowCallback = (id) => {
   const chromeAndIOS = (md.userAgent() === 'Chrome' && md.os() === 'iOS')
   const callback = chromeAndIOS ? `googlechrome:${window.location.href.substring(window.location.protocol.length)}` : window.location.href
   return message.util.paramsToUrlFragment(callback, {id})
-}
-
-/**
- *  Detects if this library is called on a mobile device or tablet.
- *
- *  @param    {Object}     params    A object of params known to uPort
- *  @return   {Boolean}              Returns true if on mobile or tablet, false otherwise.
- *  @private
- */
-const isMobile = () => {
-  if (typeof navigator !== 'undefined') {
-    return !!(new MobileDetect(navigator.userAgent).mobile())
-  } else return false
-}
-
-/**
- * Post a json document to ipfs
- * 
- */
-function ipfsAdd(jwt) {
-  return new Promise((resolve, reject) => {
-    // Create new FormData to hold stringified JSON
-    const payload = new FormData()
-    payload.append("file", new Blob([jwt]))
-    const req = new XMLHttpRequest()
-    // Resolve to hash on success
-    req.onreadystatechange = () => {
-      if (req.readyState !== 4) return
-      if (req.status != 200) reject(`Error ${req.status}: ${req.responseText}`)
-      else resolve(JSON.parse(req.responseText).Hash)
-    }
-    // Send request
-    req.open('POST', 'https://ipfs.infura.io:5001/api/v0/add')
-    req.setRequestHeader('accept','application/json')
-    req.enctype = 'multipart/form-data'
-    req.send(payload)
-  })
 }
 
 export default Connect
