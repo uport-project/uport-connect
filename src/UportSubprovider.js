@@ -164,7 +164,7 @@ class UportSubprovider {
   }
 }
 
-function encodeSignature({r,s,v}) {
+export function encodeSignature({r,s,v}) {
   return `0x${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
 }
 

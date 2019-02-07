@@ -296,11 +296,11 @@ describe('Connect', () => {
 
   /*********************************************************************/
   describe('signAndUploadProfile', () => {
+    const vc = ['fake']
     it('skips upload if vc is preconfigured', async () => {
-      const vc = ['fake']
       const uport = new Connect('test app', {vc})
-
       await uport.signAndUploadProfile()
+
       expect(uport.vc).to.deep.equal(vc)
     })
 
@@ -684,7 +684,6 @@ describe('Connect', () => {
       const uport = new Connect('testapp', {vc})
       const exp = 12345678
       uport.credentials.createVerificationSignatureRequest = (claim, opts) => {
-        console.log('here')
         expect(opts.exp).to.equal(exp)
         done()
       }
@@ -701,7 +700,6 @@ describe('Connect', () => {
       const id = 'testid'
       const data = 'deadbeef'
       uport.credentials.createPersonalSignRequest = (testData, {from, net, callback}) => {
-        console.log(uport.address)
         expect(net).to.equal('0x4')
         expect(from).to.equal(uport.address)
         expect(callback).to.match(/\/topic\//)
@@ -797,22 +795,15 @@ describe('Connect', () => {
       let reqId
       uport.requestTypedDataSignature = (_, id) => reqId = id
       uport.onResponse = (id) => {
-        console.log(id, reqId)
         expect(id).to.equal(reqId)
-        console.log('resolving')
         return Promise.resolve({payload: {signature}})
       }
 
       const payload = {method: 'eth_signTypedData', id: 'test', params: []}
       subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
-        console.log(err)
         expect(err).to.be.null
-        console.log(id, payload.id)
         expect(id).to.equal(payload.id)
-        console.log(jsonrpc)
         expect(jsonrpc).to.equal('2.0')
-        console.log(result)
-        // expect(result).to.equal('result')
         done()
       })
     })
