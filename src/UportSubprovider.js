@@ -62,14 +62,14 @@ class UportSubprovider {
 
     this.signTypedData = (typedData, cb) => {
       signTypedData(typedData).then(
-        payload => cb(null, payload),
+        payload => cb(null, encodeSignature(payload.signature)),
         error => cb(error)
       )
     }
 
     this.personalSign = (data, cb) => {
       personalSign(data).then(
-        payload => cb(null, payload),
+        payload => cb(null, encodeSignature(payload.signature)),
         error => cb(error)
       )
     }
@@ -162,6 +162,10 @@ class UportSubprovider {
         return this.provider.sendAsync(payload, callback)
     }
   }
+}
+
+export function encodeSignature({r,s,v}) {
+  return `0x${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
 }
 
 export default UportSubprovider

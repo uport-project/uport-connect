@@ -13,10 +13,9 @@ const ui = {
   }
 }
 
-const UportSubprovider = SubproviderLoader({
+const {default: UportSubprovider, encodeSignature} = SubproviderLoader({
   'uport-transports/lib/transport/ui': ui
-}).default
-
+})
 
 const network = {id: '0x4', rpcUrl: 'http://rinkeby.infura.io'}
 const address = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
@@ -95,17 +94,6 @@ describe('UportSubprovider', () => {
   	})
   })
 	
-  it('Calls the passed signTypedData function for `eth_signTypedData` request', (done) => {
-    const response = 'res'
-    const signTypedData = sinon.stub().resolves(response)
-    const uSub = new UportSubprovider({signTypedData, network})
-    uSub.sendAsync({method: 'eth_signTypedData', params: [{data: 'fake'}]}, (err, {result}) => {
-      expect(err).to.be.null
-      expect(result).to.equal(response)
-      done()
-  	})
-  })
-
   it('Detects injected providers and sets the appropriate flag [desktop]', async () => {
     const requestAddress = sinon.stub().resolves(mnid)
     const UportSubprovider = SubproviderLoader({
@@ -141,5 +129,29 @@ describe('UportSubprovider', () => {
 
     uSub.sendAsync()
     expect(sendAsync).to.be.calledOnce
+  })
+
+  it('Calls the passed signTypedData function for `eth_signTypedData` request, and encodes the signature', (done) => {
+    const response = {r: '1234', s: '1234', v: 0}
+    const signTypedData = sinon.stub().resolves({signature: response})
+    const uSub = new UportSubprovider({signTypedData, network})
+    uSub.hasInjectedProvider = false
+    uSub.sendAsync({method: 'eth_signTypedData', params: [{data: 'fake'}]}, (err, {result}) => {
+      expect(err).to.be.null
+      expect(result).to.equal(encodeSignature(response))
+      done()
+    })
+  })
+
+  it('calls the passed personalSign function for `personal_sign` request, and encodes the signature', (done) => {
+    const response = {r: '1234', s: '1234', v: 0}
+    const personalSign = sinon.stub().resolves({signature: response})
+    const uSub = new UportSubprovider({personalSign, network})
+    uSub.hasInjectedProvider = false
+    uSub.sendAsync({method: 'personal_sign', params: [{data: 'fake'}]}, (err, {result}) => {
+      expect(err).to.be.null
+      expect(result).to.equal(encodeSignature(response))
+      done()
+    })
   })
 })

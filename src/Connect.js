@@ -69,6 +69,7 @@ class Connect {
     // Transports
     this.PubSub = PubSub
     this.transport = opts.transport || connectTransport(appName)
+    this.useDeeplinks = true
     this.mobileTransport = opts.mobileTransport || transport.url.send({
       uriHandler: opts.mobileUriHandler,
       messageToURI: (m) => this.useDeeplinks ? message.util.messageToDeeplinkURI(m) : message.util.messageToUniversalURI(m)
@@ -320,9 +321,16 @@ class Connect {
    *  @param    {String}     [id='signVerReq']      string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]             reference send function options
    */
-  async requestVerificationSignature (unsignedClaim, sub, id = 'verSigReq', sendOpts) {
+  async requestVerificationSignature (unsignedClaim, opts, id = 'verSigReq', sendOpts) {
     await this.signAndUploadProfile()
-    this.credentials.createVerificationSignatureRequest(unsignedClaim, {sub, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
+    if (typeof opts === 'string') {
+      console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
+      opts = {sub: opts}
+    } else if (!opts || !opts.sub) {
+      throw new Error(`Missing required field sub in opts.  Received: ${opts}`)
+    }
+
+    this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 
@@ -334,8 +342,12 @@ class Connect {
    * @param     {Object}    [sendOpts]              reference send function options
    */
   requestTypedDataSignature (typedData, id = 'typedDataSigReq', sendOpts) {
-    this.credentials.createTypedDataSignatureRequest(typedData, {riss: this.did, callback: this.genCallback(id)})
-      .then(jwt => this.send(jwt, id, sendOpts))
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
+    if (this.address) opts.from = this.address
+    this.credentials.createTypedDataSignatureRequest(typedData, opts).then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
@@ -346,7 +358,13 @@ class Connect {
    * @param {Object} [sendOpts]
    */
   requestPersonalSign(data, id='personalSignReq', sendOpts) {
-    this.credentials.createPersonalSignRequest(data, {riss: this.did, callback: this.genCallback(id)}).then(jwt => this.send(jwt, id, sendOpts))
+    const opts = { 
+      callback: this.genCallback(id),
+      net: this.network.id
+    }
+    if (this.address) opts.from = this.address
+
+    this.credentials.createPersonalSignRequest(data, opts).then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**

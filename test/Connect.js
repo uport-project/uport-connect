@@ -7,6 +7,7 @@ import IPFS from 'ipfs-mini'
 import { Connect } from '../src'
 import { message } from 'uport-transports'
 import { decodeJWT, verifyJWT } from 'did-jwt'
+import { decode } from 'mnid';
 
 chai.use(sinonChai)
 
@@ -293,6 +294,42 @@ describe('Connect', () => {
   })
 
 
+  /*********************************************************************/
+  describe('signAndUploadProfile', () => {
+    const vc = ['fake']
+    it('skips upload if vc is preconfigured', async () => {
+      const uport = new Connect('test app', {vc})
+      await uport.signAndUploadProfile()
+
+      expect(uport.vc).to.deep.equal(vc)
+    })
+
+    it('uploads a self-signed profile to ipfs if none is configured or provided', async function() {
+      this.timeout(20000) // could take a while
+      const uport = new Connect('test app', {description: 'It tests'})
+      
+      const jwt = {
+        name: 'test app',
+        description: 'It tests',
+        url: 'http://localhost:9876'
+      }
+
+      await uport.signAndUploadProfile()
+      expect(uport.vc[0]).to.match(/^\/ipfs\//)
+      return new Promise((resolve, reject) => {
+        ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
+          if (err) reject(err)
+          const { payload } = decodeJWT(res)
+          expect(payload.sub).to.equal(uport.keypair.did)
+          const profile = payload.claim
+          expect(profile.name).to.equal(jwt.name)
+          expect(profile.description).to.equal(jwt.description)
+          expect(profile.url).to.equal(jwt.url)
+          resolve()
+        }) 
+      })
+    })
+  })
   /*********************************************************************/
   describe('signAndUploadProfile', () => {
     it('skips upload if vc is preconfigured', async () => {
@@ -590,15 +627,16 @@ describe('Connect', () => {
         claim: { hello: 'world' },
         sub: 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
       }
+      const jwt = "a.fake.jwt"
+      const sendOpts = {send: 'opts'}
+      const requestId = 'id'
 
-      uport.send = (url) => {
-        const jwt = message.util.getURLJWT(url)
-
-        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
-          expect(issuer).to.equal(uport.keypair.did)
-          expect(payload.claim).to.deep.equal(cred.claim)
-          done()
-        })
+      uport.credentials.createVerification = (content) => {
+        // const jwt = message.util.getURLJWT(url)
+        expect(content.sub).to.equal(cred.sub)
+        expect(content.claim).to.equal(cred.claim)
+        expect(content.vc).to.equal(uport.vc)
+        done()
       }
 
       uport.sendVerification(cred)
@@ -609,91 +647,47 @@ describe('Connect', () => {
 
   describe('requestVerificationSignature', () => {
     const vc = ['fake']
+    const unsignedClaim = { hello: 'world' }
+    const requestId = 'testReq'
+    const sendOpts = {send: 'opts'}
+    const subject = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
     it('Creates a verification signature request signed by the configured keypair', (done) => {
       const uport = new Connect('testApp', {vc})
-      const unsignedClaim = { hello: 'world' }
-      const sub = 'did:uport:2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 
-      uport.send = (jwt) => {
-        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
-          expect(issuer).to.equal(uport.keypair.did)
-          expect(payload.unsignedClaim).to.deep.equal(unsignedClaim)
-          done()
-        })
+      uport.credentials.createVerificationSignatureRequest = (claim, {sub, aud, callbackUrl}) => {
+        expect(sub).to.equal(subject)
+        expect(aud).to.equal(uport.did)
+        return Promise.resolve('jwt')
       }
 
-      uport.requestVerificationSignature(unsignedClaim, sub)
-    })
-  })
-
-  describe('requestTypedDataSignature', () => {
-    const vc = ['fake']
-    it('creates a typed data signature request signed by the configured keypair', (done) => {
-      const uport = new Connect('testApp', {vc})
-      const typedData = {
-        types: {
-          EIP712Domain: [
-            {name: 'name', type: 'string'},
-            {name: 'version', type: 'string'},
-            {name: 'chainId', type: 'uint256'},
-            {name: 'verifyingContract', type: 'address'},
-            {name: 'salt', type: 'bytes32'}
-          ],
-          Greeting: [
-            {name: 'text', type: 'string'},
-            {name: 'subject', type: 'string'},
-          ]
-        },
-        domain: {
-          name: 'My dapp', 
-          version: '1.0', 
-          chainId: 1, 
-          verifyingContract: '0xdeadbeef',
-          salt: '0x999999999910101010101010'
-        },
-        primaryType: 'Greeting',
-        message: {
-          text: 'Hello',
-          subject: 'World'
-        }
-      } 
-
-      const testId = 'test_signTypedData'
-      const opts = {data: 'woop', type: 'woop', cancel: 'woop'}
-    
-      uport.send = (jwt, id, sendOpts) => {
-        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
-          expect(issuer).to.equal(uport.keypair.did)
-          expect(payload.typedData).to.deep.equal(typedData)
-          expect(id).to.equal(testId)
-          expect(sendOpts).to.equal(opts)
-          done()
-        })
-      }
-
-      uport.requestTypedDataSignature(typedData, testId, opts)
-    })
-
-    it('is called with the correct arguments from a UportSubprovider', (done) => {
-      const uport = new Connect('test app', {vc})
-      const subprovider = uport.getProvider()
-
-      // Test that the request/response pair is the same
-      let reqId
-      uport.requestTypedDataSignature = (_, id) => reqId = id
-      uport.onResponse = (id) => {
-        expect(id).to.equal(reqId)
-        return Promise.resolve({payload: 'result'})
-      }
-
-      const payload = {method: 'eth_signTypedData', id: 'test', params: []}
-      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
-        expect(err).to.be.null
-        expect(id).to.equal(payload.id)
-        expect(jsonrpc).to.equal('2.0')
-        expect(result).to.equal('result')
+      uport.send = (jwt, id, opts) => {
+        expect(id).to.equal(requestId)
+        expect(opts).to.deep.equal(sendOpts)
         done()
-      })
+      }
+
+      uport.requestVerificationSignature(unsignedClaim, subject, requestId, sendOpts)
+    })
+
+    it('throws an error if sub is missing', async () => {
+      const uport = new Connect('testapp', {vc})
+      try {
+        await uport.requestVerificationSignature({test: 'hello'}, {missing: 'sub'})
+        expect(true).to.be.false
+      } catch (e) {
+        // GOOD
+        expect(e).not.to.be.null
+      }
+    })
+
+    it('passes through an expiration field',  (done) => {
+      const uport = new Connect('testapp', {vc})
+      const exp = 12345678
+      uport.credentials.createVerificationSignatureRequest = (claim, opts) => {
+        expect(opts.exp).to.equal(exp)
+        done()
+      }
+      uport.requestVerificationSignature(unsignedClaim, {sub: subject, exp})
     })
   })
 
@@ -705,8 +699,9 @@ describe('Connect', () => {
       const opts = {test: 'test'}
       const id = 'testid'
       const data = 'deadbeef'
-      uport.credentials.createPersonalSignRequest = (testData, {riss, callback}) => {
-        expect(riss).to.equal(uport.did)
+      uport.credentials.createPersonalSignRequest = (testData, {from, net, callback}) => {
+        expect(net).to.equal('0x4')
+        expect(from).to.equal(uport.address)
         expect(callback).to.match(/\/topic\//)
         expect(testData).to.equal(data)
         return Promise.resolve('jwt')
@@ -745,6 +740,75 @@ describe('Connect', () => {
     })
   })
 
+  describe('requestTypedDataSignature', () => {
+    const vc = ['fake']
+    it('creates a typed data signature request signed by the configured keypair', (done) => {
+      const uport = new Connect('testApp', {vc})
+      const typedData = {
+        types: {
+          EIP712Domain: [
+            {name: 'name', type: 'string'},
+            {name: 'version', type: 'string'},
+            {name: 'chainId', type: 'uint256'},
+            {name: 'verifyingContract', type: 'address'},
+            {name: 'salt', type: 'bytes32'}
+          ],
+          Greeting: [            
+            {name: 'text', type: 'string'},
+            {name: 'subject', type: 'string'},
+          ]
+        },
+        domain: {
+          name: 'My dapp', 
+          version: '1.0', 
+          chainId: 1, 
+          verifyingContract: '0xdeadbeef',
+          salt: '0x999999999910101010101010'
+        },
+        primaryType: 'Greeting',
+        message: {
+          text: 'Hello',
+          subject: 'World'
+        }
+      } 
+
+      const testId = 'test_signTypedData'
+      const opts = {data: 'woop', type: 'woop', cancel: 'woop'}
+    
+      uport.send = (jwt, id, sendOpts) => {
+        expect(id).to.equal(testId)
+        expect(sendOpts).to.deep.equal(opts)
+        verifyJWT(jwt, {audience: uport.keypair.did}).then(({payload, issuer}) => {
+          expect(issuer).to.equal(uport.keypair.did)
+          expect(payload.typedData).to.deep.equal(typedData)
+          done()
+        })
+      }
+      uport.requestTypedDataSignature(typedData, testId, opts)
+    })
+
+    it('is called with the correct arguments from a UportSubprovider', (done) => {
+      const uport = new Connect('test app', {vc})
+      const subprovider = uport.getProvider()
+      const signature = {r: '1234', s: '1234', v: 0}
+      // Test that the request/response pair is the same
+      let reqId
+      uport.requestTypedDataSignature = (_, id) => reqId = id
+      uport.onResponse = (id) => {
+        expect(id).to.equal(reqId)
+        return Promise.resolve({payload: {signature}})
+      }
+
+      const payload = {method: 'eth_signTypedData', id: 'test', params: []}
+      subprovider.sendAsync(payload, (err, {id, jsonrpc, result}) => {
+        expect(err).to.be.null
+        expect(id).to.equal(payload.id)
+        expect(jsonrpc).to.equal('2.0')
+        done()
+      })
+    })
+  })
+ 
   /*********************************************************************/
 
   describe('contract', () => {
@@ -842,9 +906,9 @@ describe('transports', () => {
     })
   })
 
-  it('uses universal links on first mobile request, and deep links thereafter', (done) => {
+  it('uses deep links on all requests', (done) => {
     // Set up uriHandler to check uri scheme
-    let shouldBeDeeplink = false
+    let shouldBeDeeplink = true
     const mobileUriHandler = (uri) => {
       if (shouldBeDeeplink) {
         expect(uri).to.match(/me\.uport:/)
@@ -855,7 +919,7 @@ describe('transports', () => {
 
     const uport = new Connect('testapp', { mobileUriHandler })
     // useDeepLinks is unset initially
-    expect(uport.useDeeplinks).to.be.undefined
+    expect(uport.useDeeplinks).to.be.true
   
     // Check that the flag is switched after a response is handled
     uport.pubResponse = () => {
