@@ -21,7 +21,7 @@ class UportSubprovider {
    * @param       {Object}            args.provider          a web3 sytle provider
    * @return      {UportSubprovider}                         this
    */
-  constructor ({requestAddress, sendTransaction, signTypedData, personalSign, provider, network}) {
+  constructor({ requestAddress, sendTransaction, signTypedData, personalSign, provider, network }) {
     if (!provider) {
       // Extend ethjs HTTP provider if none is given
       this.provider = new HttpProvider(network.rpcUrl)
@@ -50,7 +50,7 @@ class UportSubprovider {
           const errorMatch = new Error('Address/Account received does not match the network your provider is configured for')
           this.setAccount(address) ? cb(null, this.address) : cb(errorMatch)
         },
-      error => cb(error))
+        error => cb(error))
     }
 
     this.sendTransaction = (txobj, cb) => {
@@ -93,7 +93,7 @@ class UportSubprovider {
    * Replace sync send with async send
    * @private
    */
-  send (payload, callback) {
+  send(payload, callback) {
     return this.sendAsync(payload, callback)
   }
 
@@ -107,13 +107,13 @@ class UportSubprovider {
    * @param       {Function}       callback          called with response or error
    * @private
    */
-  async sendAsync (payload, callback) {
+  async sendAsync(payload, callback) {
     let remember, useInjectedProvider = this.useInjectedProvider
     // Present a dialog to ask about using injected provider if present but not approved
     if (this.hasInjectedProvider && !this.useInjectedProvider) {
-      ({remember, useInjectedProvider} = await askProvider(payload.method === 'eth_sendTransaction'))
+      ({ remember, useInjectedProvider } = await askProvider(payload.method === 'eth_sendTransaction'))
       if (remember) this.useInjectedProvider = useInjectedProvider
-    } 
+    }
 
     // Use injected provider if present and approved
     if (useInjectedProvider) {
@@ -164,7 +164,7 @@ class UportSubprovider {
   }
 }
 
-function encodeSignature({r,s,v}) {
+export function encodeSignature({ r, s, v }) {
   return `0x${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
 }
 
