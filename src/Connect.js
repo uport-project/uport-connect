@@ -5,7 +5,7 @@ import MobileDetect from 'mobile-detect'
 import UportLite from 'uport-lite'
 import store from  'store'
 
-import { transport, helpers } from 'uport-transports'
+import { compose, transport, helpers, network } from 'uport-transports'
 import { open as openQr, notifyPushSent, close } from 'uport-web-ui'
 
 import UportSubprovider from './UportSubprovider'
@@ -132,6 +132,7 @@ class Connect {
   async onResponse(id, cb) {
     // Start polling for response at proper session url
     const url = await this.session(id)
+    console.log(url)
 
     const parseResponse = res => {
       if (!this.isOnMobile) close()
@@ -214,7 +215,7 @@ class Connect {
     if (!(id in this.sessions)) {
       this.sessions = { 
         ...this.sessions, 
-        [id]: transport.pubsub.createSession().then(url => (console.log(url), url))
+        [id]: transport.pubsub.createSession()
       }
     }
 
@@ -436,8 +437,8 @@ class Connect {
 
     if (this.publicEncKey && this.pushToken) {
       this.pushTransport = compose(
-        transport.push.createSender({token}), 
-        helpers.encryptWith({publicEncKey}),
+        transport.push.createSender({token: this.pushToken}), 
+        helpers.encryptWith({publicEncKey: this.publicEncKey}),
         helpers.messageToDeepLinkURI
       )
     }
@@ -515,13 +516,6 @@ class Connect {
       if (address === this.address) return
       throw new Error('Setting an Ethereum address without a network id is not supported.  Use an MNID instead.')
     }
-  }
-
-  /**
-   *  @private
-   */
-  genCallback (reqId) {
-    return this.isOnMobile ?  windowCallback(reqId) : transport.messageServer.genCallback()
   }
 
   /**
