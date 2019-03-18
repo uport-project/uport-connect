@@ -22,10 +22,6 @@ const address = '0x122bd1a75ae8c741f7e2ab0a28bd30b8dbb1a67e'
 const mnid = '2oeXufHGDpU51bfKBsZDdu7Je9weJ3r7sVG'
 const badMnid = '2nSX6hxNMgvgP9MtvoJDgSjVHGRsTuxpyPi'
 
-function encodeSignature({ r, s, v }) {
-  return `0x${r.padStart(64, '0')}${s.padStart(64, '0')}${v}`
-}
-
 describe('UportSubprovider', () => {
   it('Accepts and wraps a custom provider', () => {
     let rpcUrl = 'http://localhost:1234'
