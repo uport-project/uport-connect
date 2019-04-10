@@ -108,8 +108,8 @@
     "pubsub-js": "^1.6.0",
     "qs": "^6.2.1",
     "store": "^2.0.12",
-    "uport-credentials": "^1.1.4",
-    "uport-lite": "^1.0.2",
+    "uport-credentials": "^1.1.6",
+    "uport-lite": "^1.0.4",
     "uport-transports": "^0.2.5"
   },
   "devDependencies": {
@@ -133,7 +133,7 @@
     "codecov": "^1.0.1",
     "condition-circle": "^1.5.0",
     "cz-conventional-changelog": "^1.2.0",
-    "did-jwt": "^0.1.0",
+    "did-jwt": "^0.1.2",
     "eslint": "^3.2.2",
     "ethjs-signer": "^0.1.1",
     "exports-loader": "^0.7.0",
