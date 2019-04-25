@@ -23,6 +23,7 @@ class Connect {
    * @param    {String}      [opts.description]           A short description of your app that can be displayed to users when making requests
    * @param    {String}      [opts.profileImage]          A URL for an image to be displayed as the avatar for this app in requests
    * @param    {String}      [opts.bannerImage]           A URL for an image to be displayed as the banner for this app in requests
+   * @param    {String}      [opts.brandColor]            A HEX brand color to be be displayed where branding is required '#000000'
    * @param    {Object}      [opts.network='rinkeby']     network config object or string name, ie. { id: '0x1', rpcUrl: 'https://mainnet.infura.io' } or 'kovan', 'mainnet', 'ropsten', 'rinkeby'.
    * @param    {String}      [opts.accountType]           Ethereum account type: "general", "segregated", "keypair", or "none"
    * @param    {Boolean}     [opts.isMobile]              Configured by default by detecting client, but can optionally pass boolean to indicate whether this is instantiated on a mobile client
@@ -44,6 +45,7 @@ class Connect {
     this.description = opts.description
     this.profileImage = opts.profileImage
     this.bannerImage = opts.bannerImage
+    this.brandColor = opts.brandColor
     this.network = network.config.network(opts.network)
     this.accountType = opts.accountType === 'none' ? undefined : opts.accountType
     this.isOnMobile = opts.isMobile === undefined ? isMobile() : opts.isMobile
@@ -571,6 +573,7 @@ class Connect {
       url: (typeof window !== 'undefined') ? `${window.location.protocol}//${window.location.host}` : undefined,
       profileImage: this.profileImage,
       bannerImage: this.bannerImage,
+      brandColor: this.brandColor,
     }
     
     // Upload to ipfs
