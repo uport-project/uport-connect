@@ -108,7 +108,7 @@
     "pubsub-js": "^1.6.0",
     "qs": "^6.2.1",
     "store": "^2.0.12",
-    "uport-credentials": "^1.1.8-dev.1",
+    "uport-credentials": "^1.2.1",
     "uport-lite": "^1.0.5",
     "uport-transports": "^0.2.6"
   },
