@@ -322,9 +322,6 @@ class Connect {
    *  @param    {Object}     [sendOpts]             reference send function options
    */
   async requestVerificationSignature (unsignedClaim, opts, id = 'verSigReq', sendOpts) {
-    console.group('[uport-connect] requestVerificationSignature')
-    console.log(opts)
-    console.groupEnd()
     await this.signAndUploadProfile()
     if (typeof opts === 'string') {
       console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
