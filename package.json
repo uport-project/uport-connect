@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "1.1.11",
+  "version": "1.1.12-dev.0",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -110,7 +110,7 @@
     "store": "^2.0.12",
     "uport-credentials": "^1.2.1",
     "uport-lite": "^1.0.5",
-    "uport-transports": "^0.2.6"
+    "uport-transports": "^0.2.7-dev.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
