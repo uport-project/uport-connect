@@ -1,20 +1,17 @@
-import chai, { expect, assert } from 'chai'
+import chai, { expect } from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
 import Web3 from 'web3'
-import IPFS from 'ipfs-mini'
 
-import { Connect } from '../src'
+import { Connect } from '../../src'
 import { message } from 'uport-transports'
 import { decodeJWT, verifyJWT } from 'did-jwt'
-import { decode } from 'mnid';
 
 chai.use(sinonChai)
 
 // TODO import from messages after
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 const getURLJWT = (url) => url.replace(/https:\/\/id.uport.me\/req\//, '').replace(/(\#|\?)(.*)/, '')
-const ipfs = new IPFS({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' })
 
 const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTUzMjU0NTY3MiwiYXVkIjoiMm9lWHVmSEdEcFU1MWJmS0JzWkRkdTdKZTl3ZUozcjdzVkciLCJ0eXBlIjoic2hhcmVSZXNwIiwibmFkIjoiMm91c1hUalBFRnJrZjl3NjY3YXR5R3hQY3h1R0Q0UEYyNGUiLCJvd24iOnsibmFtZSI6IlphY2giLCJjb3VudHJ5IjoiVVMifSwicmVxIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOalFzSW5KbGNYVmxjM1JsWkNJNld5SnVZVzFsSWl3aWNHaHZibVVpTENKamIzVnVkSEo1SWl3aVlYWmhkR0Z5SWwwc0luQmxjbTFwYzNOcGIyNXpJanBiSW01dmRHbG1hV05oZEdsdmJuTWlYU3dpWTJGc2JHSmhZMnNpT2lKb2RIUndjem92TDJOb1lYTnhkV2t1ZFhCdmNuUXViV1V2WVhCcEwzWXhMM1J2Y0dsakwxbzJNM1owVkdGclMyMXdjVlZxVUc0aUxDSnVaWFFpT2lJd2VEUWlMQ0owZVhCbElqb2ljMmhoY21WU1pYRWlMQ0pwYzNNaU9pSXliMlZZZFdaSVIwUndWVFV4WW1aTFFuTmFSR1IxTjBwbE9YZGxTak55TjNOV1J5SjkuRTZLd3ZiN1Z1Tks4a3VaNFVmODVhNFBJVXFhOTd2U2RUTEZOaTEtMzRyYXB0N0V1Q1hHYjU5UXo1MndtUmZIZUhhVS1ZVW5yN3lpZ0p0dE9CYlBZaHciLCJjYXBhYmlsaXRpZXMiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOeklzSW1WNGNDSTZNVFV6TXpjMU5USTNNaXdpWVhWa0lqb2lNbTlsV0hWbVNFZEVjRlUxTVdKbVMwSnpXa1JrZFRkS1pUbDNaVW96Y2pkelZrY2lMQ0owZVhCbElqb2libTkwYVdacFkyRjBhVzl1Y3lJc0luWmhiSFZsSWpvaVlYSnVPbUYzY3pwemJuTTZkWE10ZDJWemRDMHlPakV4TXpFNU5qSXhOalUxT0RwbGJtUndiMmx1ZEM5QlVFNVRMM1ZRYjNKMEx6QmtNVGcwWkRobExXVTBZbVF0TTJNMFl5MDRZbVUxTFdKa1ptSm1aV0kxTVRBeFpTSXNJbWx6Y3lJNklqSnZkWE5ZVkdwUVJVWnlhMlk1ZHpZMk4yRjBlVWQ0VUdONGRVZEVORkJHTWpSbEluMC4tdGFZVS1rVlRzNktJNUtQQ3R5akdHbTdOMFlfV0RNeVY2ZUVRdWZVS0ZXRllQdHZqYnpKMFZrdVdYTUtzb3lyZ0JmM1VxeE9iRzd0NW9ydGxOSm5WZyJdLCJwdWJsaWNFbmNLZXkiOiJKQUJ1dUpIK051ekgwS3NvaEdEUUt2elhkS0ltSXhJcklFN0k2dXBmMnpvPSIsImlzcyI6IjJvdXNYVGpQRUZya2Y5dzY2N2F0eUd4UGN4dUdENFBGMjRlIn0.9-1Yziz0SyB7RdKu_NUXvr64-KZBz30z0rS59oQoAz0fETmZB7Egezs_2YPkIsbjOeXo6st3ezZeXpc7nZOW-A"
 
@@ -293,79 +290,6 @@ describe('Connect', () => {
     })
   })
 
-
-  /*********************************************************************/
-  describe('signAndUploadProfile', () => {
-    const vc = ['fake']
-    it('skips upload if vc is preconfigured', async () => {
-      const uport = new Connect('test app', { vc })
-      await uport.signAndUploadProfile()
-
-      expect(uport.vc).to.deep.equal(vc)
-    })
-
-    it('uploads a self-signed profile to ipfs if none is configured or provided', async function () {
-      this.timeout(20000) // could take a while
-      const uport = new Connect('test app', { description: 'It tests' })
-
-      const jwt = {
-        name: 'test app',
-        description: 'It tests',
-        url: 'http://localhost:9876'
-      }
-
-      await uport.signAndUploadProfile()
-      expect(uport.vc[0]).to.match(/^\/ipfs\//)
-      return new Promise((resolve, reject) => {
-        ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
-          if (err) reject(err)
-          const { payload } = decodeJWT(res)
-          expect(payload.sub).to.equal(uport.keypair.did)
-          const profile = payload.claim
-          expect(profile.name).to.equal(jwt.name)
-          expect(profile.description).to.equal(jwt.description)
-          expect(profile.url).to.equal(jwt.url)
-          resolve()
-        })
-      })
-    })
-  })
-  /*********************************************************************/
-  describe('signAndUploadProfile', () => {
-    it('skips upload if vc is preconfigured', async () => {
-      const vc = ['fake']
-      const uport = new Connect('test app', { vc })
-
-      await uport.signAndUploadProfile()
-      expect(uport.vc).to.deep.equal(vc)
-    })
-
-    it('uploads a self-signed profile to ipfs if none is configured or provided', async function () {
-      this.timeout(20000) // could take a while
-      const uport = new Connect('test app', { description: 'It tests' })
-
-      const jwt = {
-        name: 'test app',
-        description: 'It tests',
-        url: 'http://localhost:9876'
-      }
-
-      await uport.signAndUploadProfile()
-      expect(uport.vc[0]).to.match(/^\/ipfs\//)
-      return new Promise((resolve, reject) => {
-        ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
-          if (err) reject(err)
-          const { payload } = decodeJWT(res)
-          expect(payload.sub).to.equal(uport.keypair.did)
-          const profile = payload.claim
-          expect(profile.name).to.equal(jwt.name)
-          expect(profile.description).to.equal(jwt.description)
-          expect(profile.url).to.equal(jwt.url)
-          resolve()
-        })
-      })
-    })
-  })
   /*********************************************************************/
 
   describe('getProvider', () => {

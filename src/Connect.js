@@ -586,7 +586,6 @@ class Connect {
     return this.credentials.createVerification({sub: this.keypair.did, claim: profile})
       .then(jwt => ipfsAdd(jwt))
       .then(hash => {
-        console.log('uploaded, ', this.vc)
         this.vc.unshift(`/ipfs/${hash}`)
         return hash
       })

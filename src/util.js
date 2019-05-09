@@ -25,6 +25,8 @@ export function hasWeb3() {
  * @private
  */
 export function ipfsAdd(jwt) {
+  console.log('IPFS ADD')
+  console.log(jwt)
   return new Promise((resolve, reject) => {
     // Create new FormData to hold stringified JSON
     const payload = new FormData()

@@ -3,10 +3,10 @@ module.exports = function (config) {
     basePath: '',
     browsers: ['Chrome'],
     frameworks: [ 'mocha', 'chai' ],
-    files: ['./unit/Connect.js', './unit/UportSubprovider.js', '../src/*.js'],
+    files: ['./e2e/*.js', '../src/*.js'],
     preprocessors: {
       '../src/*.js': ['webpack', 'sourcemap'],
-      './unit/*.js': ['webpack']
+      './e2e/*.js': ['webpack']
     },
     reporters: [ 'mocha', 'coverage' ],
     webpack: {
@@ -29,13 +29,6 @@ module.exports = function (config) {
     },
     webpackServer: {
       noInfo: true
-    },
-    coverageReporter: {
-      reporters: [
-        {type: 'text'},
-        {type:'lcovonly', subdir: '.'},
-        {type:'html', subdir: 'html'}
-      ]
     },
     port: 9876,
     logLevel: config.LOG_INFO,
