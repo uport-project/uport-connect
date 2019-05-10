@@ -5,7 +5,8 @@ import Web3 from 'web3'
 
 import { Connect } from '../../src'
 import { message } from 'uport-transports'
-import { decodeJWT, verifyJWT } from 'did-jwt'
+import didjwt from 'did-jwt'
+import credentials from 'uport-credentials'
 
 chai.use(sinonChai)
 
@@ -118,7 +119,7 @@ describe('Connect', () => {
       const transport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(decoded.payload.iss).is.equal(uport.keypair.did)
         done()
       }
@@ -129,7 +130,7 @@ describe('Connect', () => {
     it('sets chasqui as callback if not on mobile', (done) => {
       const transport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/chasqui/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -140,7 +141,7 @@ describe('Connect', () => {
     it('sets this window as callback if on mobile', (done) => {
       const mobileTransport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/localhost/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -370,6 +371,35 @@ describe('Connect', () => {
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
         expect(res.payload).to.equal('test')
+        done()
+        return
+      })
+      uport.PubSub.publish(id, response)
+    })
+
+    it('does not return anything and publishes multiple responses if passed a callback', (done) => {
+      let callCount = 0
+      const response = { payload: 'test', data: '' }
+      const uport = new Connect('testApp')
+      uport.onResponse(id, (err, res) => {
+        expect(err).to.be.null
+        expect(res.payload).to.equal('test')
+        callCount++
+        if (callCount == 2) {
+          done()
+        }
+        return
+      })
+      uport.PubSub.publish(id, response)
+      uport.PubSub.publish(id, response)
+    })
+
+    it('returns an error to callback when the response cannot be parsed', (done) => {
+      const response = { error: 'bad response' }
+      const uport = new Connect('testApp')
+      uport.onResponse(id, (err, res) => {
+        expect(err).to.not.be.null
+        expect(res).to.be.null
         done()
         return
       })
@@ -702,7 +732,7 @@ describe('Connect', () => {
       uport.send = (jwt, id, sendOpts) => {
         expect(id).to.equal(testId)
         expect(sendOpts).to.deep.equal(opts)
-        verifyJWT(jwt, { audience: uport.keypair.did }).then(({ payload, issuer }) => {
+        didjwt.verifyJWT(jwt, { audience: uport.keypair.did }).then(({ payload, issuer }) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.typedData).to.deep.equal(typedData)
           done()
@@ -770,7 +800,7 @@ describe('Connect', () => {
     it('encodes transaction address as mnid with network id if not mnid', (done) => {
       const send = (uri) => {
         const jwt = getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(decoded.payload.to).to.equal('2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6')
         done()
       }
@@ -782,7 +812,7 @@ describe('Connect', () => {
     it('sets chasqui as callback if not on mobile', (done) => {
       const send = (uri) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/chasqui/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -794,7 +824,7 @@ describe('Connect', () => {
     it('sets this window as callback if on mobile', () => {
       const send = (uri) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/localhost/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -970,6 +1000,31 @@ describe('Connect', () => {
       expect(uport.pushTransport).to.be.falsey
       expect(uport.credentials).not.to.equal(oldCredentials)
       expect(uport.credentials).not.to.deep.equal(oldCredentials)
+    })
+  })
+
+  /*********************************************************************/
+
+  describe('verifyResponse', () => {
+    it('calls didjwt.verifyJWT', (done) => {
+      const uport = new Connect('testApp')
+      const spy = sinon.spy(didjwt, 'verifyJWT')
+      uport.verifyResponse('asdfkjsadf')
+      expect(spy.called).to.be.true
+      spy.restore()
+      done()
+    })
+
+    it('caches the response doc', (done) => {
+      const token = 'abcdefg'
+      const uport = new Connect('testApp')
+      const doc = {type: 'disclosure response'}
+      sinon.stub(didjwt, 'verifyJWT').resolves({doc})
+      uport.credentials.processDisclosurePayload = sinon.spy()
+      uport.verifyResponse(token).then(_ => {
+        expect(uport.doc).to.deep.equal(doc)
+        done()
+      })
     })
   })
 })
