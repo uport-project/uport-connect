@@ -3,7 +3,7 @@ module.exports = function (config) {
     basePath: '',
     browsers: ['Chrome'],
     frameworks: [ 'mocha', 'chai' ],
-    files: ['./unit/Connect.js', './unit/UportSubprovider.js', '../src/*.js'],
+    files: ['./unit/*.js', '../src/*.js'],
     preprocessors: {
       '../src/*.js': ['webpack', 'sourcemap'],
       './unit/*.js': ['webpack']
