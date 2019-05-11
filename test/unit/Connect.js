@@ -6,7 +6,7 @@ import Web3 from 'web3'
 import { Connect } from '../../src'
 import { message } from 'uport-transports'
 import didjwt from 'did-jwt'
-import credentials from 'uport-credentials'
+import util from '../../src/util'
 
 chai.use(sinonChai)
 
@@ -559,6 +559,18 @@ describe('Connect', () => {
       uport.send('request', 'topic')
     })
 
+    it('publishes error when receiving when transport fails', (done) => {
+      const transport = sinon.stub().rejects('error')
+      const uport = new Connect('testapp', { isMobile: false })
+      uport.usePuse = false
+      uport.transport = transport
+      uport.PubSub.subscribe('fail', (msg, res) => {
+        expect(res instanceof Error).to.be.true
+        done()
+      })
+      uport.send('message', 'fail')
+    })
+
     it('publishes response to subscriber once returned when using pushTransport', (done) => {
       const pushTransport = sinon.stub().resolves('test')
       const uport = new Connect('testapp', { isMobile: false })
@@ -598,6 +610,23 @@ describe('Connect', () => {
   })
 
   /*********************************************************************/
+
+  describe('signAndUploadProfile', () => {
+    it('caches the ipfs hash', () => {
+      const uport = new Connect('testApp')
+      const jwt = 'abc'
+      const hash = '12345'
+
+      uport.credentials.createVerification = sinon.stub().resolves(jwt)
+      sinon.stub(util, 'ipfsAdd').resolves(hash)
+
+      uport.signAndUploadProfile(null).then(h => {
+        console.log('done with h', h)
+        console.log(uport.vc)
+        done()
+      })
+    })
+  })
 
   describe('requestVerificationSignature', () => {
     const vc = ['fake']

@@ -6,7 +6,7 @@ import MobileDetect from 'mobile-detect'
  *  @return   {Boolean} Returns true if on mobile or tablet, false otherwise.
  *  @private
  */
-export const isMobile = () => {
+const isMobile = () => {
   if (typeof navigator !== 'undefined') {
     return !!(new MobileDetect(navigator.userAgent).mobile())
   } else return false
@@ -16,7 +16,7 @@ export const isMobile = () => {
  * Detect whether the current window has an injected web3 instance
  * @private
  */
-export function hasWeb3() {
+function hasWeb3() {
   return (typeof web3 !== 'undefined')
 }
 
@@ -24,7 +24,7 @@ export function hasWeb3() {
  * Post a json document to ipfs
  * @private
  */
-export function ipfsAdd(jwt) {
+function ipfsAdd(jwt) {
   return new Promise((resolve, reject) => {
     // Create new FormData to hold stringified JSON
     const payload = new FormData()
@@ -42,4 +42,10 @@ export function ipfsAdd(jwt) {
     req.enctype = 'multipart/form-data'
     req.send(payload)
   })
+}
+
+module.exports = {
+  ipfsAdd,
+  hasWeb3,
+  isMobile,
 }
