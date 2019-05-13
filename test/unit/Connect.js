@@ -506,6 +506,15 @@ describe('Connect', () => {
 
       uport.PubSub.publish('id', { payload: resJWT })
     })
+
+    it('rejects if an error is published', done => {
+      const uport = new Connect('testApp')
+      uport.onResponse('error').catch(err => {
+        expect(err).to.be.not.null
+        done()
+      })
+      uport.PubSub.publish('error', new Error('something bad happened'))
+    })
   })
 
   /*********************************************************************/
