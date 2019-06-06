@@ -181,7 +181,11 @@ class Connect {
       return new Promise((resolve, reject) => {
         this.PubSub.subscribe(id, (msg, res) => {
           this.PubSub.unsubscribe(id)
+          if (res instanceof Error) {
+            reject(res)
+          } else {
           parseResponse(res).then(resolve, reject)
+          }
         })
       })
     }
@@ -233,7 +237,9 @@ class Connect {
     } else if (this.usePush && this.pushTransport) {
       this.pushTransport(request, {data}).then(res => this.PubSub.publish(id, res))
     } else {
-      this.transport(request, {data, cancel}).then(res => this.PubSub.publish(id, res))
+      this.transport(request, {data, cancel})
+        .then(res => this.PubSub.publish(id, res))
+        .catch(err => this.PubSub.publish(id, err))
     }
   }
 
@@ -580,7 +586,6 @@ class Connect {
     return this.credentials.createVerification({sub: this.keypair.did, claim: profile})
       .then(jwt => ipfsAdd(jwt))
       .then(hash => {
-        console.log('uploaded, ', this.vc)
         this.vc.unshift(`/ipfs/${hash}`)
         return hash
       })

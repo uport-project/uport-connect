@@ -1,20 +1,18 @@
-import chai, { expect, assert } from 'chai'
+import chai, { expect } from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
 import Web3 from 'web3'
-import IPFS from 'ipfs-mini'
 
-import { Connect } from '../src'
+import { Connect } from '../../src'
 import { message } from 'uport-transports'
-import { decodeJWT, verifyJWT } from 'did-jwt'
-import { decode } from 'mnid';
+import didjwt from 'did-jwt'
+import util from '../../src/util'
 
 chai.use(sinonChai)
 
 // TODO import from messages after
 const isJWT = (jwt) => /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)/.test(jwt)
 const getURLJWT = (url) => url.replace(/https:\/\/id.uport.me\/req\//, '').replace(/(\#|\?)(.*)/, '')
-const ipfs = new IPFS({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' })
 
 const resJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE1MzI0NTkyNzIsImV4cCI6MTUzMjU0NTY3MiwiYXVkIjoiMm9lWHVmSEdEcFU1MWJmS0JzWkRkdTdKZTl3ZUozcjdzVkciLCJ0eXBlIjoic2hhcmVSZXNwIiwibmFkIjoiMm91c1hUalBFRnJrZjl3NjY3YXR5R3hQY3h1R0Q0UEYyNGUiLCJvd24iOnsibmFtZSI6IlphY2giLCJjb3VudHJ5IjoiVVMifSwicmVxIjoiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOalFzSW5KbGNYVmxjM1JsWkNJNld5SnVZVzFsSWl3aWNHaHZibVVpTENKamIzVnVkSEo1SWl3aVlYWmhkR0Z5SWwwc0luQmxjbTFwYzNOcGIyNXpJanBiSW01dmRHbG1hV05oZEdsdmJuTWlYU3dpWTJGc2JHSmhZMnNpT2lKb2RIUndjem92TDJOb1lYTnhkV2t1ZFhCdmNuUXViV1V2WVhCcEwzWXhMM1J2Y0dsakwxbzJNM1owVkdGclMyMXdjVlZxVUc0aUxDSnVaWFFpT2lJd2VEUWlMQ0owZVhCbElqb2ljMmhoY21WU1pYRWlMQ0pwYzNNaU9pSXliMlZZZFdaSVIwUndWVFV4WW1aTFFuTmFSR1IxTjBwbE9YZGxTak55TjNOV1J5SjkuRTZLd3ZiN1Z1Tks4a3VaNFVmODVhNFBJVXFhOTd2U2RUTEZOaTEtMzRyYXB0N0V1Q1hHYjU5UXo1MndtUmZIZUhhVS1ZVW5yN3lpZ0p0dE9CYlBZaHciLCJjYXBhYmlsaXRpZXMiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKcFlYUWlPakUxTXpJME5Ua3lOeklzSW1WNGNDSTZNVFV6TXpjMU5USTNNaXdpWVhWa0lqb2lNbTlsV0hWbVNFZEVjRlUxTVdKbVMwSnpXa1JrZFRkS1pUbDNaVW96Y2pkelZrY2lMQ0owZVhCbElqb2libTkwYVdacFkyRjBhVzl1Y3lJc0luWmhiSFZsSWpvaVlYSnVPbUYzY3pwemJuTTZkWE10ZDJWemRDMHlPakV4TXpFNU5qSXhOalUxT0RwbGJtUndiMmx1ZEM5QlVFNVRMM1ZRYjNKMEx6QmtNVGcwWkRobExXVTBZbVF0TTJNMFl5MDRZbVUxTFdKa1ptSm1aV0kxTVRBeFpTSXNJbWx6Y3lJNklqSnZkWE5ZVkdwUVJVWnlhMlk1ZHpZMk4yRjBlVWQ0VUdONGRVZEVORkJHTWpSbEluMC4tdGFZVS1rVlRzNktJNUtQQ3R5akdHbTdOMFlfV0RNeVY2ZUVRdWZVS0ZXRllQdHZqYnpKMFZrdVdYTUtzb3lyZ0JmM1VxeE9iRzd0NW9ydGxOSm5WZyJdLCJwdWJsaWNFbmNLZXkiOiJKQUJ1dUpIK051ekgwS3NvaEdEUUt2elhkS0ltSXhJcklFN0k2dXBmMnpvPSIsImlzcyI6IjJvdXNYVGpQRUZya2Y5dzY2N2F0eUd4UGN4dUdENFBGMjRlIn0.9-1Yziz0SyB7RdKu_NUXvr64-KZBz30z0rS59oQoAz0fETmZB7Egezs_2YPkIsbjOeXo6st3ezZeXpc7nZOW-A"
 
@@ -121,7 +119,7 @@ describe('Connect', () => {
       const transport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
         expect(isJWT(jwt)).to.be.true
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(decoded.payload.iss).is.equal(uport.keypair.did)
         done()
       }
@@ -132,7 +130,7 @@ describe('Connect', () => {
     it('sets chasqui as callback if not on mobile', (done) => {
       const transport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/chasqui/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -143,7 +141,7 @@ describe('Connect', () => {
     it('sets this window as callback if on mobile', (done) => {
       const mobileTransport = (uri, opts) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/localhost/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -293,79 +291,6 @@ describe('Connect', () => {
     })
   })
 
-
-  /*********************************************************************/
-  describe('signAndUploadProfile', () => {
-    const vc = ['fake']
-    it('skips upload if vc is preconfigured', async () => {
-      const uport = new Connect('test app', { vc })
-      await uport.signAndUploadProfile()
-
-      expect(uport.vc).to.deep.equal(vc)
-    })
-
-    it('uploads a self-signed profile to ipfs if none is configured or provided', async function () {
-      this.timeout(20000) // could take a while
-      const uport = new Connect('test app', { description: 'It tests' })
-
-      const jwt = {
-        name: 'test app',
-        description: 'It tests',
-        url: 'http://localhost:9876'
-      }
-
-      await uport.signAndUploadProfile()
-      expect(uport.vc[0]).to.match(/^\/ipfs\//)
-      return new Promise((resolve, reject) => {
-        ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
-          if (err) reject(err)
-          const { payload } = decodeJWT(res)
-          expect(payload.sub).to.equal(uport.keypair.did)
-          const profile = payload.claim
-          expect(profile.name).to.equal(jwt.name)
-          expect(profile.description).to.equal(jwt.description)
-          expect(profile.url).to.equal(jwt.url)
-          resolve()
-        })
-      })
-    })
-  })
-  /*********************************************************************/
-  describe('signAndUploadProfile', () => {
-    it('skips upload if vc is preconfigured', async () => {
-      const vc = ['fake']
-      const uport = new Connect('test app', { vc })
-
-      await uport.signAndUploadProfile()
-      expect(uport.vc).to.deep.equal(vc)
-    })
-
-    it('uploads a self-signed profile to ipfs if none is configured or provided', async function () {
-      this.timeout(20000) // could take a while
-      const uport = new Connect('test app', { description: 'It tests' })
-
-      const jwt = {
-        name: 'test app',
-        description: 'It tests',
-        url: 'http://localhost:9876'
-      }
-
-      await uport.signAndUploadProfile()
-      expect(uport.vc[0]).to.match(/^\/ipfs\//)
-      return new Promise((resolve, reject) => {
-        ipfs.cat(uport.vc[0].replace(/^\/ipfs\//, ''), (err, res) => {
-          if (err) reject(err)
-          const { payload } = decodeJWT(res)
-          expect(payload.sub).to.equal(uport.keypair.did)
-          const profile = payload.claim
-          expect(profile.name).to.equal(jwt.name)
-          expect(profile.description).to.equal(jwt.description)
-          expect(profile.url).to.equal(jwt.url)
-          resolve()
-        })
-      })
-    })
-  })
   /*********************************************************************/
 
   describe('getProvider', () => {
@@ -446,6 +371,35 @@ describe('Connect', () => {
       const uport = new Connect('testApp')
       uport.onResponse(id).then((res) => {
         expect(res.payload).to.equal('test')
+        done()
+        return
+      })
+      uport.PubSub.publish(id, response)
+    })
+
+    it('does not return anything and publishes multiple responses if passed a callback', (done) => {
+      let callCount = 0
+      const response = { payload: 'test', data: '' }
+      const uport = new Connect('testApp')
+      uport.onResponse(id, (err, res) => {
+        expect(err).to.be.null
+        expect(res.payload).to.equal('test')
+        callCount++
+        if (callCount == 2) {
+          done()
+        }
+        return
+      })
+      uport.PubSub.publish(id, response)
+      uport.PubSub.publish(id, response)
+    })
+
+    it('returns an error to callback when the response cannot be parsed', (done) => {
+      const response = { error: 'bad response' }
+      const uport = new Connect('testApp')
+      uport.onResponse(id, (err, res) => {
+        expect(err).to.not.be.null
+        expect(res).to.be.null
         done()
         return
       })
@@ -552,6 +506,15 @@ describe('Connect', () => {
 
       uport.PubSub.publish('id', { payload: resJWT })
     })
+
+    it('rejects if an error is published', done => {
+      const uport = new Connect('testApp')
+      uport.onResponse('error').catch(err => {
+        expect(err).to.be.not.null
+        done()
+      })
+      uport.PubSub.publish('error', new Error('something bad happened'))
+    })
   })
 
   /*********************************************************************/
@@ -605,6 +568,18 @@ describe('Connect', () => {
       uport.send('request', 'topic')
     })
 
+    it('publishes error when receiving when transport fails', (done) => {
+      const transport = sinon.stub().rejects('error')
+      const uport = new Connect('testapp', { isMobile: false })
+      uport.usePuse = false
+      uport.transport = transport
+      uport.PubSub.subscribe('fail', (msg, res) => {
+        expect(res instanceof Error).to.be.true
+        done()
+      })
+      uport.send('message', 'fail')
+    })
+
     it('publishes response to subscriber once returned when using pushTransport', (done) => {
       const pushTransport = sinon.stub().resolves('test')
       const uport = new Connect('testapp', { isMobile: false })
@@ -644,6 +619,23 @@ describe('Connect', () => {
   })
 
   /*********************************************************************/
+
+  describe('signAndUploadProfile', () => {
+    it('caches the ipfs hash', () => {
+      const uport = new Connect('testApp')
+      const jwt = 'abc'
+      const hash = '12345'
+
+      uport.credentials.createVerification = sinon.stub().resolves(jwt)
+      sinon.stub(util, 'ipfsAdd').resolves(hash)
+
+      uport.signAndUploadProfile(null).then(h => {
+        console.log('done with h', h)
+        console.log(uport.vc)
+        done()
+      })
+    })
+  })
 
   describe('requestVerificationSignature', () => {
     const vc = ['fake']
@@ -778,7 +770,7 @@ describe('Connect', () => {
       uport.send = (jwt, id, sendOpts) => {
         expect(id).to.equal(testId)
         expect(sendOpts).to.deep.equal(opts)
-        verifyJWT(jwt, { audience: uport.keypair.did }).then(({ payload, issuer }) => {
+        didjwt.verifyJWT(jwt, { audience: uport.keypair.did }).then(({ payload, issuer }) => {
           expect(issuer).to.equal(uport.keypair.did)
           expect(payload.typedData).to.deep.equal(typedData)
           done()
@@ -846,7 +838,7 @@ describe('Connect', () => {
     it('encodes transaction address as mnid with network id if not mnid', (done) => {
       const send = (uri) => {
         const jwt = getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(decoded.payload.to).to.equal('2ooE3vLGYi9vHmfYSc3ZxABfN5p8756sgi6')
         done()
       }
@@ -858,7 +850,7 @@ describe('Connect', () => {
     it('sets chasqui as callback if not on mobile', (done) => {
       const send = (uri) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/chasqui/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -870,7 +862,7 @@ describe('Connect', () => {
     it('sets this window as callback if on mobile', () => {
       const send = (uri) => {
         const jwt = message.util.getURLJWT(uri)
-        const decoded = decodeJWT(jwt)
+        const decoded = didjwt.decodeJWT(jwt)
         expect(/localhost/.test(decoded.payload.callback)).to.be.true
         done()
       }
@@ -1046,6 +1038,31 @@ describe('Connect', () => {
       expect(uport.pushTransport).to.be.falsey
       expect(uport.credentials).not.to.equal(oldCredentials)
       expect(uport.credentials).not.to.deep.equal(oldCredentials)
+    })
+  })
+
+  /*********************************************************************/
+
+  describe('verifyResponse', () => {
+    it('calls didjwt.verifyJWT', (done) => {
+      const uport = new Connect('testApp')
+      const spy = sinon.spy(didjwt, 'verifyJWT')
+      uport.verifyResponse('asdfkjsadf')
+      expect(spy.called).to.be.true
+      spy.restore()
+      done()
+    })
+
+    it('caches the response doc', (done) => {
+      const token = 'abcdefg'
+      const uport = new Connect('testApp')
+      const doc = {type: 'disclosure response'}
+      sinon.stub(didjwt, 'verifyJWT').resolves({doc})
+      uport.credentials.processDisclosurePayload = sinon.spy()
+      uport.verifyResponse(token).then(_ => {
+        expect(uport.doc).to.deep.equal(doc)
+        done()
+      })
     })
   })
 })

@@ -1,6 +1,6 @@
 {
   "name": "uport-connect",
-  "version": "1.1.11",
+  "version": "1.1.12-dev.0",
   "description": "Library for integrating uPort into your app frontend",
   "main": "lib/index.js",
   "scripts": {
@@ -14,6 +14,7 @@
     "docs:html": "./node_modules/.bin/jsdoc src/* README.md -d docs",
     "docs:md": "./node_modules/jsdoc-to-markdown/bin/cli.js src/* > DOCS.md",
     "test": "npm run lint; npm run karma",
+    "test:e2e": "./node_modules/.bin/karma start test/e2e.conf.js --single-run --browsers Chrome",
     "karma": "./node_modules/.bin/karma start test/karma.conf.js --single-run --browsers Chrome",
     "karma:watch": "./node_modules/.bin/karma start test/karma.conf.js --browsers Chrome",
     "karma:package": "cd package-test && ./setup && cd .. && ./node_modules/.bin/karma start package-test/karma.conf.js --single-run --browsers Chrome && cd package-test && ./clean",
@@ -110,7 +111,7 @@
     "store": "^2.0.12",
     "uport-credentials": "^1.2.1",
     "uport-lite": "^1.0.5",
-    "uport-transports": "^0.2.6"
+    "uport-transports": "^0.2.7-dev.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -140,7 +141,7 @@
     "ganache-cli": "^6.1.0",
     "imports-loader": "^0.8.0",
     "inject-loader": "^4.0.1",
-    "ipfs-mini": "^1.1.2",
+    "ipfs-mini": "^1.1.5",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
     "jsdoc": "^3.4.3",

@@ -1,7 +1,7 @@
-import SubproviderLoader from 'inject-loader!../src/UportSubprovider.js'
+import SubproviderLoader from 'inject-loader!../../src/UportSubprovider.js'
 import HttpProvider from 'ethjs-provider-http'
 
-import chai, { expect, assert } from 'chai'
+import chai, { expect } from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
 chai.use(sinonChai)
