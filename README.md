@@ -162,6 +162,25 @@ To send transaction:
 ```javascript
 web3.eth.sendTransaction(txObj, (error, txHash) => {...})
 ```
+
+### Private Chain support
+
+While the primary uPort Credentials functionality does not tie you to any specific blockchain. You are able to request ethereum accounts for use with private ethereum compatible chains. You will need a network ID and a JSON-RPC endpoint accessible to both your browser app and the mobile client.
+
+To configure it, pass in a network object for configuration.
+
+```javascript
+const uport = new Connect('MyDAppName', {
+  network: {
+    id: '0xdeadbeef',
+    rpcUrl: 'https://mybankrpc.example.com/'
+  }
+})
+const provider = uport.getProvider()
+const web3 = new Web3(provider)
+web3.eth.getCoinbase((error, address) => { ... }) // request address for use on private chain
+```
+
 ### <a name="browser-quick-start"></a> Browser Window Quick Start
 
 For use directly in the browser you can reference the uport-connect distribution files from a number of places. They can be found in our npm package in the 'dist' folder or you can build them locally from this repo.
