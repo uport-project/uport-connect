@@ -102,8 +102,11 @@
     ]
   },
   "dependencies": {
+    "did-jwt": "^4.0.0",
+    "did-resolver": "^1.1.0",
     "ethjs-abi": "^0.2.1",
     "ethjs-provider-http": "^0.1.6",
+    "ethr-did-resolver": "^1.0.3",
     "mnid": "^0.1.1",
     "mobile-detect": "^1.3.5",
     "pubsub-js": "^1.6.0",
@@ -111,7 +114,8 @@
     "store": "^2.0.12",
     "uport-credentials": "^1.2.1",
     "uport-lite": "^1.0.5",
-    "uport-transports": "^0.2.7-dev.0"
+    "uport-transports": "^0.2.7-dev.0",
+    "web-did-resolver": "^1.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -134,7 +138,6 @@
     "codecov": "^1.0.1",
     "condition-circle": "^1.5.0",
     "cz-conventional-changelog": "^1.2.0",
-    "did-jwt": "^0.1.3",
     "eslint": "^4.18.2",
     "ethjs-signer": "^0.1.1",
     "exports-loader": "^0.7.0",
@@ -144,7 +147,7 @@
     "ipfs-mini": "^1.1.5",
     "istanbul": "^0.4.5",
     "istanbul-instrumenter-loader": "0.2.0",
-    "jsdoc": "^3.4.3",
+    "jsdoc": "^3.6.3",
     "jsdoc-to-markdown": "^1.3.7",
     "json-loader": "^0.5.4",
     "karma": "^2.0.3",
@@ -161,7 +164,7 @@
     "mocha": "^5.2.0",
     "phantomjs-polyfill-object-assign": "^0.0.2",
     "phantomjs-prebuilt": "^2.1.14",
-    "publish-release": "^1.3.2",
+    "publish-release": "^1.6.1",
     "reify": "^0.3.8",
     "semantic-release": "^4.3.5",
     "sinon": "git+https://github.com/sinonjs/sinon.git#afdf4255e97e8a8738da19ddfafd18efc09c917a",
@@ -170,7 +173,7 @@
     "standard": "^11.0.1",
     "supervisor": "^0.12.0",
     "web3": "^0.20.6",
-    "webpack": "^4.8.3",
+    "webpack": "^4.41.5",
     "webpack-cli": "^2.1.3"
   },
   "config": {
