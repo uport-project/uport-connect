@@ -661,17 +661,6 @@ describe('Connect', () => {
       uport.requestVerificationSignature(unsignedClaim, subject, requestId, sendOpts)
     })
 
-    it('throws an error if sub is missing', async () => {
-      const uport = new Connect('testapp', { vc })
-      try {
-        await uport.requestVerificationSignature({ test: 'hello' }, { missing: 'sub' })
-        expect(true).to.be.false
-      } catch (e) {
-        // GOOD
-        expect(e).not.to.be.null
-      }
-    })
-
     it('passes through an expiration field', (done) => {
       const uport = new Connect('testapp', { vc })
       const exp = 12345678
