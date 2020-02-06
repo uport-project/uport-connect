@@ -334,8 +334,6 @@ class Connect {
     if (typeof opts === 'string') {
       console.warn('The subject argument is deprecated, use option object with {sub: sub, ...}')
       opts = {sub: opts}
-    } else if (!opts || !opts.sub) {
-      throw new Error(`Missing required field sub in opts.  Received: ${opts}`)
     }
 
     this.credentials.createVerificationSignatureRequest(unsignedClaim, {...opts, aud: this.did, callbackUrl: this.genCallback(id), vc: this.vc})
