@@ -1,11 +1,12 @@
 /* global Web3 globalState render */
 
 // Setup
+var web3;
 const Connect = window.uportconnect
 const yourAppName = 'UportTutorial'
 const connect = new Connect(yourAppName, {network: 'rinkeby'})
 const provider = connect.getProvider()
-const web3 = new Web3(provider)
+web3 = new Web3(provider)
 // Work around to issue with web3 requiring a from parameter. This isn't actually used.
 web3.eth.defaultAccount = '0xB42E70a3c6dd57003f4bFe7B06E370d21CDA8087'
 
