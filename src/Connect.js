@@ -1,5 +1,7 @@
 import { Credentials, ContractFactory } from 'uport-credentials'
 import { verifyJWT, decodeJWT } from 'did-jwt'
+import { getResolver as getWebResolver } from 'web-did-resolver'
+import * as EthrDIDResolver from 'ethr-did-resolver'
 import MobileDetect from 'mobile-detect'
 import { isMNID, encode, decode } from 'mnid'
 import { transport, message, network } from 'uport-transports'
@@ -88,6 +90,14 @@ class Connect {
     // Credential (uport-js) config for verification
     this.registry = opts.registry || UportLite({ networks: network.config.networkToNetworkSet(this.network) })
     this.resolverConfigs = {registry: this.registry, ethrConfig: opts.ethrConfig, muportConfig: opts.muportConfig }
+
+    const { Resolver } = require('did-resolver');
+    const ethr = EthrDIDResolver.getResolver(opts.ethrConfig)
+    this.resolver = new Resolver({
+        ...getWebResolver(),
+        ...ethr
+    });
+
     this.credentials = new Credentials(Object.assign(this.keypair, this.resolverConfigs))     // TODO can resolver configs not be passed through
   }
 
@@ -212,7 +222,7 @@ class Connect {
    * @param {JWT} token   the JWT to be verified
    */
   verifyResponse (token) {
-    return verifyJWT(token, {audience: this.credentials.did}).then(res => {
+    return verifyJWT(token, {audience: this.credentials.did, resolver: this.resolver}).then(res => {
       this.doc = res.doc
       return this.credentials.processDisclosurePayload(res)
     })
